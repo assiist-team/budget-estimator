@@ -1,8 +1,36 @@
-// Hook to fetch room templates from Firestore
+// Hook to fetch room templates from local JSON file (for development/testing)
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import type { RoomTemplate } from '../types';
+
+// Temporary function to load room templates from local JSON file
+async function loadRoomTemplatesFromFile(): Promise<Map<string, RoomTemplate>> {
+  try {
+    const response = await fetch('/roomTemplates.json');
+    const templatesArray = await response.json();
+    const templates = new Map<string, RoomTemplate>();
+
+    templatesArray.forEach((template: any) => {
+      templates.set(template.id, {
+        id: template.id,
+        name: template.name,
+        displayName: template.displayName,
+        description: template.description,
+        category: template.category,
+        icon: template.icon,
+        active: template.active,
+        sortOrder: template.sortOrder,
+        sizes: template.sizes,
+        createdAt: new Date(template.createdAt),
+        updatedAt: new Date(template.updatedAt),
+      } as RoomTemplate);
+    });
+
+    return templates;
+  } catch (error) {
+    console.error('Error loading room templates from file:', error);
+    throw error;
+  }
+}
 
 export function useRoomTemplates() {
   const [roomTemplates, setRoomTemplates] = useState<Map<string, RoomTemplate>>(new Map());
@@ -12,24 +40,8 @@ export function useRoomTemplates() {
   useEffect(() => {
     async function fetchRoomTemplates() {
       try {
-        const q = query(
-          collection(db, 'roomTemplates'),
-          orderBy('sortOrder')
-        );
-        
-        const querySnapshot = await getDocs(q);
-        const templates = new Map<string, RoomTemplate>();
-        
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          templates.set(doc.id, {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
-            updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
-          } as RoomTemplate);
-        });
-        
+        // Load from local JSON file for development/testing
+        const templates = await loadRoomTemplatesFromFile();
         setRoomTemplates(templates);
         setLoading(false);
       } catch (err) {

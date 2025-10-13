@@ -247,7 +247,17 @@
     "sizes": {
       "small": {
         "displayName": "Small Single Bedroom",
-        "items": [],
+        "items": [
+          {"itemId": "king_bed_frame", "quantity": 1},
+          {"itemId": "mattress", "quantity": 1},
+          {"itemId": "sheets", "quantity": 1},
+          {"itemId": "sleeping_pillows", "quantity": 2},
+          {"itemId": "nightstands", "quantity": 1},
+          {"itemId": "lamps", "quantity": 1},
+          {"itemId": "dresser", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 1},
+          {"itemId": "area_rug", "quantity": 1}
+        ],
         "totals": {
           "budget": 828500,
           "mid": 1689000,
@@ -257,7 +267,19 @@
       },
       "medium": {
         "displayName": "Medium Single Bedroom",
-        "items": [],
+        "items": [
+          {"itemId": "king_bed_frame", "quantity": 1},
+          {"itemId": "mattress", "quantity": 1},
+          {"itemId": "sheets", "quantity": 1},
+          {"itemId": "sleeping_pillows", "quantity": 2},
+          {"itemId": "nightstands", "quantity": 2},
+          {"itemId": "lamps", "quantity": 2},
+          {"itemId": "dresser", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 2},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "chair", "quantity": 1},
+          {"itemId": "mirror", "quantity": 1}
+        ],
         "totals": {
           "budget": 1121500,
           "mid": 2203000,
@@ -267,7 +289,20 @@
       },
       "large": {
         "displayName": "Large Single Bedroom",
-        "items": [],
+        "items": [
+          {"itemId": "king_bed_frame", "quantity": 1},
+          {"itemId": "mattress", "quantity": 1},
+          {"itemId": "sheets", "quantity": 1},
+          {"itemId": "sleeping_pillows", "quantity": 2},
+          {"itemId": "nightstands", "quantity": 2},
+          {"itemId": "lamps", "quantity": 2},
+          {"itemId": "dresser", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 3},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "chair", "quantity": 2},
+          {"itemId": "mirror", "quantity": 1},
+          {"itemId": "bench_or_stools", "quantity": 1}
+        ],
         "totals": {
           "budget": 1661500,
           "mid": 3167000,
@@ -291,7 +326,17 @@
     "sizes": {
       "small": {
         "displayName": "Small Double Bedroom",
-        "items": [],
+        "items": [
+          {"itemId": "king_bed_frame", "quantity": 1},
+          {"itemId": "mattress", "quantity": 1},
+          {"itemId": "sheets", "quantity": 1},
+          {"itemId": "sleeping_pillows", "quantity": 2},
+          {"itemId": "nightstands", "quantity": 2},
+          {"itemId": "lamps", "quantity": 2},
+          {"itemId": "dresser", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 1},
+          {"itemId": "area_rug", "quantity": 1}
+        ],
         "totals": {
           "budget": 828500,
           "mid": 1689000,
@@ -301,7 +346,20 @@
       },
       "medium": {
         "displayName": "Medium Double Bedroom",
-        "items": [],
+        "items": [
+          {"itemId": "king_bed_frame", "quantity": 1},
+          {"itemId": "mattress", "quantity": 1},
+          {"itemId": "sheets", "quantity": 1},
+          {"itemId": "sleeping_pillows", "quantity": 2},
+          {"itemId": "nightstands", "quantity": 2},
+          {"itemId": "lamps", "quantity": 2},
+          {"itemId": "dresser", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 2},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "chair", "quantity": 2},
+          {"itemId": "mirror", "quantity": 1},
+          {"itemId": "ottoman_or_pouf_s", "quantity": 1}
+        ],
         "totals": {
           "budget": 1121500,
           "mid": 2203000,
@@ -311,7 +369,21 @@
       },
       "large": {
         "displayName": "Large Double Bedroom",
-        "items": [],
+        "items": [
+          {"itemId": "king_bed_frame", "quantity": 1},
+          {"itemId": "mattress", "quantity": 1},
+          {"itemId": "sheets", "quantity": 1},
+          {"itemId": "sleeping_pillows", "quantity": 2},
+          {"itemId": "nightstands", "quantity": 2},
+          {"itemId": "lamps", "quantity": 2},
+          {"itemId": "dresser", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 3},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "chair", "quantity": 2},
+          {"itemId": "mirror", "quantity": 1},
+          {"itemId": "ottoman_or_pouf_s", "quantity": 2},
+          {"itemId": "bench_or_stools", "quantity": 1}
+        ],
         "totals": {
           "budget": 1661500,
           "mid": 3167000,
@@ -335,7 +407,16 @@
     "sizes": {
       "small": {
         "displayName": "Small Bunk Room",
-        "items": [],
+        "items": [
+          {"itemId": "bunk_bed", "quantity": 1},
+          {"itemId": "bunk_bed_mattress", "quantity": 2},
+          {"itemId": "sheets", "quantity": 2},
+          {"itemId": "sleeping_pillows", "quantity": 2},
+          {"itemId": "nightstands", "quantity": 1},
+          {"itemId": "lamps", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 1},
+          {"itemId": "area_rug", "quantity": 1}
+        ],
         "totals": {
           "budget": 828500,
           "mid": 1689000,
@@ -345,7 +426,18 @@
       },
       "medium": {
         "displayName": "Medium Bunk Room",
-        "items": [],
+        "items": [
+          {"itemId": "bunk_bed", "quantity": 2},
+          {"itemId": "bunk_bed_mattress", "quantity": 4},
+          {"itemId": "sheets", "quantity": 4},
+          {"itemId": "sleeping_pillows", "quantity": 4},
+          {"itemId": "nightstands", "quantity": 2},
+          {"itemId": "lamps", "quantity": 2},
+          {"itemId": "wall_art", "quantity": 2},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "chair", "quantity": 1},
+          {"itemId": "desk", "quantity": 1}
+        ],
         "totals": {
           "budget": 1121500,
           "mid": 2203000,
@@ -355,7 +447,19 @@
       },
       "large": {
         "displayName": "Large Bunk Room",
-        "items": [],
+        "items": [
+          {"itemId": "bunk_bed", "quantity": 3},
+          {"itemId": "bunk_bed_mattress", "quantity": 6},
+          {"itemId": "sheets", "quantity": 6},
+          {"itemId": "sleeping_pillows", "quantity": 6},
+          {"itemId": "nightstands", "quantity": 3},
+          {"itemId": "lamps", "quantity": 3},
+          {"itemId": "wall_art", "quantity": 3},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "chair", "quantity": 2},
+          {"itemId": "desk", "quantity": 2},
+          {"itemId": "bookshelf", "quantity": 1}
+        ],
         "totals": {
           "budget": 1661500,
           "mid": 3167000,
@@ -379,7 +483,16 @@
     "sizes": {
       "small": {
         "displayName": "Small Rec Room",
-        "items": [],
+        "items": [
+          {"itemId": "sofa_sectional", "quantity": 1},
+          {"itemId": "chair", "quantity": 2},
+          {"itemId": "coffee_table", "quantity": 1},
+          {"itemId": "tv_console", "quantity": 1},
+          {"itemId": "tv", "quantity": 1},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 2},
+          {"itemId": "games", "quantity": 1}
+        ],
         "totals": {
           "budget": 828500,
           "mid": 1689000,
@@ -389,7 +502,18 @@
       },
       "medium": {
         "displayName": "Medium Rec Room",
-        "items": [],
+        "items": [
+          {"itemId": "sofa_sectional", "quantity": 1},
+          {"itemId": "chair", "quantity": 4},
+          {"itemId": "coffee_table", "quantity": 1},
+          {"itemId": "side_tables", "quantity": 2},
+          {"itemId": "tv_console", "quantity": 1},
+          {"itemId": "tv", "quantity": 1},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 3},
+          {"itemId": "games", "quantity": 2},
+          {"itemId": "game_table", "quantity": 1}
+        ],
         "totals": {
           "budget": 1121500,
           "mid": 2203000,
@@ -399,7 +523,20 @@
       },
       "large": {
         "displayName": "Large Rec Room",
-        "items": [],
+        "items": [
+          {"itemId": "sofa_sectional", "quantity": 2},
+          {"itemId": "chair", "quantity": 6},
+          {"itemId": "coffee_table", "quantity": 1},
+          {"itemId": "side_tables", "quantity": 3},
+          {"itemId": "tv_console", "quantity": 1},
+          {"itemId": "tv", "quantity": 1},
+          {"itemId": "area_rug", "quantity": 1},
+          {"itemId": "wall_art", "quantity": 4},
+          {"itemId": "games", "quantity": 3},
+          {"itemId": "game_table", "quantity": 1},
+          {"itemId": "large_game_table", "quantity": 1},
+          {"itemId": "bean_bags", "quantity": 2}
+        ],
         "totals": {
           "budget": 1661500,
           "mid": 3167000,

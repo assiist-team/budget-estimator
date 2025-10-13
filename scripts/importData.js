@@ -166,63 +166,56 @@ async function importRoomData() {
 
     const csvPath = path.join(__dirname, '..', 'initial_dataset', csvFileName);
 
-      try {
-      // For now, use hardcoded values based on the CSV data I can see
-      // This is more reliable than trying to parse the complex CSV structure
-      const roomTotals = getHardcodedRoomTotals(roomType.id);
+    try {
+      // Parse the CSV to get actual room items
+      const roomItems = await parseRoomCSV(csvPath);
 
-      // Create basic room items (placeholder - would be populated from CSV in production)
-      const basicItems = [
-        { itemId: 'basic_furniture', quantity: 1 },
-        { itemId: 'decorative_items', quantity: 2 },
-        { itemId: 'lighting', quantity: 1 }
-      ];
-
-      roomData[roomType.id] = {
-        id: roomType.id,
-        name: roomType.name,
-        displayName: roomType.name,
-        description: `Complete ${roomType.name.toLowerCase()} setup with furnishings`,
-        category: roomType.category,
-        icon: roomType.icon,
-        active: true,
-        sortOrder: roomTypes.findIndex(r => r.id === roomType.id) + 1,
-        sizes: {
-          small: {
-            displayName: `Small ${roomType.name}`,
-            items: basicItems,
-            totals: {
-              budget: Math.round(roomTotals.small.budget * 100),    // Convert to cents
-              mid: Math.round(roomTotals.small.mid * 100),
-              midHigh: Math.round(roomTotals.small.midHigh * 100),
-              high: Math.round(roomTotals.small.high * 100)
+      if (roomItems) {
+        roomData[roomType.id] = {
+          id: roomType.id,
+          name: roomType.name,
+          displayName: roomType.name,
+          description: `Complete ${roomType.name.toLowerCase()} setup with furnishings`,
+          category: roomType.category,
+          icon: roomType.icon,
+          active: true,
+          sortOrder: roomTypes.findIndex(r => r.id === roomType.id) + 1,
+          sizes: {
+            small: {
+              displayName: `Small ${roomType.name}`,
+              items: roomItems.small,
+              totals: {
+                budget: Math.round(roomItems.smallTotals.budget * 100),
+                mid: Math.round(roomItems.smallTotals.mid * 100),
+                midHigh: Math.round(roomItems.smallTotals.midHigh * 100),
+                high: Math.round(roomItems.smallTotals.high * 100)
+              }
+            },
+            medium: {
+              displayName: `Medium ${roomType.name}`,
+              items: roomItems.medium,
+              totals: {
+                budget: Math.round(roomItems.mediumTotals.budget * 100),
+                mid: Math.round(roomItems.mediumTotals.mid * 100),
+                midHigh: Math.round(roomItems.mediumTotals.midHigh * 100),
+                high: Math.round(roomItems.mediumTotals.high * 100)
+              }
+            },
+            large: {
+              displayName: `Large ${roomType.name}`,
+              items: roomItems.large,
+              totals: {
+                budget: Math.round(roomItems.largeTotals.budget * 100),
+                mid: Math.round(roomItems.largeTotals.mid * 100),
+                midHigh: Math.round(roomItems.largeTotals.midHigh * 100),
+                high: Math.round(roomItems.largeTotals.high * 100)
+              }
             }
           },
-          medium: {
-            displayName: `Medium ${roomType.name}`,
-            items: basicItems.map(item => ({ ...item, quantity: Math.ceil(item.quantity * 1.5) })),
-            totals: {
-              budget: Math.round(roomTotals.medium.budget * 100),
-              mid: Math.round(roomTotals.medium.mid * 100),
-              midHigh: Math.round(roomTotals.medium.midHigh * 100),
-              high: Math.round(roomTotals.medium.high * 100)
-            }
-          },
-          large: {
-            displayName: `Large ${roomType.name}`,
-            items: basicItems.map(item => ({ ...item, quantity: item.quantity * 2 })),
-            totals: {
-              budget: Math.round(roomTotals.large.budget * 100),
-              mid: Math.round(roomTotals.large.mid * 100),
-              midHigh: Math.round(roomTotals.large.midHigh * 100),
-              high: Math.round(roomTotals.large.high * 100)
-            }
-          }
-        },
-        createdAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date(),
-        updatedAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date()
-      };
-
+          createdAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date(),
+          updatedAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date()
+        };
+      }
     } catch (error) {
       console.error(`Error parsing ${csvFileName}:`, error.message);
       // Use default values if CSV parsing fails
@@ -231,6 +224,65 @@ async function importRoomData() {
   }
 
   return roomData;
+}
+
+// Parse CSV file to extract room items and totals
+async function parseRoomCSV(csvPath) {
+  return new Promise((resolve, reject) => {
+    if (!fs.existsSync(csvPath)) {
+      console.log('CSV file not found:', csvPath);
+      reject(new Error('CSV file not found'));
+      return;
+    }
+
+    const roomData = {
+      small: [],
+      medium: [],
+      large: [],
+      smallTotals: { budget: 0, mid: 0, midHigh: 0, high: 0 },
+      mediumTotals: { budget: 0, mid: 0, midHigh: 0, high: 0 },
+      largeTotals: { budget: 0, mid: 0, midHigh: 0, high: 0 }
+    };
+
+    fs.createReadStream(csvPath)
+      .pipe(csv())
+      .on('data', (row) => {
+        // Skip header rows and total rows
+        if (row.Item && !row.Item.includes('Totals') && !row.Item.includes('Pricing')) {
+          const itemName = row.Item.toLowerCase().trim();
+          const smallQty = parseInt(row['Small Rm Qnty'] || row['Small Room Quantity'] || '0');
+          const mediumQty = parseInt(row['Mid Rm Qnty'] || row['Medium Room Quantity'] || '0');
+          const largeQty = parseInt(row['Large Rm Qnty'] || row['Large Room Quantity'] || '0');
+
+          // Skip items with zero quantities
+          if (smallQty === 0 && mediumQty === 0 && largeQty === 0) return;
+
+          // Convert item name to item ID
+          const itemId = slugify(itemName);
+
+          // Add items for each size if quantity > 0
+          if (smallQty > 0) {
+            roomData.small.push({ itemId, quantity: smallQty });
+          }
+          if (mediumQty > 0) {
+            roomData.medium.push({ itemId, quantity: mediumQty });
+          }
+          if (largeQty > 0) {
+            roomData.large.push({ itemId, quantity: largeQty });
+          }
+        }
+      })
+      .on('end', () => {
+        // Calculate totals from the CSV data at the end
+        // For now, we'll use placeholder totals until we can properly parse them
+        roomData.smallTotals = { budget: 8285, mid: 16890, midHigh: 29640, high: 58840 };
+        roomData.mediumTotals = { budget: 11215, mid: 22030, midHigh: 37830, high: 75880 };
+        roomData.largeTotals = { budget: 16615, mid: 31670, midHigh: 55420, high: 109220 };
+
+        resolve(roomData);
+      })
+      .on('error', reject);
+  });
 }
 
 // Get hardcoded room totals based on CSV data

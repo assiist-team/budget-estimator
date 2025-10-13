@@ -8,6 +8,7 @@ import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
 import type { ClientInfo } from '../types';
 import { formatCurrency, generateEstimateId } from '../utils/calculations';
+import { useRoomTemplates } from '../hooks/useRoomTemplates';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function ResultsPage() {
     reset
   } = useEstimatorStore();
 
+  const { roomTemplates, loading: templatesLoading } = useRoomTemplates();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -31,8 +33,15 @@ export default function ResultsPage() {
     }
   }, [budget, selectedRooms, navigate]);
 
-  if (!budget || !propertySpecs) {
-    return null;
+  if (!budget || !propertySpecs || templatesLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading estimate details...</p>
+        </div>
+      </div>
+    );
   }
 
 
@@ -145,18 +154,53 @@ export default function ResultsPage() {
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="space-y-2 mb-4">
-                    {budget.roomBreakdown.map((room, idx) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span className="text-gray-600">
-                          {room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          ({room.roomSize}) × {room.quantity}
-                        </span>
-                        <span className="font-medium text-gray-900">
-                          {formatCurrency(room.budgetAmount)} — {formatCurrency(Math.round(room.budgetAmount * 1.2))}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="space-y-6 mb-4">
+                    {budget.roomBreakdown.map((room, idx) => {
+                      const template = roomTemplates.get(room.roomType);
+                      const roomSizeData = template?.sizes[room.roomSize];
+
+                      return (
+                        <div key={idx} className="border-b border-gray-100 pb-4 last:border-b-0">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="font-medium text-gray-900">
+                                {room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </h4>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)} × {room.quantity}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-medium text-gray-900">
+                                {formatCurrency(room.budgetAmount)} — {formatCurrency(Math.round(room.budgetAmount * 1.2))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {roomSizeData && roomSizeData.items.length > 0 && (
+                            <div className="ml-4 space-y-2">
+                              <h5 className="text-sm font-medium text-gray-700 mb-2">Included Items:</h5>
+                              <div className="grid gap-2">
+                                {roomSizeData.items.map((roomItem, itemIdx) => {
+                                  const itemDisplayName = roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                                  return (
+                                    <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-3 py-2 rounded">
+                                      <span className="text-gray-700">
+                                        {itemDisplayName}
+                                      </span>
+                                      <span className="text-gray-600">
+                                        Qty: {roomItem.quantity}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="border-t border-gray-200 pt-3">
                     <div className="flex justify-between text-lg font-bold">
