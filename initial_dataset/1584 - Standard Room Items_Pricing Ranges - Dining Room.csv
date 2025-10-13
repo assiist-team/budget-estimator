@@ -1,0 +1,17 @@
+Dining Area,,,,,,,
+Item,Small Rm Qnty,Mid Rm Qnty,Large Rm Qnty,Budget Price,Mid Price,Mid/High Price,High Price
+Dining Table,1,1,2,"$1,200.00","$2,500.00","$4,000.00","$10,000.00"
+Dining Chairs,8,10,20,$300.00,$600.00,"$1,000.00","$4,000.00"
+Table Centerpeice,1,1,2,$100.00,$250.00,$400.00,$800.00
+Wall Art,1,2,4,$200.00,$500.00,"$1,000.00","$5,000.00"
+Curtains,1,2,3,$65.00,$65.00,$65.00,$65.00
+Curtain Rod,1,2,3,$40.00,$40.00,$40.00,$40.00
+Greenery,1,1,2,$200.00,$200.00,$200.00,$200.00
+Area Rug,0,1,2,$350.00,$700.00,$900.00,"$1,200.00"
+Buffet or Sideboard,0,1,2,$800.00,"$1,500.00","$3,000.00","$8,000.00"
+Shelving Accessories,0,6,12,$70.00,$70.00,$70.00,$70.00
+Display Cabinet,0,0,1,"$1,200.00","$2,500.00","$4,000.00","$10,000.00"
+,,,,Budget Pricing,Mid Pricing,Mid/High Pricing,High Pricing
+,,Small Room Totals:,,"$4,205.00","$8,355.00","$13,705.00","$48,105.00"
+,,Medium Room Totals:,,"$6,680.00","$12,780.00","$21,130.00","$70,830.00"
+,,Large Room Totals:,,"$14,455.00","$27,955.00","$46,155.00","$151,555.00"

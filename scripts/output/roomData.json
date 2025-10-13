@@ -1,0 +1,583 @@
+{
+  "living_room": {
+    "id": "living_room",
+    "name": "Living Room",
+    "displayName": "Living Room",
+    "description": "Complete living room setup with furnishings",
+    "category": "common_spaces",
+    "icon": "🛋️",
+    "active": true,
+    "sortOrder": 1,
+    "sizes": {
+      "small": {
+        "displayName": "Small Living Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 1
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 2
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 1
+          }
+        ],
+        "totals": {
+          "budget": 828500,
+          "mid": 1689000,
+          "midHigh": 2964000,
+          "high": 5884000
+        }
+      },
+      "medium": {
+        "displayName": "Medium Living Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 3
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 1121500,
+          "mid": 2203000,
+          "midHigh": 3783000,
+          "high": 7588000
+        }
+      },
+      "large": {
+        "displayName": "Large Living Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 4
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 1661500,
+          "mid": 3167000,
+          "midHigh": 5542000,
+          "high": 10922000
+        }
+      }
+    },
+    "createdAt": "2025-10-13T03:24:38.629Z",
+    "updatedAt": "2025-10-13T03:24:38.629Z"
+  },
+  "kitchen": {
+    "id": "kitchen",
+    "name": "Kitchen",
+    "displayName": "Kitchen",
+    "description": "Complete kitchen setup with furnishings",
+    "category": "common_spaces",
+    "icon": "🍳",
+    "active": true,
+    "sortOrder": 2,
+    "sizes": {
+      "small": {
+        "displayName": "Small Kitchen",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 1
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 2
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 1
+          }
+        ],
+        "totals": {
+          "budget": 148000,
+          "mid": 394500,
+          "midHigh": 750000,
+          "high": 1846000
+        }
+      },
+      "medium": {
+        "displayName": "Medium Kitchen",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 3
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 370000,
+          "mid": 899000,
+          "midHigh": 1785000,
+          "high": 4262000
+        }
+      },
+      "large": {
+        "displayName": "Large Kitchen",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 4
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 592000,
+          "mid": 1403500,
+          "midHigh": 2820000,
+          "high": 6678000
+        }
+      }
+    },
+    "createdAt": "2025-10-13T03:24:38.629Z",
+    "updatedAt": "2025-10-13T03:24:38.629Z"
+  },
+  "dining_room": {
+    "id": "dining_room",
+    "name": "Dining Room",
+    "displayName": "Dining Room",
+    "description": "Complete dining room setup with furnishings",
+    "category": "common_spaces",
+    "icon": "🍽️",
+    "active": true,
+    "sortOrder": 3,
+    "sizes": {
+      "small": {
+        "displayName": "Small Dining Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 1
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 2
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 1
+          }
+        ],
+        "totals": {
+          "budget": 420500,
+          "mid": 835500,
+          "midHigh": 1370500,
+          "high": 4810500
+        }
+      },
+      "medium": {
+        "displayName": "Medium Dining Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 3
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 668000,
+          "mid": 1278000,
+          "midHigh": 2113000,
+          "high": 7083000
+        }
+      },
+      "large": {
+        "displayName": "Large Dining Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 4
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 1445500,
+          "mid": 2795500,
+          "midHigh": 4615500,
+          "high": 15155500
+        }
+      }
+    },
+    "createdAt": "2025-10-13T03:24:38.629Z",
+    "updatedAt": "2025-10-13T03:24:38.629Z"
+  },
+  "single_bedroom": {
+    "id": "single_bedroom",
+    "name": "Single Bedroom",
+    "displayName": "Single Bedroom",
+    "description": "Complete single bedroom setup with furnishings",
+    "category": "sleeping_spaces",
+    "icon": "🛏️",
+    "active": true,
+    "sortOrder": 4,
+    "sizes": {
+      "small": {
+        "displayName": "Small Single Bedroom",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 1
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 2
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 1
+          }
+        ],
+        "totals": {
+          "budget": 509500,
+          "mid": 1179000,
+          "midHigh": 1465200,
+          "high": 3453600
+        }
+      },
+      "medium": {
+        "displayName": "Medium Single Bedroom",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 3
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 610000,
+          "mid": 1432000,
+          "midHigh": 2057700,
+          "high": 4713600
+        }
+      },
+      "large": {
+        "displayName": "Large Single Bedroom",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 4
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 787500,
+          "mid": 1810000,
+          "midHigh": 2820200,
+          "high": 6293600
+        }
+      }
+    },
+    "createdAt": "2025-10-13T03:24:38.629Z",
+    "updatedAt": "2025-10-13T03:24:38.629Z"
+  },
+  "double_bedroom": {
+    "id": "double_bedroom",
+    "name": "Double Bedroom",
+    "displayName": "Double Bedroom",
+    "description": "Complete double bedroom setup with furnishings",
+    "category": "sleeping_spaces",
+    "icon": "🛏️",
+    "active": true,
+    "sortOrder": 5,
+    "sizes": {
+      "small": {
+        "displayName": "Small Double Bedroom",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 1
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 2
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 1
+          }
+        ],
+        "totals": {
+          "budget": 724500,
+          "mid": 1632000,
+          "midHigh": 3326000,
+          "high": 7780000
+        }
+      },
+      "medium": {
+        "displayName": "Medium Double Bedroom",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 3
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 1035500,
+          "mid": 2150000,
+          "midHigh": 4366000,
+          "high": 10100000
+        }
+      },
+      "large": {
+        "displayName": "Large Double Bedroom",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 4
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 1279000,
+          "mid": 2546000,
+          "midHigh": 5126000,
+          "high": 11760000
+        }
+      }
+    },
+    "createdAt": "2025-10-13T03:24:38.629Z",
+    "updatedAt": "2025-10-13T03:24:38.629Z"
+  },
+  "bunk_room": {
+    "id": "bunk_room",
+    "name": "Bunk Room",
+    "displayName": "Bunk Room",
+    "description": "Complete bunk room setup with furnishings",
+    "category": "sleeping_spaces",
+    "icon": "🛏️",
+    "active": true,
+    "sortOrder": 6,
+    "sizes": {
+      "small": {
+        "displayName": "Small Bunk Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 1
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 2
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 1
+          }
+        ],
+        "totals": {
+          "budget": 733500,
+          "mid": 1193500,
+          "midHigh": 1670000,
+          "high": 3300000
+        }
+      },
+      "medium": {
+        "displayName": "Medium Bunk Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 3
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 959500,
+          "mid": 1585000,
+          "midHigh": 2285000,
+          "high": 4490000
+        }
+      },
+      "large": {
+        "displayName": "Large Bunk Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 4
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 1755000,
+          "mid": 3029500,
+          "midHigh": 4560000,
+          "high": 9300000
+        }
+      }
+    },
+    "createdAt": "2025-10-13T03:24:38.629Z",
+    "updatedAt": "2025-10-13T03:24:38.629Z"
+  },
+  "rec_room": {
+    "id": "rec_room",
+    "name": "Rec Room",
+    "displayName": "Rec Room",
+    "description": "Complete rec room setup with furnishings",
+    "category": "common_spaces",
+    "icon": "🎮",
+    "active": true,
+    "sortOrder": 7,
+    "sizes": {
+      "small": {
+        "displayName": "Small Rec Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 1
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 2
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 1
+          }
+        ],
+        "totals": {
+          "budget": 978500,
+          "mid": 460000,
+          "midHigh": 800000,
+          "high": 1000000
+        }
+      },
+      "medium": {
+        "displayName": "Medium Rec Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 3
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 1580500,
+          "mid": 920000,
+          "midHigh": 1600000,
+          "high": 2000000
+        }
+      },
+      "large": {
+        "displayName": "Large Rec Room",
+        "items": [
+          {
+            "itemId": "basic_furniture",
+            "quantity": 2
+          },
+          {
+            "itemId": "decorative_items",
+            "quantity": 4
+          },
+          {
+            "itemId": "lighting",
+            "quantity": 2
+          }
+        ],
+        "totals": {
+          "budget": 2309500,
+          "mid": 1220000,
+          "midHigh": 2400000,
+          "high": 3000000
+        }
+      }
+    },
+    "createdAt": "2025-10-13T03:24:38.629Z",
+    "updatedAt": "2025-10-13T03:24:38.629Z"
+  }
+}
