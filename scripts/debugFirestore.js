@@ -83,5 +83,26 @@ async function debugFirestore() {
   }
 }
 
+// Check room templates too
+async function checkRoomTemplates() {
+  console.log('\n🔍 Checking room templates in Firestore...\n');
+
+  try {
+    const templatesCollection = collection(db, 'roomTemplates');
+    const snapshot = await getDocs(templatesCollection);
+
+    console.log(`📦 Found ${snapshot.size} room templates in Firestore`);
+
+    if (snapshot.size > 0) {
+      console.log('\n📝 Room templates:');
+      snapshot.forEach(doc => {
+        console.log(`  - ${doc.id}`);
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error checking room templates:', error);
+  }
+}
+
 // Run the debug
-debugFirestore();
+debugFirestore().then(() => checkRoomTemplates());

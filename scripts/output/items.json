@@ -2,7 +2,7 @@
   {
     "id": "king_bed_frame",
     "name": "King Bed Frame",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 50000,
     "midPrice": 150000,
     "midHighPrice": 300000,
@@ -11,12 +11,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "mattress",
     "name": "Mattress",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 130000,
     "midPrice": 280000,
     "midHighPrice": 500000,
@@ -25,12 +25,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "mattress_protector",
     "name": "Mattress protector",
-    "category": "bedroom_furniture",
+    "category": "Bedding",
     "budgetPrice": 2000,
     "midPrice": 6000,
     "midHighPrice": 10000,
@@ -39,12 +39,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "sleeping_pillows",
     "name": "Sleeping Pillows",
-    "category": "textiles",
+    "category": "Bedding",
     "budgetPrice": 1500,
     "midPrice": 4000,
     "midHighPrice": 10000,
@@ -53,12 +53,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "down_pillows",
     "name": "Down Pillows",
-    "category": "textiles",
+    "category": "Bedding",
     "budgetPrice": 2500,
     "midPrice": 6000,
     "midHighPrice": 15000,
@@ -67,12 +67,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "pillow_protectors",
     "name": "Pillow protectors",
-    "category": "textiles",
+    "category": "Bedding",
     "budgetPrice": 500,
     "midPrice": 2500,
     "midHighPrice": 4000,
@@ -81,12 +81,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "sheets",
     "name": "Sheets",
-    "category": "textiles",
+    "category": "Bedding",
     "budgetPrice": 3000,
     "midPrice": 8000,
     "midHighPrice": 15000,
@@ -95,12 +95,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "decorative_bedding",
     "name": "Decorative Bedding",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 20000,
     "midPrice": 35000,
     "midHighPrice": 50000,
@@ -109,12 +109,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.221Z"
   },
   {
     "id": "throw_pillows",
     "name": "Throw Pillows",
-    "category": "textiles",
+    "category": "Accessories",
     "budgetPrice": 3500,
     "midPrice": 8000,
     "midHighPrice": 12500,
@@ -123,12 +123,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "throw_blanket_on_bed",
     "name": "Throw Blanket on Bed",
-    "category": "bedroom_furniture",
+    "category": "Bedding",
     "budgetPrice": 3500,
     "midPrice": 10000,
     "midHighPrice": 20000,
@@ -137,12 +137,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "bench_or_stools",
     "name": "Bench or Stool",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 20000,
     "midPrice": 80000,
     "midHighPrice": 150000,
@@ -151,12 +151,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "area_rug",
     "name": "Area Rug",
-    "category": "textiles",
+    "category": "Textiles",
     "budgetPrice": 35000,
     "midPrice": 80000,
     "midHighPrice": 150000,
@@ -165,12 +165,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "nightstands",
     "name": "Nightstands",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 35000,
     "midPrice": 70000,
     "midHighPrice": 150000,
@@ -179,12 +179,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "lamps",
     "name": "Lamps",
-    "category": "lighting",
+    "category": "Lighting",
     "budgetPrice": 10000,
     "midPrice": 20000,
     "midHighPrice": 35000,
@@ -193,12 +193,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "nightstand_accessories",
     "name": "Nightstand Accessories",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 2000,
     "midPrice": 6000,
     "midHighPrice": 15000,
@@ -207,12 +207,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "curtain_set",
     "name": "Curtain Set",
-    "category": "textiles",
+    "category": "Textiles",
     "budgetPrice": 6500,
     "midPrice": 14000,
     "midHighPrice": 20000,
@@ -221,12 +221,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "curtain_rod",
     "name": "Curtain Rod",
-    "category": "textiles",
+    "category": "Textiles",
     "budgetPrice": 4000,
     "midPrice": 6000,
     "midHighPrice": 10000,
@@ -235,12 +235,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "wall_art",
     "name": "Wall art",
-    "category": "decorative",
+    "category": "Accessories",
     "budgetPrice": 10000,
     "midPrice": 30000,
     "midHighPrice": 80000,
@@ -249,12 +249,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "mirror",
     "name": "Mirror",
-    "category": "decorative",
+    "category": "Accessories",
     "budgetPrice": 20000,
     "midPrice": 50000,
     "midHighPrice": 100000,
@@ -263,12 +263,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "tv",
     "name": "TV",
-    "category": "electronics",
+    "category": "Entertainment",
     "budgetPrice": 40000,
     "midPrice": 70000,
     "midHighPrice": 150000,
@@ -277,12 +277,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "tv_mount",
     "name": "TV mount",
-    "category": "electronics",
+    "category": "Entertainment",
     "budgetPrice": 20000,
     "midPrice": 30000,
     "midHighPrice": 30000,
@@ -291,12 +291,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "chair",
     "name": "Chair",
-    "category": "living_room_furniture",
+    "category": "Furniture",
     "budgetPrice": 35000,
     "midPrice": 80000,
     "midHighPrice": 150000,
@@ -305,12 +305,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "chair_throw_pillow",
     "name": "Chair Throw Pillow",
-    "category": "living_room_furniture",
+    "category": "Accessories",
     "budgetPrice": 3500,
     "midPrice": 8000,
     "midHighPrice": 12500,
@@ -319,12 +319,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "chair_throw_blanket",
     "name": "Chair Throw Blanket",
-    "category": "living_room_furniture",
+    "category": "Bedding",
     "budgetPrice": 3500,
     "midPrice": 10000,
     "midHighPrice": 40000,
@@ -333,12 +333,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "side_table",
     "name": "Side Table",
-    "category": "living_room_furniture",
+    "category": "Furniture",
     "budgetPrice": 15000,
     "midPrice": 50000,
     "midHighPrice": 150000,
@@ -347,12 +347,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "greenery",
     "name": "Greenery",
-    "category": "decorative",
+    "category": "Accessories",
     "budgetPrice": 8000,
     "midPrice": 25000,
     "midHighPrice": 50000,
@@ -361,12 +361,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "floor_lamp",
     "name": "Floor Lamp",
-    "category": "lighting",
+    "category": "Lighting",
     "budgetPrice": 15000,
     "midPrice": 30000,
     "midHighPrice": 80000,
@@ -375,12 +375,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "dresser",
     "name": "Dresser",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 80000,
     "midPrice": 150000,
     "midHighPrice": 300000,
@@ -389,12 +389,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "dresser_accessories",
     "name": "Dresser Accessories",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 2500,
     "midPrice": 8000,
     "midHighPrice": 15000,
@@ -403,12 +403,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "desk",
     "name": "Desk",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 30000,
     "midPrice": 100000,
     "midHighPrice": 250000,
@@ -417,12 +417,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "desk_chair",
     "name": "Desk Chair",
-    "category": "living_room_furniture",
+    "category": "Furniture",
     "budgetPrice": 20000,
     "midPrice": 60000,
     "midHighPrice": 120000,
@@ -431,12 +431,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "desk_accessories",
     "name": "Desk Accessories",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 3000,
     "midPrice": 6000,
     "midHighPrice": 15000,
@@ -445,12 +445,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "bookshelf",
     "name": "Bookshelf",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 25000,
     "midPrice": 80000,
     "midHighPrice": 150000,
@@ -459,12 +459,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "bunk_bed",
     "name": "Bunk Bed",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 120000,
     "midPrice": 250000,
     "midHighPrice": 400000,
@@ -473,12 +473,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "bunk_bed_mattress",
     "name": "Bunk Bed Mattress",
-    "category": "bedroom_furniture",
+    "category": "Furniture",
     "budgetPrice": 25000,
     "midPrice": 60000,
     "midHighPrice": 150000,
@@ -487,12 +487,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "bean_bag",
     "name": "Bean Bag",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 15000,
     "midPrice": 30000,
     "midHighPrice": 60000,
@@ -501,12 +501,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "game_table",
     "name": "Game Table",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 60000,
     "midPrice": 150000,
     "midHighPrice": 300000,
@@ -515,12 +515,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.897Z",
-    "updatedAt": "2025-10-13T04:18:33.897Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "games",
     "name": "Games",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 2500,
     "midPrice": 5000,
     "midHighPrice": 10000,
@@ -529,12 +529,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "bar_stool",
     "name": "Bar Stool",
-    "category": "kitchen_furniture",
+    "category": "Furniture",
     "budgetPrice": 30000,
     "midPrice": 80000,
     "midHighPrice": 150000,
@@ -543,12 +543,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "island_centerpiece",
     "name": "Island Centerpiece",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 10000,
     "midPrice": 30000,
     "midHighPrice": 50000,
@@ -557,12 +557,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "counter_accessories",
     "name": "Counter Accessories",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 5000,
     "midPrice": 12500,
     "midHighPrice": 30000,
@@ -571,12 +571,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "kitchen_towels",
     "name": "Kitchen Towels",
-    "category": "accessories",
+    "category": "Textiles",
     "budgetPrice": 1500,
     "midPrice": 3500,
     "midHighPrice": 5000,
@@ -585,12 +585,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "open_shelving_decor",
     "name": "Open Shelving Decor",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 6000,
     "midPrice": 10000,
     "midHighPrice": 25000,
@@ -599,12 +599,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "top_of_cabinetry_decor",
     "name": "Top of Cabinetry Decor",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 7000,
     "midPrice": 10000,
     "midHighPrice": 25000,
@@ -613,12 +613,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "kitchen_runner_rug",
     "name": "Kitchen Runner Rug",
-    "category": "textiles",
+    "category": "Textiles",
     "budgetPrice": 15000,
     "midPrice": 30000,
     "midHighPrice": 60000,
@@ -627,12 +627,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "dining_table",
     "name": "Dining Table",
-    "category": "dining_furniture",
+    "category": "Furniture",
     "budgetPrice": 120000,
     "midPrice": 250000,
     "midHighPrice": 400000,
@@ -641,12 +641,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "dining_chair",
     "name": "Dining Chair",
-    "category": "living_room_furniture",
+    "category": "Furniture",
     "budgetPrice": 30000,
     "midPrice": 60000,
     "midHighPrice": 100000,
@@ -655,12 +655,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "table_centerpiece",
     "name": "Table Centerpiece",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 10000,
     "midPrice": 25000,
     "midHighPrice": 40000,
@@ -669,12 +669,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "buffet_or_sideboard",
     "name": "Buffet or Sideboard",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 80000,
     "midPrice": 150000,
     "midHighPrice": 300000,
@@ -683,12 +683,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "display_cabinet",
     "name": "Display Cabinet",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 120000,
     "midPrice": 250000,
     "midHighPrice": 400000,
@@ -697,12 +697,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "sofa_sectional",
     "name": "Sofa/Sectional",
-    "category": "living_room_furniture",
+    "category": "Furniture",
     "budgetPrice": 200000,
     "midPrice": 400000,
     "midHighPrice": 800000,
@@ -711,12 +711,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "coffee_table",
     "name": "Coffee Table",
-    "category": "living_room_furniture",
+    "category": "Furniture",
     "budgetPrice": 80000,
     "midPrice": 180000,
     "midHighPrice": 300000,
@@ -725,12 +725,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "side_table",
     "name": "Side Table",
-    "category": "living_room_furniture",
+    "category": "Furniture",
     "budgetPrice": 15000,
     "midPrice": 50000,
     "midHighPrice": 100000,
@@ -739,12 +739,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "tv_console",
     "name": "TV Console",
-    "category": "electronics",
+    "category": "Entertainment",
     "budgetPrice": 100000,
     "midPrice": 250000,
     "midHighPrice": 400000,
@@ -753,12 +753,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "mirror",
     "name": "Mirror",
-    "category": "decorative",
+    "category": "Accessories",
     "budgetPrice": 30000,
     "midPrice": 30000,
     "midHighPrice": 40000,
@@ -767,12 +767,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "ottoman_or_pouf",
     "name": "Ottoman/Pouf",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 20000,
     "midPrice": 20000,
     "midHighPrice": 20000,
@@ -781,12 +781,12 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   },
   {
     "id": "large_game_table",
     "name": "Large Game Table",
-    "category": "accessories",
+    "category": "Accessories",
     "budgetPrice": 150000,
     "midPrice": 300000,
     "midHighPrice": 800000,
@@ -795,6 +795,6 @@
     "unit": "each",
     "notes": "",
     "createdAt": "2025-10-13T04:18:33.898Z",
-    "updatedAt": "2025-10-13T04:18:33.898Z"
+    "updatedAt": "2025-10-13T19:46:48.222Z"
   }
 ]

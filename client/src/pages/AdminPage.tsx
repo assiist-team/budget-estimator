@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, limit, doc, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
 import { formatCurrency } from '../utils/calculations';
+import { EditIcon, TrashIcon } from '../components/Icons';
 
 export default function AdminPage() {
   const [estimates, setEstimates] = useState<Estimate[]>([]);
@@ -44,6 +45,7 @@ export default function AdminPage() {
         const templatesSnapshot = await getDocs(templatesQuery);
         const templatesData: RoomTemplate[] = [];
 
+        console.log('Fetching room templates from Firestore...');
         templatesSnapshot.forEach((doc) => {
           const docData = doc.data();
           templatesData.push({
@@ -53,12 +55,14 @@ export default function AdminPage() {
             updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
           } as RoomTemplate);
         });
+        console.log(`Loaded ${templatesData.length} room templates from Firestore`);
 
         // Fetch items
         const itemsQuery = query(collection(db, 'items'), orderBy('name'));
         const itemsSnapshot = await getDocs(itemsQuery);
         const itemsData: Item[] = [];
 
+        console.log('Fetching items from Firestore...');
         itemsSnapshot.forEach((doc) => {
           const docData = doc.data();
           itemsData.push({
@@ -68,6 +72,7 @@ export default function AdminPage() {
             updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
           } as Item);
         });
+        console.log(`Loaded ${itemsData.length} items from Firestore`);
 
         setEstimates(estimatesData);
         setRoomTemplates(templatesData);
@@ -85,11 +90,17 @@ export default function AdminPage() {
   // Function to update a room template
   const updateRoomTemplate = async (templateId: string, updates: Partial<RoomTemplate>) => {
     try {
+      console.log('Updating room template:', templateId, updates);
       const templateRef = doc(db, 'roomTemplates', templateId);
-      await updateDoc(templateRef, {
+
+      const updateData = {
         ...updates,
         updatedAt: new Date(),
-      });
+      };
+
+      console.log('Update data:', updateData);
+      await updateDoc(templateRef, updateData);
+      console.log('Firestore update successful');
 
       // Update local state
       setRoomTemplates(prev =>
@@ -100,10 +111,16 @@ export default function AdminPage() {
         )
       );
 
+      console.log('Local state updated');
       setEditingTemplate(null);
     } catch (error) {
       console.error('Error updating room template:', error);
-      alert('Failed to update room template. Please try again.');
+      console.error('Error details:', {
+        templateId,
+        updates,
+        error: error instanceof Error ? error.message : error
+      });
+      alert(`Failed to update room template: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
     }
   };
 
@@ -160,28 +177,19 @@ export default function AdminPage() {
 
   // Function to delete/deactivate an item
   const deleteItem = async (itemId: string) => {
-    if (!confirm('Are you sure you want to deactivate this item? It will be removed from all room templates.')) {
+    if (!confirm('Are you sure you want to delete this item? It will be permanently removed.')) {
       return;
     }
 
     try {
       const itemRef = doc(db, 'items', itemId);
-      await updateDoc(itemRef, {
-        active: false,
-        updatedAt: new Date(),
-      });
+      await deleteDoc(itemRef);
 
       // Update local state
-      setItems(prev =>
-        prev.map(item =>
-          item.id === itemId
-            ? { ...item, active: false, updatedAt: new Date() }
-            : item
-        )
-      );
+      setItems(prev => prev.filter(item => item.id !== itemId));
     } catch (error) {
-      console.error('Error deactivating item:', error);
-      alert('Failed to deactivate item. Please try again.');
+      console.error('Error deleting item:', error);
+      alert('Failed to delete item. Please try again.');
     }
   };
 
@@ -434,22 +442,20 @@ export default function AdminPage() {
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-gray-900">{item.name}</h3>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        item.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {item.active ? 'Active' : 'Inactive'}
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                        {item.category}
                       </span>
                       <button
                         onClick={() => setEditingItem(item)}
-                        className="text-sm text-primary-600 hover:text-primary-800"
+                        className="text-sm text-primary-600 hover:text-primary-800 p-1"
                       >
-                        Edit
+                        <EditIcon />
                       </button>
                       <button
                         onClick={() => deleteItem(item.id)}
-                        className="text-sm text-red-600 hover:text-red-800"
+                        className="text-sm text-red-600 hover:text-red-800 p-1"
                       >
-                        {item.active ? 'Deactivate' : 'Delete'}
+                        <TrashIcon />
                       </button>
                     </div>
                   </div>
@@ -570,8 +576,13 @@ export default function AdminPage() {
                           onChange={(e) => {
                             if (e.target.value) {
                               const newItemId = e.target.value;
+                              console.log('Adding item to room:', { newItemId, sizeKey, editingTemplateId: editingTemplate.id });
+
                               const newItems = [...sizeData.items, { itemId: newItemId, quantity: 1 }];
                               const newTotals = calculateRoomTotals(newItems);
+
+                              console.log('New items array:', newItems);
+                              console.log('New totals:', newTotals);
 
                               updateRoomTemplate(editingTemplate.id, {
                                 sizes: {
