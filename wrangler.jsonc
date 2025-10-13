@@ -1,9 +1,0 @@
-{
-  "name": "project-estimator",
-  "pages_build_output_dir": "dist",
-  "source": {
-    "type": "git",
-    "url": "https://github.com/assiist-team/budget-estimator",
-    "root": "client"
-  }
-}
