@@ -141,7 +141,7 @@
   },
   {
     "id": "bench_or_stools",
-    "name": "Bench or Stools",
+    "name": "Bench or Stool",
     "category": "accessories",
     "budgetPrice": 20000,
     "midPrice": 80000,
@@ -280,8 +280,8 @@
     "updatedAt": "2025-10-13T04:18:33.897Z"
   },
   {
-    "id": "tv_mount_install",
-    "name": "TV mount + install",
+    "id": "tv_mount",
+    "name": "TV mount",
     "category": "electronics",
     "budgetPrice": 20000,
     "midPrice": 30000,
@@ -490,8 +490,8 @@
     "updatedAt": "2025-10-13T04:18:33.897Z"
   },
   {
-    "id": "bean_bags",
-    "name": "Bean Bags",
+    "id": "bean_bag",
+    "name": "Bean Bag",
     "category": "accessories",
     "budgetPrice": 15000,
     "midPrice": 30000,
@@ -532,8 +532,8 @@
     "updatedAt": "2025-10-13T04:18:33.898Z"
   },
   {
-    "id": "bar_stools",
-    "name": "Bar Stools",
+    "id": "bar_stool",
+    "name": "Bar Stool",
     "category": "kitchen_furniture",
     "budgetPrice": 30000,
     "midPrice": 80000,
@@ -546,8 +546,8 @@
     "updatedAt": "2025-10-13T04:18:33.898Z"
   },
   {
-    "id": "island_center_piece",
-    "name": "Island Center Piece",
+    "id": "island_centerpiece",
+    "name": "Island Centerpiece",
     "category": "accessories",
     "budgetPrice": 10000,
     "midPrice": 30000,
@@ -644,8 +644,8 @@
     "updatedAt": "2025-10-13T04:18:33.898Z"
   },
   {
-    "id": "dining_chairs",
-    "name": "Dining Chairs",
+    "id": "dining_chair",
+    "name": "Dining Chair",
     "category": "living_room_furniture",
     "budgetPrice": 30000,
     "midPrice": 60000,
@@ -658,8 +658,8 @@
     "updatedAt": "2025-10-13T04:18:33.898Z"
   },
   {
-    "id": "table_centerpeice",
-    "name": "Table Centerpeice",
+    "id": "table_centerpiece",
+    "name": "Table Centerpiece",
     "category": "accessories",
     "budgetPrice": 10000,
     "midPrice": 25000,
@@ -728,8 +728,8 @@
     "updatedAt": "2025-10-13T04:18:33.898Z"
   },
   {
-    "id": "side_tables",
-    "name": "Side Tables",
+    "id": "side_table",
+    "name": "Side Table",
     "category": "living_room_furniture",
     "budgetPrice": 15000,
     "midPrice": 50000,
@@ -770,8 +770,8 @@
     "updatedAt": "2025-10-13T04:18:33.898Z"
   },
   {
-    "id": "ottoman_or_pouf_s",
-    "name": "Ottoman or Pouf(s)",
+    "id": "ottoman_or_pouf",
+    "name": "Ottoman/Pouf",
     "category": "accessories",
     "budgetPrice": 20000,
     "midPrice": 20000,

@@ -35,7 +35,7 @@ This tool will help 1584 Interior Design estimate project budgets by intelligent
           - displayName: "Small Living Room"
           - totalItems: [
               { itemId: "sofa_sectional", quantity: 1 },
-              { itemId: "accent_chairs", quantity: 2 },
+              { itemId: "chair", quantity: 2 },
               ...
             ]
           - calculatedTotals: { budget: 8285, mid: 16890, ... }

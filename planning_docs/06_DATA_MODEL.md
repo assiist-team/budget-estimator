@@ -155,7 +155,7 @@ Pre-configured room templates with item lists and quantities by room size.
           quantity: 1
         },
         {
-          itemId: "accent_chairs",
+          itemId: "chair",
           quantity: 2
         },
         {
@@ -163,7 +163,7 @@ Pre-configured room templates with item lists and quantities by room size.
           quantity: 1
         },
         {
-          itemId: "side_tables",
+          itemId: "side_table",
           quantity: 2
         },
         // ... more items
@@ -237,7 +237,7 @@ Pre-configured room templates with item lists and quantities by room size.
         { itemId: "wall_art", quantity: 3 },
         { itemId: "mirror", quantity: 1 },
         { itemId: "tv", quantity: 1 },
-        { itemId: "tv_mount_install", quantity: 1 }
+        { itemId: "tv_mount", quantity: 1 }
       ],
       totals: {
         budget: 509500,
