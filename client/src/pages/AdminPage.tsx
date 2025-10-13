@@ -17,6 +17,14 @@ export default function AdminPage() {
   const [showCreateItem, setShowCreateItem] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [activeRoomSizeTab, setActiveRoomSizeTab] = useState<string>('');
+
+  // Set initial room size tab when editing template opens
+  useEffect(() => {
+    if (editingTemplate && !activeRoomSizeTab) {
+      setActiveRoomSizeTab('small');
+    }
+  }, [editingTemplate, activeRoomSizeTab]);
 
   useEffect(() => {
     async function fetchData() {
@@ -240,6 +248,7 @@ export default function AdminPage() {
     }
   };
 
+
   // Function to calculate totals for a room size
   const calculateRoomTotals = (roomItems: RoomItem[]): { budget: number; mid: number; midHigh: number; high: number } => {
     let budget = 0, mid = 0, midHigh = 0, high = 0;
@@ -305,7 +314,7 @@ export default function AdminPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              🏠 Room Templates ({roomTemplates.length})
+              🏠 Rooms ({roomTemplates.length})
             </button>
             <button
               onClick={() => setActiveTab('items')}
@@ -411,7 +420,7 @@ export default function AdminPage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Room Templates
+                  Rooms
                 </h2>
                 <p className="text-gray-600">
                   Configure items and quantities for each room size
@@ -428,36 +437,38 @@ export default function AdminPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {roomTemplates.map((template) => (
                 <div key={template.id} className="card">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-2xl">{template.icon}</span>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{template.displayName}</h3>
-                      <p className="text-sm text-gray-600">{template.description}</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{template.icon}</span>
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{template.displayName}</h3>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => setEditingTemplate(template)}
+                      className="text-sm text-primary-600 hover:text-primary-800 p-1"
+                    >
+                      <EditIcon />
+                    </button>
                   </div>
 
-                  {Object.entries(template.sizes).map(([size, sizeData]) => (
-                    <div key={size} className="mb-4 last:mb-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium text-gray-800 capitalize">{size} Room</h4>
-                        <button
-                          onClick={() => setEditingTemplate(template)}
-                          className="text-sm text-primary-600 hover:text-primary-800"
-                        >
-                          Edit
-                        </button>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        <p>{sizeData.items.length} items</p>
-                        <div className="grid grid-cols-2 gap-2 mt-1">
-                          <span>Budget: {formatCurrency(sizeData.totals.budget)}</span>
-                          <span>Mid: {formatCurrency(sizeData.totals.mid)}</span>
-                          <span>Mid/High: {formatCurrency(sizeData.totals.midHigh)}</span>
-                          <span>High: {formatCurrency(sizeData.totals.high)}</span>
+                  {['small', 'medium', 'large'].map((size) => {
+                    const sizeData = template.sizes[size as keyof typeof template.sizes];
+                    return (
+                      <div key={size} className="mb-4 last:mb-0">
+                        <h4 className="font-medium text-gray-800 capitalize mb-2">{size}</h4>
+                        <div className="text-sm text-gray-600">
+                          <p>{sizeData.items.length} items</p>
+                          <div className="grid grid-cols-2 gap-2 mt-1">
+                            <span>Budget: {formatCurrency(sizeData.totals.budget)}</span>
+                            <span>Mid: {formatCurrency(sizeData.totals.mid)}</span>
+                            <span>Mid/High: {formatCurrency(sizeData.totals.midHigh)}</span>
+                            <span>High: {formatCurrency(sizeData.totals.high)}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ))}
             </div>
@@ -532,12 +543,14 @@ export default function AdminPage() {
                       <button
                         onClick={() => setEditingItem(item)}
                         className="text-sm text-primary-600 hover:text-primary-800 p-1"
+                        title="Edit Item"
                       >
                         <EditIcon />
                       </button>
                       <button
                         onClick={() => deleteItem(item.id)}
                         className="text-sm text-red-600 hover:text-red-800 p-1"
+                        title="Delete Item"
                       >
                         <TrashIcon />
                       </button>
@@ -567,172 +580,217 @@ export default function AdminPage() {
       {/* Edit Template Modal */}
       {editingTemplate && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Edit Room Template: {editingTemplate.displayName}
-                </h2>
-                <button
-                  onClick={() => setEditingTemplate(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  ✕
-                </button>
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col">
+            {/* Sticky Header Section */}
+            <div className="sticky top-0 z-20 bg-white border-b border-gray-200">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Edit Room Template: {editingTemplate.displayName}
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setEditingTemplate(null);
+                      setActiveRoomSizeTab('');
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Room Size Tabs */}
+                <div className="border-b border-gray-200 mb-1">
+                  <nav className="-mb-px flex space-x-8 overflow-x-auto">
+                    {['small', 'medium', 'large'].map((sizeKey) => (
+                      <button
+                        key={sizeKey}
+                        onClick={() => setActiveRoomSizeTab(sizeKey)}
+                        className={`py-3 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                          activeRoomSizeTab === sizeKey
+                            ? 'border-primary-500 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                      >
+                        {sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1)}
+                      </button>
+                    ))}
+                  </nav>
+                </div>
               </div>
 
-              <div className="space-y-6">
-                {Object.entries(editingTemplate.sizes).map(([sizeKey, sizeData]) => (
-                  <div key={sizeKey} className="border rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-4 capitalize">{sizeKey} Room</h3>
-
-                    <div className="space-y-3">
-                      {sizeData.items.map((roomItem, index) => {
-                        const item = items.find(i => i.id === roomItem.itemId);
-                        return (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                            <div className="flex-1">
-                              <span className="font-medium text-gray-900">
-                                {item?.name || 'Unknown Item'}
-                              </span>
-                              <div className="text-sm text-gray-600 mt-1">
-                                Budget: {formatCurrency(item?.budgetPrice || 0)} |
-                                Mid: {formatCurrency(item?.midPrice || 0)} |
-                                High: {formatCurrency(item?.highPrice || 0)}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-600">Qty:</span>
-                              <input
-                                type="number"
-                                min="0"
-                                value={roomItem.quantity}
-                                onChange={(e) => {
-                                  const newQuantity = parseInt(e.target.value) || 0;
-                                  const newItems = [...sizeData.items];
-                                  newItems[index] = { ...roomItem, quantity: newQuantity };
-
-                                  const newTotals = calculateRoomTotals(newItems);
-
-                                  updateRoomTemplate(editingTemplate.id, {
-                                    sizes: {
-                                      ...editingTemplate.sizes,
-                                      [sizeKey]: {
-                                        ...sizeData,
-                                        items: newItems,
-                                        totals: newTotals,
-                                      },
-                                    },
-                                  });
-                                }}
-                                className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
-                              />
-                              <button
-                                onClick={() => {
-                                  const newItems = sizeData.items.filter((_, i) => i !== index);
-                                  const newTotals = calculateRoomTotals(newItems);
-
-                                  updateRoomTemplate(editingTemplate.id, {
-                                    sizes: {
-                                      ...editingTemplate.sizes,
-                                      [sizeKey]: {
-                                        ...sizeData,
-                                        items: newItems,
-                                        totals: newTotals,
-                                      },
-                                    },
-                                  });
-                                }}
-                                className="text-red-600 hover:text-red-800 p-1"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {/* Add new item */}
-                      <div className="border-2 border-dashed border-gray-300 rounded p-3">
-                        <select
-                          className="w-full p-2 border border-gray-300 rounded"
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              const newItemId = e.target.value;
-                              console.log('Adding item to room:', { newItemId, sizeKey, editingTemplateId: editingTemplate.id });
-
-                              const newItems = [...sizeData.items, { itemId: newItemId, quantity: 1 }];
-                              const newTotals = calculateRoomTotals(newItems);
-
-                              console.log('New items array:', newItems);
-                              console.log('New totals:', newTotals);
-
-                              updateRoomTemplate(editingTemplate.id, {
-                                sizes: {
-                                  ...editingTemplate.sizes,
-                                  [sizeKey]: {
-                                    ...sizeData,
-                                    items: newItems,
-                                    totals: newTotals,
-                                  },
-                                },
-                              });
-
-                              e.target.value = '';
-                            }
-                          }}
-                        >
-                          <option value="">+ Add Item</option>
-                          {items
-                            .filter(item => !sizeData.items.some(roomItem => roomItem.itemId === item.id))
-                            .map(item => (
-                              <option key={item.id} value={item.id}>
-                                {item.name} ({item.category})
-                              </option>
-                            ))}
-                        </select>
+              {/* Budget Container - also sticky */}
+              {activeRoomSizeTab && editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes] && (
+                <div className="px-6 pb-6">
+                  <div className="p-3 bg-gray-50 rounded-lg border">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                          Budget
+                        </div>
+                        <div className="text-lg font-bold text-primary-500">
+                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.budget)}
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium">Budget:</span>
-                          <p className="text-lg font-semibold text-green-600">
-                            {formatCurrency(sizeData.totals.budget)}
-                          </p>
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                          Mid
                         </div>
-                        <div>
-                          <span className="font-medium">Mid:</span>
-                          <p className="text-lg font-semibold text-blue-600">
-                            {formatCurrency(sizeData.totals.mid)}
-                          </p>
+                        <div className="text-lg font-bold text-primary-600">
+                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.mid)}
                         </div>
-                        <div>
-                          <span className="font-medium">Mid/High:</span>
-                          <p className="text-lg font-semibold text-purple-600">
-                            {formatCurrency(sizeData.totals.midHigh)}
-                          </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                          Mid/High
                         </div>
-                        <div>
-                          <span className="font-medium">High:</span>
-                          <p className="text-lg font-semibold text-orange-600">
-                            {formatCurrency(sizeData.totals.high)}
-                          </p>
+                        <div className="text-lg font-bold text-primary-900">
+                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.midHigh)}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                          High
+                        </div>
+                        <div className="text-lg font-bold text-black">
+                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.high)}
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+            </div>
 
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setEditingTemplate(null)}
-                  className="btn-secondary"
-                >
-                  Close
-                </button>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="pt-2 px-6 pb-6">
+                {/* Add new item - moved above items list and made sticky */}
+                {activeRoomSizeTab && editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes] && (
+                  <div className="sticky top-0 z-10 bg-white border-b border-gray-200 pb-1 mb-4">
+                    <div className="rounded p-3">
+                      <select
+                        className="w-full p-2 border border-gray-300 rounded"
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const newItemId = e.target.value;
+                            const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                            console.log('Adding item to room:', { newItemId, sizeKey: activeRoomSizeTab, editingTemplateId: editingTemplate.id });
+
+                            const newItems = [...sizeData.items, { itemId: newItemId, quantity: 1 }];
+                            const newTotals = calculateRoomTotals(newItems);
+
+                            console.log('New items array:', newItems);
+                            console.log('New totals:', newTotals);
+
+                            updateRoomTemplate(editingTemplate.id, {
+                              sizes: {
+                                ...editingTemplate.sizes,
+                                [activeRoomSizeTab]: {
+                                  ...sizeData,
+                                  items: newItems,
+                                  totals: newTotals,
+                                },
+                              },
+                            });
+
+                            e.target.value = '';
+                          }
+                        }}
+                      >
+                        <option value="">+ Add Item</option>
+                        {items
+                          .filter(item => !editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].items.some((roomItem: RoomItem) => roomItem.itemId === item.id))
+                          .map(item => (
+                            <option key={item.id} value={item.id}>
+                              {item.name} ({item.category})
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tab Content */}
+                {activeRoomSizeTab && editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes] && (
+                  <div className="space-y-6">
+                    <div className="border rounded-lg p-4">
+                      <h3 className="font-medium text-gray-900 mb-4 capitalize">
+                        {activeRoomSizeTab} Items
+                      </h3>
+
+                      <div className="space-y-3">
+                        {editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].items.map((roomItem: RoomItem, index: number) => {
+                          const item = items.find(i => i.id === roomItem.itemId);
+                          return (
+                            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                              <div className="flex-1">
+                                <span className="font-medium text-gray-900">
+                                  {item?.name || 'Unknown Item'}
+                                </span>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  Budget: {formatCurrency(item?.budgetPrice || 0)} |
+                                  Mid: {formatCurrency(item?.midPrice || 0)} |
+                                  High: {formatCurrency(item?.highPrice || 0)}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">Qty:</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={roomItem.quantity}
+                                  onChange={(e) => {
+                                    const newQuantity = parseInt(e.target.value) || 0;
+                                    const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                    const newItems = [...sizeData.items];
+                                    newItems[index] = { ...roomItem, quantity: newQuantity };
+
+                                    const newTotals = calculateRoomTotals(newItems);
+
+                                    updateRoomTemplate(editingTemplate.id, {
+                                      sizes: {
+                                        ...editingTemplate.sizes,
+                                        [activeRoomSizeTab]: {
+                                          ...sizeData,
+                                          items: newItems,
+                                          totals: newTotals,
+                                        },
+                                      },
+                                    });
+                                  }}
+                                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                />
+                                <button
+                                  onClick={() => {
+                                    const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                    const newItems = sizeData.items.filter((_: RoomItem, i: number) => i !== index);
+                                    const newTotals = calculateRoomTotals(newItems);
+
+                                    updateRoomTemplate(editingTemplate.id, {
+                                      sizes: {
+                                        ...editingTemplate.sizes,
+                                        [activeRoomSizeTab]: {
+                                          ...sizeData,
+                                          items: newItems,
+                                          totals: newTotals,
+                                        },
+                                      },
+                                    });
+                                  }}
+                                  className="text-red-600 hover:text-red-800 p-1"
+                                >
+                                  <TrashIcon />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
           </div>
@@ -791,6 +849,7 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
