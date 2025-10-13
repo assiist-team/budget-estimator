@@ -6,27 +6,71 @@
     "description": "Complete living room setup with furnishings",
     "category": "common_spaces",
     "icon": "🛋️",
-    "active": true,
     "sortOrder": 1,
     "sizes": {
       "small": {
         "displayName": "Small Living Room",
         "items": [
-          {"itemId": "sofa_sectional", "quantity": 1},
-          {"itemId": "chair", "quantity": 2},
-          {"itemId": "coffee_table", "quantity": 1},
-          {"itemId": "side_table", "quantity": 2},
-          {"itemId": "tv_console", "quantity": 1},
-          {"itemId": "tv", "quantity": 1},
-          {"itemId": "tv_mount", "quantity": 1},
-          {"itemId": "area_rug", "quantity": 1},
-          {"itemId": "lamps", "quantity": 2},
-          {"itemId": "throw_pillows", "quantity": 5},
-          {"itemId": "throw_blanket", "quantity": 3},
-          {"itemId": "curtains", "quantity": 1},
-          {"itemId": "curtain_rod", "quantity": 1},
-          {"itemId": "wall_art", "quantity": 2},
-          {"itemId": "greenery", "quantity": 1}
+          {
+            "itemId": "sofa_sectional",
+            "quantity": 1
+          },
+          {
+            "itemId": "chair",
+            "quantity": 2
+          },
+          {
+            "itemId": "coffee_table",
+            "quantity": 1
+          },
+          {
+            "itemId": "side_table",
+            "quantity": 2
+          },
+          {
+            "itemId": "tv_console",
+            "quantity": 1
+          },
+          {
+            "itemId": "tv",
+            "quantity": 1
+          },
+          {
+            "itemId": "tv_mount",
+            "quantity": 1
+          },
+          {
+            "itemId": "area_rug",
+            "quantity": 1
+          },
+          {
+            "itemId": "lamps",
+            "quantity": 2
+          },
+          {
+            "itemId": "throw_pillows",
+            "quantity": 5
+          },
+          {
+            "itemId": "throw_blanket",
+            "quantity": 3
+          },
+          {
+            "itemId": "curtains",
+            "quantity": 1
+          },
+          {
+            "itemId": "curtain_rod",
+            "quantity": 1
+          },
+          {
+            "itemId": "wall_art",
+            "quantity": 2
+          },
+          {
+            "itemId": "greenery",
+            "quantity": 1
+          }
         ],
         "totals": {
           "budget": 828500,
@@ -38,23 +82,74 @@
       "medium": {
         "displayName": "Medium Living Room",
         "items": [
-          {"itemId": "sofa_sectional", "quantity": 1},
-          {"itemId": "chair", "quantity": 3},
-          {"itemId": "coffee_table", "quantity": 1},
-          {"itemId": "side_table", "quantity": 4},
-          {"itemId": "tv_console", "quantity": 1},
-          {"itemId": "tv", "quantity": 1},
-          {"itemId": "tv_mount", "quantity": 1},
-          {"itemId": "area_rug", "quantity": 1},
-          {"itemId": "lamps", "quantity": 3},
-          {"itemId": "throw_pillows", "quantity": 8},
-          {"itemId": "throw_blanket", "quantity": 5},
-          {"itemId": "curtains", "quantity": 2},
-          {"itemId": "curtain_rod", "quantity": 2},
-          {"itemId": "wall_art", "quantity": 4},
-          {"itemId": "greenery", "quantity": 2},
-          {"itemId": "mirror", "quantity": 1},
-          {"itemId": "ottoman_or_pouf", "quantity": 3}
+          {
+            "itemId": "sofa_sectional",
+            "quantity": 1
+          },
+          {
+            "itemId": "chair",
+            "quantity": 3
+          },
+          {
+            "itemId": "coffee_table",
+            "quantity": 1
+          },
+          {
+            "itemId": "side_table",
+            "quantity": 4
+          },
+          {
+            "itemId": "tv_console",
+            "quantity": 1
+          },
+          {
+            "itemId": "tv",
+            "quantity": 1
+          },
+          {
+            "itemId": "tv_mount",
+            "quantity": 1
+          },
+          {
+            "itemId": "area_rug",
+            "quantity": 1
+          },
+          {
+            "itemId": "lamps",
+            "quantity": 3
+          },
+          {
+            "itemId": "throw_pillows",
+            "quantity": 8
+          },
+          {
+            "itemId": "throw_blanket",
+            "quantity": 5
+          },
+          {
+            "itemId": "curtains",
+            "quantity": 2
+          },
+          {
+            "itemId": "curtain_rod",
+            "quantity": 2
+          },
+          {
+            "itemId": "wall_art",
+            "quantity": 4
+          },
+          {
+            "itemId": "greenery",
+            "quantity": 2
+          },
+          {
+            "itemId": "mirror",
+            "quantity": 1
+          },
+          {
+            "itemId": "ottoman_or_pouf",
+            "quantity": 3
+          }
         ],
         "totals": {
           "budget": 1121500,
@@ -66,24 +161,78 @@
       "large": {
         "displayName": "Large Living Room",
         "items": [
-          {"itemId": "sofa_sectional", "quantity": 2},
-          {"itemId": "chair", "quantity": 4},
-          {"itemId": "coffee_table", "quantity": 1},
-          {"itemId": "side_table", "quantity": 4},
-          {"itemId": "tv_console", "quantity": 1},
-          {"itemId": "tv", "quantity": 1},
-          {"itemId": "tv_mount", "quantity": 1},
-          {"itemId": "area_rug", "quantity": 2},
-          {"itemId": "lamps", "quantity": 4},
-          {"itemId": "throw_pillows", "quantity": 12},
-          {"itemId": "throw_blanket", "quantity": 8},
-          {"itemId": "curtains", "quantity": 3},
-          {"itemId": "curtain_rod", "quantity": 3},
-          {"itemId": "wall_art", "quantity": 6},
-          {"itemId": "greenery", "quantity": 3},
-          {"itemId": "mirror", "quantity": 1},
-          {"itemId": "ottoman_or_pouf", "quantity": 6},
-          {"itemId": "bookshelf", "quantity": 1}
+          {
+            "itemId": "sofa_sectional",
+            "quantity": 2
+          },
+          {
+            "itemId": "chair",
+            "quantity": 4
+          },
+          {
+            "itemId": "coffee_table",
+            "quantity": 1
+          },
+          {
+            "itemId": "side_table",
+            "quantity": 4
+          },
+          {
+            "itemId": "tv_console",
+            "quantity": 1
+          },
+          {
+            "itemId": "tv",
+            "quantity": 1
+          },
+          {
+            "itemId": "tv_mount",
+            "quantity": 1
+          },
+          {
+            "itemId": "area_rug",
+            "quantity": 2
+          },
+          {
+            "itemId": "lamps",
+            "quantity": 4
+          },
+          {
+            "itemId": "throw_pillows",
+            "quantity": 12
+          },
+          {
+            "itemId": "throw_blanket",
+            "quantity": 8
+          },
+          {
+            "itemId": "curtains",
+            "quantity": 3
+          },
+          {
+            "itemId": "curtain_rod",
+            "quantity": 3
+          },
+          {
+            "itemId": "wall_art",
+            "quantity": 6
+          },
+          {
+            "itemId": "greenery",
+            "quantity": 3
+          },
+          {
+            "itemId": "mirror",
+            "quantity": 1
+          },
+          {
+            "itemId": "ottoman_or_pouf",
+            "quantity": 6
+          },
+          {
+            "itemId": "bookshelf",
+            "quantity": 1
+          }
         ],
         "totals": {
           "budget": 1661500,
@@ -103,17 +252,31 @@
     "description": "Complete kitchen setup with furnishings",
     "category": "common_spaces",
     "icon": "🍳",
-    "active": true,
     "sortOrder": 2,
     "sizes": {
       "small": {
         "displayName": "Small Kitchen",
         "items": [
-          {"itemId": "bar_stool", "quantity": 2},
-          {"itemId": "island_centerpiece", "quantity": 1},
-          {"itemId": "counter_accessories", "quantity": 1},
-          {"itemId": "kitchen_towels", "quantity": 2},
-          {"itemId": "kitchen_runner_rug", "quantity": 1}
+          {
+            "itemId": "bar_stool",
+            "quantity": 2
+          },
+          {
+            "itemId": "island_centerpiece",
+            "quantity": 1
+          },
+          {
+            "itemId": "counter_accessories",
+            "quantity": 1
+          },
+          {
+            "itemId": "kitchen_towels",
+            "quantity": 2
+          },
+          {
+            "itemId": "kitchen_runner_rug",
+            "quantity": 1
+          }
         ],
         "totals": {
           "budget": 828500,
@@ -125,12 +288,30 @@
       "medium": {
         "displayName": "Medium Kitchen",
         "items": [
-          {"itemId": "bar_stool", "quantity": 4},
-          {"itemId": "island_centerpiece", "quantity": 1},
-          {"itemId": "counter_accessories", "quantity": 2},
-          {"itemId": "kitchen_towels", "quantity": 3},
-          {"itemId": "kitchen_runner_rug", "quantity": 1},
-          {"itemId": "open_shelving_decor", "quantity": 2}
+          {
+            "itemId": "bar_stool",
+            "quantity": 4
+          },
+          {
+            "itemId": "island_centerpiece",
+            "quantity": 1
+          },
+          {
+            "itemId": "counter_accessories",
+            "quantity": 2
+          },
+          {
+            "itemId": "kitchen_towels",
+            "quantity": 3
+          },
+          {
+            "itemId": "kitchen_runner_rug",
+            "quantity": 1
+          },
+          {
+            "itemId": "open_shelving_decor",
+            "quantity": 2
+          }
         ],
         "totals": {
           "budget": 1121500,
@@ -142,13 +323,34 @@
       "large": {
         "displayName": "Large Kitchen",
         "items": [
-          {"itemId": "bar_stool", "quantity": 6},
-          {"itemId": "island_centerpiece", "quantity": 2},
-          {"itemId": "counter_accessories", "quantity": 3},
-          {"itemId": "kitchen_towels", "quantity": 4},
-          {"itemId": "kitchen_runner_rug", "quantity": 1},
-          {"itemId": "open_shelving_decor", "quantity": 3},
-          {"itemId": "top_of_cabinetry_decor", "quantity": 2}
+          {
+            "itemId": "bar_stool",
+            "quantity": 6
+          },
+          {
+            "itemId": "island_centerpiece",
+            "quantity": 2
+          },
+          {
+            "itemId": "counter_accessories",
+            "quantity": 3
+          },
+          {
+            "itemId": "kitchen_towels",
+            "quantity": 4
+          },
+          {
+            "itemId": "kitchen_runner_rug",
+            "quantity": 1
+          },
+          {
+            "itemId": "open_shelving_decor",
+            "quantity": 3
+          },
+          {
+            "itemId": "top_of_cabinetry_decor",
+            "quantity": 2
+          }
         ],
         "totals": {
           "budget": 1661500,
@@ -168,18 +370,35 @@
     "description": "Complete dining room setup with furnishings",
     "category": "common_spaces",
     "icon": "🍽️",
-    "active": true,
     "sortOrder": 3,
     "sizes": {
       "small": {
         "displayName": "Small Dining Room",
         "items": [
-          {"itemId": "dining_table", "quantity": 1},
-          {"itemId": "dining_chair", "quantity": 4},
-          {"itemId": "table_centerpiece", "quantity": 1},
-          {"itemId": "area_rug", "quantity": 1},
-          {"itemId": "wall_art", "quantity": 2},
-          {"itemId": "mirror", "quantity": 1}
+          {
+            "itemId": "dining_table",
+            "quantity": 1
+          },
+          {
+            "itemId": "dining_chair",
+            "quantity": 4
+          },
+          {
+            "itemId": "table_centerpiece",
+            "quantity": 1
+          },
+          {
+            "itemId": "area_rug",
+            "quantity": 1
+          },
+          {
+            "itemId": "wall_art",
+            "quantity": 2
+          },
+          {
+            "itemId": "mirror",
+            "quantity": 1
+          }
         ],
         "totals": {
           "budget": 828500,
@@ -191,14 +410,38 @@
       "medium": {
         "displayName": "Medium Dining Room",
         "items": [
-          {"itemId": "dining_table", "quantity": 1},
-          {"itemId": "dining_chair", "quantity": 6},
-          {"itemId": "table_centerpiece", "quantity": 1},
-          {"itemId": "buffet_or_sideboard", "quantity": 1},
-          {"itemId": "area_rug", "quantity": 1},
-          {"itemId": "wall_art", "quantity": 3},
-          {"itemId": "mirror", "quantity": 1},
-          {"itemId": "curtain_set", "quantity": 2}
+          {
+            "itemId": "dining_table",
+            "quantity": 1
+          },
+          {
+            "itemId": "dining_chair",
+            "quantity": 6
+          },
+          {
+            "itemId": "table_centerpiece",
+            "quantity": 1
+          },
+          {
+            "itemId": "buffet_or_sideboard",
+            "quantity": 1
+          },
+          {
+            "itemId": "area_rug",
+            "quantity": 1
+          },
+          {
+            "itemId": "wall_art",
+            "quantity": 3
+          },
+          {
+            "itemId": "mirror",
+            "quantity": 1
+          },
+          {
+            "itemId": "curtain_set",
+            "quantity": 2
+          }
         ],
         "totals": {
           "budget": 1121500,
@@ -210,16 +453,46 @@
       "large": {
         "displayName": "Large Dining Room",
         "items": [
-          {"itemId": "dining_table", "quantity": 1},
-          {"itemId": "dining_chair", "quantity": 8},
-          {"itemId": "table_centerpiece", "quantity": 1},
-          {"itemId": "buffet_or_sideboard", "quantity": 1},
-          {"itemId": "display_cabinet", "quantity": 1},
-          {"itemId": "area_rug", "quantity": 1},
-          {"itemId": "wall_art", "quantity": 4},
-          {"itemId": "mirror", "quantity": 2},
-          {"itemId": "curtain_set", "quantity": 3},
-          {"itemId": "ottoman_or_pouf", "quantity": 2}
+          {
+            "itemId": "dining_table",
+            "quantity": 1
+          },
+          {
+            "itemId": "dining_chair",
+            "quantity": 8
+          },
+          {
+            "itemId": "table_centerpiece",
+            "quantity": 1
+          },
+          {
+            "itemId": "buffet_or_sideboard",
+            "quantity": 1
+          },
+          {
+            "itemId": "display_cabinet",
+            "quantity": 1
+          },
+          {
+            "itemId": "area_rug",
+            "quantity": 1
+          },
+          {
+            "itemId": "wall_art",
+            "quantity": 4
+          },
+          {
+            "itemId": "mirror",
+            "quantity": 2
+          },
+          {
+            "itemId": "curtain_set",
+            "quantity": 3
+          },
+          {
+            "itemId": "ottoman_or_pouf",
+            "quantity": 2
+          }
         ],
         "totals": {
           "budget": 1661500,
@@ -239,7 +512,6 @@
     "description": "Complete single bedroom setup with furnishings",
     "category": "sleeping_spaces",
     "icon": "🛏️",
-    "active": true,
     "sortOrder": 4,
     "sizes": {
       "small": {
@@ -283,7 +555,6 @@
     "description": "Complete double bedroom setup with furnishings",
     "category": "sleeping_spaces",
     "icon": "🛏️",
-    "active": true,
     "sortOrder": 5,
     "sizes": {
       "small": {
@@ -327,7 +598,6 @@
     "description": "Complete bunk room setup with furnishings",
     "category": "sleeping_spaces",
     "icon": "🛏️",
-    "active": true,
     "sortOrder": 6,
     "sizes": {
       "small": {
@@ -371,7 +641,6 @@
     "description": "Complete rec room setup with furnishings",
     "category": "common_spaces",
     "icon": "🎮",
-    "active": true,
     "sortOrder": 7,
     "sizes": {
       "small": {

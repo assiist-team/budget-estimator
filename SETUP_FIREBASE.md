@@ -37,7 +37,6 @@ This guide will walk you through setting up Firebase for the 1584 Project Estima
   "description": "Common living space with seating",
   "category": "common_spaces",
   "icon": "🛋️",
-  "active": true,
   "sortOrder": 1,
   "sizes": {
     "small": {
@@ -178,7 +177,7 @@ Some queries require composite indexes. Create these in Firestore → Indexes:
 - Fields: `createdAt` (Descending)
 
 ### Collection: `roomTemplates`
-- Fields: `active` (Ascending), `sortOrder` (Ascending)
+- Fields: `sortOrder` (Ascending)
 
 **Note:** Firebase will automatically prompt you to create indexes when needed.
 

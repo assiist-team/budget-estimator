@@ -17,7 +17,6 @@ async function loadRoomTemplatesFromFile(): Promise<Map<string, RoomTemplate>> {
         description: template.description,
         category: template.category,
         icon: template.icon,
-        active: template.active,
         sortOrder: template.sortOrder,
         sizes: template.sizes,
         createdAt: new Date(template.createdAt),

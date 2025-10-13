@@ -43,7 +43,6 @@ Master catalog of all available items with pricing across quality tiers.
   midHighPrice: 800000,     // $8,000.00
   highPrice: 1500000,       // $15,000.00
 
-  active: true,
   unit: "each",
   notes: "",
   createdAt: timestamp,
@@ -96,7 +95,6 @@ Pre-configured room templates defining which items belong in each room size.
     large: { /* ... */ }
   },
 
-  active: true,
   sortOrder: 1,
   createdAt: timestamp,
   updatedAt: timestamp
@@ -213,7 +211,6 @@ const newItem = {
   midPrice: 75000,       // $750
   midHighPrice: 150000,  // $1,500
   highPrice: 350000,     // $3,500
-  active: true,
   unit: "each",
   createdAt: new Date(),
   updatedAt: new Date()
@@ -224,10 +221,9 @@ await setDoc(doc(db, 'items', 'custom_chair'), newItem);
 
 #### Read Items
 ```javascript
-// Get all active items
+// Get all items
 const itemsQuery = query(
   collection(db, 'items'),
-  where('active', '==', true),
   orderBy('name')
 );
 const snapshot = await getDocs(itemsQuery);
@@ -235,8 +231,7 @@ const snapshot = await getDocs(itemsQuery);
 // Get items by category
 const bedroomItemsQuery = query(
   collection(db, 'items'),
-  where('category', '==', 'bedroom_furniture'),
-  where('active', '==', true)
+  where('category', '==', 'bedroom_furniture')
 );
 ```
 
@@ -249,13 +244,10 @@ await updateDoc(itemRef, {
 });
 ```
 
-#### Delete/Deactivate Item
+#### Delete Item
 ```javascript
-// Soft delete - mark as inactive
-await updateDoc(doc(db, 'items', 'old_item'), {
-  active: false,
-  updatedAt: new Date()
-});
+// Hard delete - permanently remove item
+await deleteDoc(doc(db, 'items', 'old_item'));
 
 // Note: Hard delete should be avoided as it may break existing estimates
 ```
@@ -288,7 +280,6 @@ const newTemplate = {
     large: { /* ... */ }
   },
 
-  active: true,
   sortOrder: 99,
   createdAt: new Date(),
   updatedAt: new Date()
@@ -408,7 +399,6 @@ function calculateEstimate(selectedRooms, roomTemplates, items) {
 
 **Causes:**
 - Items collection not populated
-- Items marked as inactive
 - Firebase security rules blocking read access
 
 **Debug Steps:**
@@ -418,13 +408,10 @@ const itemsRef = collection(db, 'items');
 const itemsSnapshot = await getDocs(itemsRef);
 console.log('Total items:', itemsSnapshot.size);
 
-// Check active items only
-const activeItemsQuery = query(
-  collection(db, 'items'),
-  where('active', '==', true)
-);
-const activeSnapshot = await getDocs(activeItemsQuery);
-console.log('Active items:', activeSnapshot.size);
+// Check all items
+const allItemsQuery = query(collection(db, 'items'));
+const allSnapshot = await getDocs(allItemsQuery);
+console.log('Total items:', allSnapshot.size);
 
 // Verify security rules
 console.log('Current user:', auth.currentUser?.email);
@@ -606,11 +593,8 @@ export interface RoomTemplate {
 
 Collection: items
 - Single field: category (Ascending)
-- Single field: active (Ascending)
-- Composite: category (Ascending), active (Ascending)
 
 Collection: roomTemplates
-- Single field: active (Ascending)
 - Single field: category (Ascending)
 - Single field: sortOrder (Ascending)
 
@@ -702,13 +686,12 @@ describe('calculateEstimate', () => {
 ## Best Practices
 
 1. **Always store prices in cents** to avoid floating point precision issues
-2. **Use soft deletes** (active: false) instead of hard deletes
-3. **Calculate totals server-side** to ensure consistency
-4. **Validate data** before saving to prevent corruption
-5. **Use transactions** for related updates (e.g., item price + room totals)
-6. **Cache room templates** but refresh items more frequently
-7. **Log all admin changes** for audit trails
-8. **Test calculations** after any pricing or configuration changes
+2. **Calculate totals server-side** to ensure consistency
+3. **Validate data** before saving to prevent corruption
+4. **Use transactions** for related updates (e.g., item price + room totals)
+5. **Cache room templates** but refresh items more frequently
+6. **Log all admin changes** for audit trails
+7. **Test calculations** after any pricing or configuration changes
 
 ## Migration Guide
 

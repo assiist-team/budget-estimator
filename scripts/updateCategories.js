@@ -31,7 +31,7 @@ const categoryMapping = {
   // Room-specific furniture becomes just Furniture
   'bedroom_furniture': 'Furniture',
   'living_room_furniture': 'Furniture',
-  'kitchen_furniture': 'Furniture',
+  'kitchen_furniture': 'Kitchen', // Kitchen furniture stays in Kitchen
   'dining_furniture': 'Furniture',
 
   // Already correct categories
@@ -59,14 +59,18 @@ const itemSpecificMapping = {
   'throw_pillows': 'Accessories',
   'chair_throw_pillow': 'Accessories',
 
-  // Kitchen towels are textiles
-  'kitchen_towels': 'Textiles',
+  // Kitchen items
+  'kitchen_towels': 'Kitchen',
+  'kitchen_runner_rug': 'Kitchen',
+  'buffet_or_sideboard': 'Kitchen',
+  'bar_stool': 'Kitchen',
+  'island_centerpiece': 'Kitchen',
+  'counter_accessories': 'Kitchen',
 
   // Curtains and rods are textiles (already correct)
   'curtain_set': 'Textiles',
   'curtain_rod': 'Textiles',
-  'area_rug': 'Textiles',
-  'kitchen_runner_rug': 'Textiles'
+  'area_rug': 'Textiles'
 };
 
 async function updateCategories() {

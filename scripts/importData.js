@@ -72,7 +72,6 @@ async function importItems() {
           midPrice: parseCurrency(row['Mid Price'] || row['mid']),
           midHighPrice: parseCurrency(row['Mid/High Price'] || row['midhigh']),
           highPrice: parseCurrency(row['High Price'] || row['high']),
-          active: true,
           unit: 'each',
           notes: '',
           createdAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date(),
@@ -178,7 +177,6 @@ async function importRoomData() {
           description: `Complete ${roomType.name.toLowerCase()} setup with furnishings`,
           category: roomType.category,
           icon: roomType.icon,
-          active: true,
           sortOrder: roomTypes.findIndex(r => r.id === roomType.id) + 1,
           sizes: {
             small: {

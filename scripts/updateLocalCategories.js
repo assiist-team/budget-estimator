@@ -11,7 +11,7 @@ const categoryMapping = {
   // Room-specific furniture becomes just Furniture
   'bedroom_furniture': 'Furniture',
   'living_room_furniture': 'Furniture',
-  'kitchen_furniture': 'Furniture',
+  'kitchen_furniture': 'Kitchen', // Kitchen furniture stays in Kitchen
   'dining_furniture': 'Furniture',
 
   // Already correct categories

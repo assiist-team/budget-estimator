@@ -15,6 +15,8 @@ export default function AdminPage() {
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [showCreateItem, setShowCreateItem] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     async function fetchData() {
@@ -87,8 +89,24 @@ export default function AdminPage() {
     fetchData();
   }, []);
 
+  // Get unique categories from items
+  const uniqueCategories = Array.from(new Set(items.map(item => item.category))).sort();
+
+  // Filter items based on selected category and search term
+  const filteredItems = items.filter(item => {
+    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesSearch = searchTerm === '' ||
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.subcategory && item.subcategory.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    return matchesCategory && matchesSearch;
+  });
+
   // Function to update a room template
   const updateRoomTemplate = async (templateId: string, updates: Partial<RoomTemplate>) => {
+    // Store original template for potential rollback
+    const originalTemplate = roomTemplates.find(template => template.id === templateId);
+
     try {
       console.log('Updating room template:', templateId, updates);
       const templateRef = doc(db, 'roomTemplates', templateId);
@@ -120,7 +138,19 @@ export default function AdminPage() {
         updates,
         error: error instanceof Error ? error.message : error
       });
-      alert(`Failed to update room template: ${error instanceof Error ? error.message : 'Unknown error'}. Check console for details.`);
+
+      // Revert local state changes if Firestore update failed
+      if (originalTemplate) {
+        setRoomTemplates(prev =>
+          prev.map(template =>
+            template.id === templateId
+              ? originalTemplate
+              : template
+          )
+        );
+      }
+
+      alert(`Failed to update room template: ${error instanceof Error ? error.message : 'Unknown error'}. Changes have been reverted. Check console for details.`);
     }
   };
 
@@ -152,6 +182,9 @@ export default function AdminPage() {
 
   // Function to update an existing item
   const updateItem = async (itemId: string, updates: Partial<Item>) => {
+    // Store original item for potential rollback
+    const originalItem = items.find(item => item.id === itemId);
+
     try {
       const itemRef = doc(db, 'items', itemId);
       await updateDoc(itemRef, {
@@ -171,7 +204,21 @@ export default function AdminPage() {
       setEditingItem(null);
     } catch (error) {
       console.error('Error updating item:', error);
-      alert('Failed to update item. Please try again.');
+
+      // Revert local state changes if Firestore update failed
+      if (originalItem) {
+        setItems(prev =>
+          prev.map(item =>
+            item.id === itemId
+              ? originalItem
+              : item
+          )
+        );
+      }
+
+      // Show more specific error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to update item: ${errorMessage}. Changes have been reverted. Please try again.`);
     }
   };
 
@@ -425,7 +472,10 @@ export default function AdminPage() {
                   Master Item Catalog
                 </h2>
                 <p className="text-gray-600">
-                  {items.length} items available for room configurations
+                  {filteredItems.length === items.length
+                    ? `${items.length} items available for room configurations`
+                    : `${filteredItems.length} of ${items.length} items shown${searchTerm || selectedCategory !== 'all' ? ' (filtered)' : ''}`
+                  }
                 </p>
               </div>
               <button
@@ -436,14 +486,48 @@ export default function AdminPage() {
               </button>
             </div>
 
+            <div className="mb-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Search Items:
+                  </label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search by name or subcategory..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  />
+                </div>
+                <div className="sm:w-48">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Filter by Category:
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="all">All Categories</option>
+                    {uniqueCategories.map((category) => (
+                      <option key={category} value={category}>
+                        {category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <div key={item.id} className="card">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-gray-900">{item.name}</h3>
                     <div className="flex items-center gap-2">
                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        {item.category}
+                        {item.category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </span>
                       <button
                         onClick={() => setEditingItem(item)}
@@ -459,7 +543,6 @@ export default function AdminPage() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">{item.category}</p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <span className="font-medium">Budget:</span> {formatCurrency(item.budgetPrice)}
@@ -724,13 +807,12 @@ function ItemForm({
 }) {
   const [formData, setFormData] = useState({
     name: item?.name || '',
-    category: item?.category || 'living_room_furniture',
+    category: item?.category || 'Furniture',
     subcategory: item?.subcategory || '',
-    budgetPrice: item?.budgetPrice || 0,
-    midPrice: item?.midPrice || 0,
-    midHighPrice: item?.midHighPrice || 0,
-    highPrice: item?.highPrice || 0,
-    active: item?.active ?? true,
+    budgetPrice: item?.budgetPrice ? Math.round(item.budgetPrice / 100) : 0,
+    midPrice: item?.midPrice ? Math.round(item.midPrice / 100) : 0,
+    midHighPrice: item?.midHighPrice ? Math.round(item.midHighPrice / 100) : 0,
+    highPrice: item?.highPrice ? Math.round(item.highPrice / 100) : 0,
     unit: item?.unit || 'each',
     notes: item?.notes || '',
   });
@@ -776,15 +858,13 @@ function ItemForm({
             className="w-full p-2 border border-gray-300 rounded"
             required
           >
-            <option value="bedroom_furniture">Bedroom Furniture</option>
-            <option value="living_room_furniture">Living Room Furniture</option>
-            <option value="kitchen_furniture">Kitchen Furniture</option>
-            <option value="dining_furniture">Dining Furniture</option>
-            <option value="decorative">Decorative</option>
-            <option value="textiles">Textiles</option>
-            <option value="lighting">Lighting</option>
-            <option value="accessories">Accessories</option>
-            <option value="electronics">Electronics</option>
+            <option value="Furniture">Furniture</option>
+            <option value="Kitchen">Kitchen</option>
+            <option value="Bedding">Bedding</option>
+            <option value="Textiles">Textiles</option>
+            <option value="Lighting">Lighting</option>
+            <option value="Accessories">Accessories</option>
+            <option value="Entertainment">Entertainment</option>
           </select>
         </div>
       </div>
@@ -819,23 +899,6 @@ function ItemForm({
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="active"
-              checked={formData.active}
-              onChange={(e) => setFormData(prev => ({ ...prev, active: e.target.checked }))}
-              className="rounded"
-            />
-            <label htmlFor="active" className="text-sm text-gray-700">
-              Active
-            </label>
-          </div>
-        </div>
       </div>
 
       <div>
@@ -864,8 +927,8 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.budgetPrice / 100}
-              onChange={(e) => setFormData(prev => ({ ...prev, budgetPrice: parseFloat(e.target.value) * 100 }))}
+              value={formData.budgetPrice}
+              onChange={(e) => setFormData(prev => ({ ...prev, budgetPrice: parseFloat(e.target.value) || 0 }))}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -878,8 +941,8 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.midPrice / 100}
-              onChange={(e) => setFormData(prev => ({ ...prev, midPrice: parseFloat(e.target.value) * 100 }))}
+              value={formData.midPrice}
+              onChange={(e) => setFormData(prev => ({ ...prev, midPrice: parseFloat(e.target.value) || 0 }))}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -892,8 +955,8 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.midHighPrice / 100}
-              onChange={(e) => setFormData(prev => ({ ...prev, midHighPrice: parseFloat(e.target.value) * 100 }))}
+              value={formData.midHighPrice}
+              onChange={(e) => setFormData(prev => ({ ...prev, midHighPrice: parseFloat(e.target.value) || 0 }))}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -906,8 +969,8 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.highPrice / 100}
-              onChange={(e) => setFormData(prev => ({ ...prev, highPrice: parseFloat(e.target.value) * 100 }))}
+              value={formData.highPrice}
+              onChange={(e) => setFormData(prev => ({ ...prev, highPrice: parseFloat(e.target.value) || 0 }))}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -933,4 +996,8 @@ function ItemForm({
     </form>
   );
 }
+
+
+
+
 

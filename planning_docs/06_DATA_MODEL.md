@@ -39,9 +39,8 @@ Master catalog of all items with pricing across quality tiers.
   midPrice: 150000,          // $1,500.00
   midHighPrice: 300000,      // $3,000.00
   highPrice: 800000,         // $8,000.00
-  
+
   // Metadata
-  active: true,              // Can be disabled without deleting
   unit: "each",              // "each", "pair", "set"
   notes: "",                 // Optional internal notes
   
@@ -65,7 +64,6 @@ Master catalog of all items with pricing across quality tiers.
   midPrice: 150000,
   midHighPrice: 300000,
   highPrice: 800000,
-  active: true,
   unit: "each",
   createdAt: Timestamp,
   updatedAt: Timestamp
@@ -80,7 +78,6 @@ Master catalog of all items with pricing across quality tiers.
   midPrice: 8000,
   midHighPrice: 12500,
   highPrice: 30000,
-  active: true,
   unit: "each",
   createdAt: Timestamp,
   updatedAt: Timestamp
@@ -95,7 +92,6 @@ Master catalog of all items with pricing across quality tiers.
   midPrice: 400000,
   midHighPrice: 800000,
   highPrice: 1500000,
-  active: true,
   unit: "each",
   createdAt: Timestamp,
   updatedAt: Timestamp
@@ -122,8 +118,6 @@ const CATEGORIES = [
 ```
 Collection: items
 - Single field: category (Ascending)
-- Single field: active (Ascending)
-- Composite: category (Ascending), active (Ascending)
 ```
 
 ---
@@ -192,7 +186,6 @@ Pre-configured room templates with item lists and quantities by room size.
   },
   
   // Metadata
-  active: true,
   sortOrder: 1, // For display ordering
   
   // Audit
@@ -269,8 +262,7 @@ Pre-configured room templates with item lists and quantities by room size.
       }
     }
   },
-  
-  active: true,
+
   sortOrder: 4,
   createdAt: Timestamp,
   updatedAt: Timestamp
@@ -296,7 +288,6 @@ const ROOM_SIZES = ["small", "medium", "large"];
 ### Indexes Needed
 ```
 Collection: roomTemplates
-- Single field: active (Ascending)
 - Single field: category (Ascending)
 - Single field: sortOrder (Ascending)
 ```
@@ -653,9 +644,6 @@ Track admin access and permissions.
   lastLogin: timestamp,
   loginCount: 47,
   
-  // Status
-  active: true,
-  
   // Audit
   createdAt: timestamp,
   createdBy: "system",
@@ -819,7 +807,6 @@ async function importItems() {
         midPrice: parseCurrency(row['Mid Price']),
         midHighPrice: parseCurrency(row['Mid/High Price']),
         highPrice: parseCurrency(row['High Price']),
-        active: true,
         unit: 'each',
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -881,10 +868,9 @@ importItems();
 
 ## Query Examples
 
-### Get All Active Items
+### Get All Items
 ```javascript
 const items = await db.collection('items')
-  .where('active', '==', true)
   .orderBy('name')
   .get();
 ```
@@ -893,7 +879,6 @@ const items = await db.collection('items')
 ```javascript
 const bedroomItems = await db.collection('items')
   .where('category', '==', 'bedroom_furniture')
-  .where('active', '==', true)
   .get();
 ```
 

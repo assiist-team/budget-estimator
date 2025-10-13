@@ -9,7 +9,6 @@ export interface Item {
   midPrice: number;
   midHighPrice: number;
   highPrice: number;
-  active: boolean;
   unit: string;
   notes?: string;
   createdAt: Date;
@@ -44,7 +43,6 @@ export interface RoomTemplate {
     medium: RoomSize;
     large: RoomSize;
   };
-  active: boolean;
   sortOrder: number;
   createdAt: Date;
   updatedAt: Date;

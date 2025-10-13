@@ -32,7 +32,8 @@ const expectedCategories = [
   'Accessories',
   'Bedding',
   'Entertainment',
-  'Textiles'
+  'Textiles',
+  'Kitchen'
 ];
 
 async function verifyCategories() {
