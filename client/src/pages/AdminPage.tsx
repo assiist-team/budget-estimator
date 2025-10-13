@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, limit, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, doc, updateDoc, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
@@ -12,6 +12,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'estimates' | 'templates' | 'items'>('estimates');
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [showCreateItem, setShowCreateItem] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -102,6 +104,84 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error updating room template:', error);
       alert('Failed to update room template. Please try again.');
+    }
+  };
+
+  // Function to create a new item
+  const createItem = async (itemData: Omit<Item, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const newItem = {
+        ...itemData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const docRef = await addDoc(collection(db, 'items'), newItem);
+
+      // Update local state
+      setItems(prev => [...prev, {
+        id: docRef.id,
+        ...newItem,
+      } as Item]);
+
+      setShowCreateItem(false);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating item:', error);
+      alert('Failed to create item. Please try again.');
+      throw error;
+    }
+  };
+
+  // Function to update an existing item
+  const updateItem = async (itemId: string, updates: Partial<Item>) => {
+    try {
+      const itemRef = doc(db, 'items', itemId);
+      await updateDoc(itemRef, {
+        ...updates,
+        updatedAt: new Date(),
+      });
+
+      // Update local state
+      setItems(prev =>
+        prev.map(item =>
+          item.id === itemId
+            ? { ...item, ...updates, updatedAt: new Date() }
+            : item
+        )
+      );
+
+      setEditingItem(null);
+    } catch (error) {
+      console.error('Error updating item:', error);
+      alert('Failed to update item. Please try again.');
+    }
+  };
+
+  // Function to delete/deactivate an item
+  const deleteItem = async (itemId: string) => {
+    if (!confirm('Are you sure you want to deactivate this item? It will be removed from all room templates.')) {
+      return;
+    }
+
+    try {
+      const itemRef = doc(db, 'items', itemId);
+      await updateDoc(itemRef, {
+        active: false,
+        updatedAt: new Date(),
+      });
+
+      // Update local state
+      setItems(prev =>
+        prev.map(item =>
+          item.id === itemId
+            ? { ...item, active: false, updatedAt: new Date() }
+            : item
+        )
+      );
+    } catch (error) {
+      console.error('Error deactivating item:', error);
+      alert('Failed to deactivate item. Please try again.');
     }
   };
 
@@ -331,13 +411,21 @@ export default function AdminPage() {
 
         {activeTab === 'items' && (
           <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Master Item Catalog
-              </h2>
-              <p className="text-gray-600">
-                {items.length} items available for room configurations
-              </p>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Master Item Catalog
+                </h2>
+                <p className="text-gray-600">
+                  {items.length} items available for room configurations
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateItem(true)}
+                className="btn-primary"
+              >
+                + Create Item
+              </button>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -345,11 +433,25 @@ export default function AdminPage() {
                 <div key={item.id} className="card">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {item.active ? 'Active' : 'Inactive'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        item.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {item.active ? 'Active' : 'Inactive'}
+                      </span>
+                      <button
+                        onClick={() => setEditingItem(item)}
+                        className="text-sm text-primary-600 hover:text-primary-800"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => deleteItem(item.id)}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        {item.active ? 'Deactivate' : 'Delete'}
+                      </button>
+                    </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">{item.category}</p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -542,7 +644,282 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* Create Item Modal */}
+      {showCreateItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Create New Item
+                </h2>
+                <button
+                  onClick={() => setShowCreateItem(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <ItemForm
+                onSubmit={createItem}
+                onCancel={() => setShowCreateItem(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Item Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Edit Item: {editingItem.name}
+                </h2>
+                <button
+                  onClick={() => setEditingItem(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <ItemForm
+                item={editingItem}
+                onSubmit={(updates) => updateItem(editingItem.id, updates)}
+                onCancel={() => setEditingItem(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+// Item Form Component
+function ItemForm({
+  item,
+  onSubmit,
+  onCancel
+}: {
+  item?: Item;
+  onSubmit: (data: any) => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: item?.name || '',
+    category: item?.category || 'living_room_furniture',
+    subcategory: item?.subcategory || '',
+    budgetPrice: item?.budgetPrice || 0,
+    midPrice: item?.midPrice || 0,
+    midHighPrice: item?.midHighPrice || 0,
+    highPrice: item?.highPrice || 0,
+    active: item?.active ?? true,
+    unit: item?.unit || 'each',
+    notes: item?.notes || '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Convert prices to cents
+    const submitData = {
+      ...formData,
+      budgetPrice: Math.round(formData.budgetPrice * 100),
+      midPrice: Math.round(formData.midPrice * 100),
+      midHighPrice: Math.round(formData.midHighPrice * 100),
+      highPrice: Math.round(formData.highPrice * 100),
+    };
+
+    onSubmit(submitData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Item Name
+          </label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Category
+          </label>
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          >
+            <option value="bedroom_furniture">Bedroom Furniture</option>
+            <option value="living_room_furniture">Living Room Furniture</option>
+            <option value="kitchen_furniture">Kitchen Furniture</option>
+            <option value="dining_furniture">Dining Furniture</option>
+            <option value="decorative">Decorative</option>
+            <option value="textiles">Textiles</option>
+            <option value="lighting">Lighting</option>
+            <option value="accessories">Accessories</option>
+            <option value="electronics">Electronics</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Subcategory (Optional)
+        </label>
+        <input
+          type="text"
+          value={formData.subcategory}
+          onChange={(e) => setFormData(prev => ({ ...prev, subcategory: e.target.value }))}
+          className="w-full p-2 border border-gray-300 rounded"
+          placeholder="e.g., seating, tables, storage"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Unit
+          </label>
+          <select
+            value={formData.unit}
+            onChange={(e) => setFormData(prev => ({ ...prev, unit: e.target.value }))}
+            className="w-full p-2 border border-gray-300 rounded"
+          >
+            <option value="each">Each</option>
+            <option value="sqft">Per Sq Ft</option>
+            <option value="linear ft">Per Linear Ft</option>
+            <option value="set">Set</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Status
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="active"
+              checked={formData.active}
+              onChange={(e) => setFormData(prev => ({ ...prev, active: e.target.checked }))}
+              className="rounded"
+            />
+            <label htmlFor="active" className="text-sm text-gray-700">
+              Active
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Notes (Optional)
+        </label>
+        <textarea
+          value={formData.notes}
+          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+          className="w-full p-2 border border-gray-300 rounded"
+          rows={3}
+          placeholder="Additional notes or specifications"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">
+          Pricing (in dollars)
+        </label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Budget Quality
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.budgetPrice / 100}
+              onChange={(e) => setFormData(prev => ({ ...prev, budgetPrice: parseFloat(e.target.value) * 100 }))}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Mid Quality
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.midPrice / 100}
+              onChange={(e) => setFormData(prev => ({ ...prev, midPrice: parseFloat(e.target.value) * 100 }))}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Mid/High Quality
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.midHighPrice / 100}
+              onChange={(e) => setFormData(prev => ({ ...prev, midHighPrice: parseFloat(e.target.value) * 100 }))}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              High Quality
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={formData.highPrice / 100}
+              onChange={(e) => setFormData(prev => ({ ...prev, highPrice: parseFloat(e.target.value) * 100 }))}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-6 border-t">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn-secondary"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="btn-primary"
+        >
+          {item ? 'Update Item' : 'Create Item'}
+        </button>
+      </div>
+    </form>
   );
 }
 
