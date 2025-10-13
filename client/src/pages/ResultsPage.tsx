@@ -6,7 +6,7 @@ import { db } from '../lib/firebase';
 import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
-import type { ClientInfo } from '../types';
+import type { ClientInfo, RoomItem } from '../types';
 import { formatCurrency, generateEstimateId } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 
@@ -121,7 +121,7 @@ export default function ResultsPage() {
         
         <div className="mt-8">
           {/* Overall Budget Range */}
-          <div className="bg-gradient-to-br from-amber-800 to-amber-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 mb-8">
+          <div className="bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 mb-8">
             <div className="text-center py-6">
               <p className="text-lg font-medium mb-3 opacity-90">
                 ESTIMATED FURNISHINGS BUDGET RANGE
@@ -129,9 +129,6 @@ export default function ResultsPage() {
               <div className="text-5xl font-bold mb-2">
                 {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
               </div>
-              <p className="text-lg opacity-90">
-                Furnishings Budget Range
-              </p>
               <p className="text-sm opacity-75 mt-4">
                 Based on {selectedRooms.length} room{selectedRooms.length !== 1 ? 's' : ''},
                 {propertySpecs.squareFootage.toLocaleString()} sqft property
@@ -157,7 +154,7 @@ export default function ResultsPage() {
                   <div className="space-y-6 mb-4">
                     {budget.roomBreakdown.map((room, idx) => {
                       const template = roomTemplates.get(room.roomType);
-                      const roomSizeData = template?.sizes[room.roomSize];
+                      const roomSizeData = template?.sizes[room.roomSize as 'small' | 'medium' | 'large'];
 
                       return (
                         <div key={idx} className="border-b border-gray-100 pb-4 last:border-b-0">
@@ -181,8 +178,8 @@ export default function ResultsPage() {
                             <div className="ml-4 space-y-2">
                               <h5 className="text-sm font-medium text-gray-700 mb-2">Included Items:</h5>
                               <div className="grid gap-2">
-                                {roomSizeData.items.map((roomItem, itemIdx) => {
-                                  const itemDisplayName = roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                {roomSizeData.items.map((roomItem: RoomItem, itemIdx: number) => {
+                                  const itemDisplayName = roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
 
                                   return (
                                     <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-3 py-2 rounded">

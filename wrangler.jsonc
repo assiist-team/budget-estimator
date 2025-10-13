@@ -1,7 +1,4 @@
 {
   "name": "project-estimator",
-  "main": "index.html",
-  "site": {
-    "bucket": "."
-  }
+  "pages_build_output_dir": "dist"
 }
