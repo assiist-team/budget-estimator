@@ -111,27 +111,20 @@ export default function ResultsPage() {
         <ProgressBar currentStep={3} totalSteps={3} />
         
         <div className="mt-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Your Project Estimate
-          </h1>
-          <p className="text-gray-600 mb-8">
-            Here's your estimated furnishings budget
-          </p>
-
           {/* Overall Budget Range */}
-          <div className="card bg-gradient-to-br from-primary-700 to-primary-900 text-white mb-8">
+          <div className="bg-gradient-to-br from-amber-800 to-amber-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 mb-8">
             <div className="text-center py-6">
               <p className="text-lg font-medium mb-3 opacity-90">
-                ESTIMATED BUDGET RANGE
+                ESTIMATED FURNISHINGS BUDGET RANGE
               </p>
               <div className="text-5xl font-bold mb-2">
                 {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
               </div>
               <p className="text-lg opacity-90">
-                Budget Range
+                Furnishings Budget Range
               </p>
               <p className="text-sm opacity-75 mt-4">
-                Based on {selectedRooms.length} room{selectedRooms.length !== 1 ? 's' : ''}, 
+                Based on {selectedRooms.length} room{selectedRooms.length !== 1 ? 's' : ''},
                 {propertySpecs.squareFootage.toLocaleString()} sqft property
               </p>
             </div>
@@ -160,7 +153,7 @@ export default function ResultsPage() {
                           ({room.roomSize}) × {room.quantity}
                         </span>
                         <span className="font-medium text-gray-900">
-                          {formatCurrency(room.budgetAmount)} — {formatCurrency(Math.round(room.budgetAmount * 1.1))}
+                          {formatCurrency(room.budgetAmount)} — {formatCurrency(Math.round(room.budgetAmount * 1.2))}
                         </span>
                       </div>
                     ))}
@@ -177,7 +170,7 @@ export default function ResultsPage() {
           </div>
 
           {/* Contact Form */}
-          <div className="card bg-accent-50 border-2 border-accent-200">
+          <div className="card bg-primary-50 border-2 border-primary-200">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
               Get Your Detailed Estimate
             </h2>
@@ -279,7 +272,7 @@ export default function ResultsPage() {
               onClick={() => navigate('/rooms')}
               className="btn-ghost"
             >
-              ← Edit Configuration
+              ← Edit Property Details
             </button>
           </div>
         </div>

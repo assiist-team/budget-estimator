@@ -13,7 +13,6 @@ export default function PropertyInputPage() {
     defaultValues: propertySpecs || {
       squareFootage: 2500,
       guestCapacity: 8,
-      propertyType: undefined,
       notes: '',
     },
   });
@@ -67,7 +66,7 @@ export default function PropertyInputPage() {
                 step="100"
                 value={squareFootage}
                 {...register('squareFootage')}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-accent-600"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-1">
                 <span>500 sqft</span>
@@ -102,7 +101,7 @@ export default function PropertyInputPage() {
                 step="1"
                 value={guestCapacity}
                 {...register('guestCapacity')}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-accent-600"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-1">
                 <span>2 guests</span>
@@ -113,21 +112,6 @@ export default function PropertyInputPage() {
               )}
             </div>
 
-            {/* Property Type */}
-            <div className="card">
-              <label className="block text-lg font-semibold text-gray-900 mb-4">
-                Property Type <span className="text-gray-500 font-normal">(optional)</span>
-              </label>
-              <select
-                {...register('propertyType')}
-                className="input-field"
-              >
-                <option value="">Select a type...</option>
-                <option value="vacation_rental">Vacation Rental</option>
-                <option value="primary_residence">Primary Residence</option>
-                <option value="commercial">Commercial</option>
-              </select>
-            </div>
 
             {/* Additional Notes */}
             <div className="card">

@@ -28,7 +28,7 @@ export default function RoomCard({
             type="checkbox"
             checked={isSelected}
             onChange={onToggle}
-            className="w-5 h-5 rounded border-gray-300 text-accent-600 focus:ring-accent-500 cursor-pointer"
+            className="w-5 h-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
           />
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -59,7 +59,7 @@ export default function RoomCard({
                   className={`
                     px-4 py-2 rounded-lg font-medium transition-all duration-200
                     ${room.roomSize === size
-                      ? 'bg-accent-600 text-white shadow-md'
+                      ? 'bg-primary-600 text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }
                   `}

@@ -42,7 +42,7 @@ export function calculateEstimate(
     };
 
     if (budgetMode) {
-      // Budget mode: only calculate budget tier and create range with 10% markup
+      // Budget mode: only calculate budget tier and create range with 20% markup
       const budgetTotal = roomSize.totals.budget * room.quantity;
       roomData.budgetAmount = budgetTotal;
       budget.budget.subtotal += budgetTotal;
@@ -72,7 +72,7 @@ export function calculateEstimate(
   // Set overall range
   if (budgetMode) {
     budget.rangeLow = budget.budget.total;
-    budget.rangeHigh = Math.round(budget.budget.total * 1.1); // Add 10% for upper range
+    budget.rangeHigh = Math.round(budget.budget.total * 1.2); // Add 20% for upper range
   } else {
     budget.rangeLow = budget.budget.total;
     budget.rangeHigh = budget.high.total;

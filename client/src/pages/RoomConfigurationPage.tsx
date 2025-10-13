@@ -82,7 +82,7 @@ export default function RoomConfigurationPage() {
     const roomSize = template.sizes[size];
     return {
       low: roomSize.totals.budget,
-      high: roomSize.totals.budget * 1.1, // Budget + 10% for upper range (no rounding)
+      high: roomSize.totals.budget * 1.2, // Budget + 20% for upper range (no rounding)
     };
   };
 
@@ -126,7 +126,7 @@ export default function RoomConfigurationPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading room templates...</p>
         </div>
       </div>
@@ -218,7 +218,7 @@ export default function RoomConfigurationPage() {
 
           {/* Running Total */}
           {localRooms.length > 0 && (
-            <div className="card bg-accent-50 border-2 border-accent-200">
+            <div className="card bg-primary-50 border-2 border-primary-200">
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-700 mb-2">
                   Estimated Budget Range

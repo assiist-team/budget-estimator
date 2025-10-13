@@ -416,8 +416,7 @@ const estimateData = {
   // Estimate details (ready for HighLevel custom fields)
   propertySpecs: {
     squareFootage: 0,
-    guestCapacity: 0,
-    propertyType: ''
+    guestCapacity: 0
   },
   
   // Calculate ranges

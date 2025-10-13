@@ -326,7 +326,6 @@ Client estimate submissions and saved configurations.
   propertySpecs: {
     squareFootage: 3200,
     guestCapacity: 12,
-    propertyType: "vacation_rental", // "vacation_rental", "primary_residence", "commercial"
     notes: "" // optional client notes
   },
   
@@ -450,7 +449,6 @@ Client estimate submissions and saved configurations.
   propertySpecs: {
     squareFootage: 3200,
     guestCapacity: 12,
-    propertyType: "vacation_rental",
     notes: "Mountain retreat with lake views"
   },
   

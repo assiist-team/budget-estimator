@@ -96,7 +96,6 @@ export function formatEstimateForPDF(estimate: Estimate) {
     property: {
       squareFootage: estimate.propertySpecs.squareFootage.toLocaleString(),
       guestCapacity: estimate.propertySpecs.guestCapacity,
-      type: estimate.propertySpecs.propertyType || 'Not specified',
     },
     rooms: estimate.rooms.map(room => ({
       name: room.displayName,

@@ -60,7 +60,6 @@ export interface SelectedRoom {
 export interface PropertySpecs {
   squareFootage: number;
   guestCapacity: number;
-  propertyType?: 'vacation_rental' | 'primary_residence' | 'commercial';
   notes?: string;
 }
 

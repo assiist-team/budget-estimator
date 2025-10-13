@@ -13,7 +13,7 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
             <div className="text-2xl font-bold text-primary-800">
-              1584 <span className="text-accent-600">Estimator</span>
+              1584 <span className="text-primary-800">Design Estimator</span>
             </div>
           </Link>
 
@@ -26,7 +26,7 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
             {showAdminLink && (
               <Link
                 to="/admin"
-                className="text-sm text-gray-600 hover:text-primary-800 transition-colors"
+                className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
               >
                 Admin
               </Link>
