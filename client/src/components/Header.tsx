@@ -12,8 +12,8 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <div className="text-2xl font-bold text-primary-800">
-              1584 <span className="text-primary-800">Design Estimator</span>
+            <div className="text-xl font-bold text-primary-800">
+              1584 <span className="text-primary-800">Design Project Estimator</span>
             </div>
           </Link>
 
