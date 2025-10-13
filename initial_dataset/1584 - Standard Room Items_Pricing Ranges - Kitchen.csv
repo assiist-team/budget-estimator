@@ -1,7 +1,7 @@
 Kitchen,,,,,,,
 Item,Small Rm Qnty,Mid Rm Qnty,Large Rm Qnty,Budget Price,Mid Price,Mid/High Price,High Price
-Bar Stools,4,8,12,$300.00,$800.00,"$1,500.00","$4,000.00"
-Island Center Piece,1,1,1,$100.00,$300.00,$500.00,$800.00
+Bar Stool,4,8,12,$300.00,$800.00,"$1,500.00","$4,000.00"
+Island Centerpiece,1,1,1,$100.00,$300.00,$500.00,$800.00
 Counter Accessories,3,6,9,$50.00,$125.00,$300.00,$500.00
 Kitchen Towels,2,4,6,$15.00,$35.00,$50.00,$80.00
 Open Shelving Decor,0,8,16,$60.00,$100.00,$250.00,$500.00

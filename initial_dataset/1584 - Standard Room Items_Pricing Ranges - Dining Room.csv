@@ -1,8 +1,8 @@
 Dining Area,,,,,,,
 Item,Small Rm Qnty,Mid Rm Qnty,Large Rm Qnty,Budget Price,Mid Price,Mid/High Price,High Price
 Dining Table,1,1,2,"$1,200.00","$2,500.00","$4,000.00","$10,000.00"
-Dining Chairs,8,10,20,$300.00,$600.00,"$1,000.00","$4,000.00"
-Table Centerpeice,1,1,2,$100.00,$250.00,$400.00,$800.00
+Dining Chair,8,10,20,$300.00,$600.00,"$1,000.00","$4,000.00"
+Table Centerpiece,1,1,2,$100.00,$250.00,$400.00,$800.00
 Wall Art,1,2,4,$200.00,$500.00,"$1,000.00","$5,000.00"
 Curtains,1,2,3,$65.00,$65.00,$65.00,$65.00
 Curtain Rod,1,2,3,$40.00,$40.00,$40.00,$40.00

@@ -148,10 +148,10 @@ export function suggestRoomConfiguration(
   // Dining based on capacity
   if (guestCapacity >= 6) {
     suggestions.push({
-      roomType: 'dining_area',
+      roomType: 'dining_room',
       roomSize: guestCapacity > 12 ? 'large' : guestCapacity > 8 ? 'medium' : 'small',
       quantity: 1,
-      displayName: 'Dining Area',
+      displayName: 'Dining Room',
     });
   }
 
