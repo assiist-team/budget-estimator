@@ -51,12 +51,6 @@ export interface CommonAreaRules {
 }
 
 export interface ValidationEnvelopes {
-  legalPairs: Array<{
-    min_sqft: number;
-    max_sqft: number;
-    min_guests: number;
-    max_guests: number;
-  }>;
   global: {
     min_sqft: number;
     max_sqft: number;

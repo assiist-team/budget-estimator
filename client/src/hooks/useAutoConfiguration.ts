@@ -1,6 +1,9 @@
 import { useEffect, useMemo } from 'react';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { useConfigStore } from '../store/configStore';
 import { useEstimatorStore } from '../store/estimatorStore';
+import type { AutoConfigRules } from '../types/config';
 import {
   computeAutoConfiguration,
   clampGuestsForSqft,
@@ -12,21 +15,25 @@ import {
  * Hook for auto-configuration functionality
  * Provides computed configuration and validation helpers for current property specs
  */
-export function useAutoConfiguration() {
+export function useAutoConfiguration(currentSquareFootage?: number, currentGuestCapacity?: number) {
   const { rules, computedConfiguration, setComputedConfiguration } = useConfigStore();
   const { propertySpecs } = useEstimatorStore();
 
+  // Use provided values or fall back to store values
+  const squareFootage = currentSquareFootage ?? propertySpecs?.squareFootage ?? 2200;
+  const guestCapacity = currentGuestCapacity ?? propertySpecs?.guestCapacity ?? 12;
+
   // Compute configuration when property specs or rules change
   useEffect(() => {
-    if (!rules || !propertySpecs) {
+    if (!rules) {
       setComputedConfiguration(null);
       return;
     }
 
     try {
       const config = computeAutoConfiguration(
-        propertySpecs.squareFootage,
-        propertySpecs.guestCapacity,
+        squareFootage,
+        guestCapacity,
         rules
       );
       setComputedConfiguration(config);
@@ -34,38 +41,38 @@ export function useAutoConfiguration() {
       console.error('Error computing auto-configuration:', error);
       setComputedConfiguration(null);
     }
-  }, [rules, propertySpecs, setComputedConfiguration]);
+  }, [rules, squareFootage, guestCapacity, setComputedConfiguration]);
 
   // Validation helpers
   const validation = useMemo(() => {
-    if (!rules || !propertySpecs) {
+    if (!rules) {
       return {
         isValid: false,
-        clampedGuests: propertySpecs?.guestCapacity || 0,
+        clampedGuests: guestCapacity,
         allowedRange: null,
-        reason: 'Missing configuration or property specs'
+        reason: 'Missing configuration rules'
       };
     }
 
     const clampedGuests = clampGuestsForSqft(
-      propertySpecs.squareFootage,
-      propertySpecs.guestCapacity,
+      squareFootage,
+      guestCapacity,
       rules
     );
 
-    const allowedRange = getAllowedGuestRange(propertySpecs.squareFootage, rules);
+    const allowedRange = getAllowedGuestRange(squareFootage, rules);
     const isValid = isValidSqftGuestCombination(
-      propertySpecs.squareFootage,
-      propertySpecs.guestCapacity,
+      squareFootage,
+      guestCapacity,
       rules
     );
 
     let reason = '';
     if (!isValid && allowedRange) {
-      if (propertySpecs.guestCapacity < allowedRange.min) {
-        reason = `${propertySpecs.squareFootage.toLocaleString()} sqft requires at least ${allowedRange.min} guests`;
-      } else if (propertySpecs.guestCapacity > allowedRange.max) {
-        reason = `${propertySpecs.squareFootage.toLocaleString()} sqft can accommodate at most ${allowedRange.max} guests`;
+      if (guestCapacity < allowedRange.min) {
+        reason = `${squareFootage.toLocaleString()} sqft requires at least ${allowedRange.min} guests`;
+      } else if (guestCapacity > allowedRange.max) {
+        reason = `${squareFootage.toLocaleString()} sqft can accommodate at most ${allowedRange.max} guests`;
       }
     }
 
@@ -75,7 +82,7 @@ export function useAutoConfiguration() {
       allowedRange,
       reason
     };
-  }, [rules, propertySpecs]);
+  }, [rules, squareFootage, guestCapacity]);
 
   return {
     computedConfiguration,
@@ -97,32 +104,52 @@ export function useAutoConfigRules() {
 
     try {
       // Try to load from Firestore first
-      // For now, we'll use a fallback approach - in a real implementation,
-      // this would fetch from Firestore with fallback to local file
-      const response = await fetch('/autoconfig.json');
+      const configDoc = await getDoc(doc(db, 'config', 'roomMappingRules'));
+      if (configDoc.exists()) {
+        const rulesData = configDoc.data() as AutoConfigRules;
+        setRules(rulesData);
+        console.log('Loaded auto-configuration rules from Firestore');
+      } else {
+        // Fallback to local file for initial setup
+        console.log('No auto-configuration rules found in Firestore, trying local file...');
+        const response = await fetch('/autoconfig.json');
 
-      if (!response.ok) {
-        throw new Error(`Failed to load rules: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Failed to load rules: ${response.status}`);
+        }
+
+        const rulesData = await response.json();
+        setRules(rulesData);
+        console.log('Loaded auto-configuration rules from local file');
       }
-
-      const rulesData = await response.json();
-      setRules(rulesData);
     } catch (err) {
       console.error('Error loading auto-config rules:', err);
       setError(err instanceof Error ? err.message : 'Failed to load configuration');
 
-      // Fallback to default rules if available
-      // This would be replaced with actual fallback logic
+      // Fallback to local file if Firestore fails
+      try {
+        console.log('Attempting fallback to local file...');
+        const response = await fetch('/autoconfig.json');
+        if (response.ok) {
+          const rulesData = await response.json();
+          setRules(rulesData);
+          console.log('Loaded auto-configuration rules from local file as fallback');
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback to local file also failed:', fallbackErr);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!rules && !loading) {
+    // Always load rules on mount, even if we have cached values
+    // This ensures we get the latest from Firestore, not cached local file values
+    if (!loading) {
       loadRules();
     }
-  }, [rules, loading]);
+  }, []); // Only run on mount
 
   return {
     rules,

@@ -144,61 +144,55 @@ export function deriveCommonAreas(
 /**
  * Slider Validation Algorithm
  * Input: squareFootage, desired guests, rules: AutoConfigRules
- * Returns: clamped guest count within legal bounds for the given sqft
+ * Returns: clamped guest count within global bounds (no restrictions based on legal pairs)
  */
 export function clampGuestsForSqft(
-  squareFootage: number,
+  _squareFootage: number,
   desired: number,
   rules: AutoConfigRules
 ): number {
-  // Find intersecting rectangles for the given sqft
-  const rects = rules.validation.legalPairs.filter(
-    r => squareFootage >= r.min_sqft && squareFootage <= r.max_sqft
-  );
+  // Use global bounds for all combinations - no legal pairs restrictions
+  // Add fallbacks to ensure validation works even if global limits are set to 0
+  const minGuests = Math.max(rules.validation.global.min_guests || 1, 1);
+  const maxGuests = Math.max(rules.validation.global.max_guests || 50, minGuests);
 
-  if (rects.length === 0) {
-    // No specific rectangles for this sqft, use global bounds
-    return Math.min(Math.max(desired, rules.validation.global.min_guests), rules.validation.global.max_guests);
-  }
-
-  // Union intersecting rectangles → overall [minGuestsAllowed..maxGuestsAllowed]
-  const min = Math.min(...rects.map(r => r.min_guests));
-  const max = Math.max(...rects.map(r => r.max_guests));
-
-  return Math.min(Math.max(desired, min), max);
+  return Math.min(Math.max(desired, minGuests), maxGuests);
 }
 
 /**
  * Get allowed guest range for a given square footage
- * Returns: { min: number, max: number } or null if no valid range
+ * Returns: { min: number, max: number } - uses global bounds for all combinations
  */
 export function getAllowedGuestRange(
-  squareFootage: number,
+  _squareFootage: number,
   rules: AutoConfigRules
-): { min: number; max: number } | null {
-  const rects = rules.validation.legalPairs.filter(
-    r => squareFootage >= r.min_sqft && squareFootage <= r.max_sqft
-  );
+): { min: number; max: number } {
+  // Return global bounds for all combinations - no legal pairs restrictions
+  // Add fallbacks to ensure validation works even if global limits are set to 0
+  const minGuests = Math.max(rules.validation.global.min_guests || 1, 1);
+  const maxGuests = Math.max(rules.validation.global.max_guests || 50, minGuests);
 
-  if (rects.length === 0) return null;
-
-  const min = Math.min(...rects.map(r => r.min_guests));
-  const max = Math.max(...rects.map(r => r.max_guests));
-
-  return { min, max };
+  return {
+    min: minGuests,
+    max: maxGuests
+  };
 }
 
 /**
  * Validate if a given sqft/guest combination is legal
- * Returns: boolean indicating if the combination is allowed
+ * Returns: boolean indicating if the combination is allowed (always uses global bounds)
  */
 export function isValidSqftGuestCombination(
-  squareFootage: number,
+  _squareFootage: number,
   guestCount: number,
   rules: AutoConfigRules
 ): boolean {
-  const range = getAllowedGuestRange(squareFootage, rules);
-  return range ? (guestCount >= range.min && guestCount <= range.max) : false;
+  // All combinations are valid within global bounds - no legal pairs restrictions
+  // Add fallbacks to ensure validation works even if global limits are set to 0
+  const minGuests = Math.max(rules.validation.global.min_guests || 1, 1);
+  const maxGuests = Math.max(rules.validation.global.max_guests || 50, minGuests);
+
+  return guestCount >= minGuests && guestCount <= maxGuests;
 }
 
 /**

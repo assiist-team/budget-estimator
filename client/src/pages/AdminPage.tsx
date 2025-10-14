@@ -1334,10 +1334,8 @@ export default function AdminPage() {
                         </label>
                         <input
                           type="number"
-                          min="1000"
-                          max="10000"
                           step="100"
-                          value={autoConfigRules?.validation.global.min_sqft || 1500}
+                          value={autoConfigRules?.validation.global.min_sqft || ''}
                           onChange={(e) => {
                             if (autoConfigRules) {
                               setAutoConfigRules({
@@ -1346,7 +1344,7 @@ export default function AdminPage() {
                                   ...autoConfigRules.validation,
                                   global: {
                                     ...autoConfigRules.validation.global,
-                                    min_sqft: parseInt(e.target.value) || 1500
+                                    min_sqft: parseInt(e.target.value) || 0
                                   }
                                 }
                               });
@@ -1361,10 +1359,8 @@ export default function AdminPage() {
                         </label>
                         <input
                           type="number"
-                          min="1000"
-                          max="10000"
                           step="100"
-                          value={autoConfigRules?.validation.global.max_sqft || 5000}
+                          value={autoConfigRules?.validation.global.max_sqft || ''}
                           onChange={(e) => {
                             if (autoConfigRules) {
                               setAutoConfigRules({
@@ -1373,7 +1369,7 @@ export default function AdminPage() {
                                   ...autoConfigRules.validation,
                                   global: {
                                     ...autoConfigRules.validation.global,
-                                    max_sqft: parseInt(e.target.value) || 5000
+                                    max_sqft: parseInt(e.target.value) || 0
                                   }
                                 }
                               });
@@ -1388,9 +1384,7 @@ export default function AdminPage() {
                         </label>
                         <input
                           type="number"
-                          min="1"
-                          max="50"
-                          value={autoConfigRules?.validation.global.min_guests || 8}
+                          value={autoConfigRules?.validation.global.min_guests || ''}
                           onChange={(e) => {
                             if (autoConfigRules) {
                               setAutoConfigRules({
@@ -1399,7 +1393,7 @@ export default function AdminPage() {
                                   ...autoConfigRules.validation,
                                   global: {
                                     ...autoConfigRules.validation.global,
-                                    min_guests: parseInt(e.target.value) || 8
+                                    min_guests: parseInt(e.target.value) || 0
                                   }
                                 }
                               });
@@ -1414,9 +1408,7 @@ export default function AdminPage() {
                         </label>
                         <input
                           type="number"
-                          min="1"
-                          max="50"
-                          value={autoConfigRules?.validation.global.max_guests || 20}
+                          value={autoConfigRules?.validation.global.max_guests || ''}
                           onChange={(e) => {
                             if (autoConfigRules) {
                               setAutoConfigRules({
@@ -1425,7 +1417,7 @@ export default function AdminPage() {
                                   ...autoConfigRules.validation,
                                   global: {
                                     ...autoConfigRules.validation.global,
-                                    max_guests: parseInt(e.target.value) || 20
+                                    max_guests: parseInt(e.target.value) || 0
                                   }
                                 }
                               });
@@ -1437,21 +1429,6 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="card">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Legal Combinations</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      {autoConfigRules?.validation.legalPairs.length || 0} sqft/guest ranges defined
-                    </p>
-                    <div className="space-y-2">
-                      {autoConfigRules?.validation.legalPairs.map((pair, index) => (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm">
-                          <span>{pair.min_sqft}-{pair.max_sqft} sqft</span>
-                          <span>→</span>
-                          <span>{pair.min_guests}-{pair.max_guests} guests</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </div>
             )}

@@ -14,14 +14,16 @@ interface ConfigState {
   // Computed configuration for current property specs
   computedConfiguration: ComputedConfiguration | null;
 
+
   // Actions
-  setRules: (rules: AutoConfigRules) => void;
+  setRules: (rules: AutoConfigRules, fromFirestore?: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setComputedConfiguration: (config: ComputedConfiguration | null) => void;
 
-  // Reset
+  // Reset and clear cached rules
   reset: () => void;
+  clearRules: () => void;
 }
 
 const initialState = {
@@ -45,6 +47,9 @@ export const useConfigStore = create<ConfigState>()(
       setComputedConfiguration: (computedConfiguration) => set({ computedConfiguration }),
 
       reset: () => set(initialState),
+
+      // Clear cached rules (useful when switching from local file to Firestore)
+      clearRules: () => set({ rules: null }),
     }),
     {
       name: 'config-storage',
