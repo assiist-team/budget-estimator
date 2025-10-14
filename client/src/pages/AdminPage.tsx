@@ -1374,16 +1374,12 @@ export default function AdminPage() {
                         <div className="space-y-2">
                           {['small', 'medium', 'large'].map((size) => {
                             const threshold = autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size);
-                            const value = size === 'small' ? threshold?.max_sqft || '' :
-                                         size === 'medium' ? threshold?.min_sqft || '' :
-                                         threshold?.min_sqft || '';
+                            const value = threshold?.max_sqft || '';
 
                             return (
                               <div key={size} className="flex items-center gap-2">
                                 <span className="w-16 text-sm capitalize">{size}:</span>
-                                {size === 'small' && <span className="text-sm">≤</span>}
-                                {size === 'medium' && <span className="text-sm">≥</span>}
-                                {size === 'large' && <span className="text-sm">≥</span>}
+                                <span className="text-sm">≤</span>
                                 <input
                                   type="number"
                                   min="0"
@@ -1394,41 +1390,15 @@ export default function AdminPage() {
                                       const existingIndex = newThresholds.findIndex(t => t.size === size);
 
                                       if (existingIndex >= 0) {
-                                        if (size === 'small') {
-                                          newThresholds[existingIndex] = {
-                                            ...newThresholds[existingIndex],
-                                            max_sqft: parseInt(e.target.value) || undefined
-                                          };
-                                        } else if (size === 'medium') {
-                                          newThresholds[existingIndex] = {
-                                            ...newThresholds[existingIndex],
-                                            min_sqft: parseInt(e.target.value) || undefined,
-                                            max_sqft: parseInt(e.target.value) || undefined
-                                          };
-                                        } else {
-                                          newThresholds[existingIndex] = {
-                                            ...newThresholds[existingIndex],
-                                            min_sqft: parseInt(e.target.value) || undefined
-                                          };
-                                        }
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        };
                                       } else {
-                                        if (size === 'small') {
-                                          newThresholds.push({
-                                            size: size as any,
-                                            max_sqft: parseInt(e.target.value) || undefined
-                                          });
-                                        } else if (size === 'medium') {
-                                          newThresholds.push({
-                                            size: size as any,
-                                            min_sqft: parseInt(e.target.value) || undefined,
-                                            max_sqft: parseInt(e.target.value) || undefined
-                                          });
-                                        } else {
-                                          newThresholds.push({
-                                            size: size as any,
-                                            min_sqft: parseInt(e.target.value) || undefined
-                                          });
-                                        }
+                                        newThresholds.push({
+                                          size: size as any,
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        });
                                       }
 
                                       setAutoConfigRules({
