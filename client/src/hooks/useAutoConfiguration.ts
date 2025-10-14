@@ -25,8 +25,10 @@ export function useAutoConfiguration(currentSquareFootage?: number, currentGuest
 
   // Compute configuration when property specs or rules change
   useEffect(() => {
+    // Always clear computed configuration first when inputs change
+    setComputedConfiguration(null);
+
     if (!rules) {
-      setComputedConfiguration(null);
       return;
     }
 
@@ -93,7 +95,7 @@ export function useAutoConfiguration(currentSquareFootage?: number, currentGuest
 
 /**
  * Hook for loading auto-configuration rules
- * Handles fetching rules from Firestore or fallback to local cache
+ * Handles fetching rules from Firestore only
  */
 export function useAutoConfigRules() {
   const { rules, loading, error, setRules, setLoading, setError } = useConfigStore();
@@ -103,41 +105,18 @@ export function useAutoConfigRules() {
     setError(null);
 
     try {
-      // Try to load from Firestore first
+      // Load from Firestore only
       const configDoc = await getDoc(doc(db, 'config', 'roomMappingRules'));
       if (configDoc.exists()) {
         const rulesData = configDoc.data() as AutoConfigRules;
         setRules(rulesData);
         console.log('Loaded auto-configuration rules from Firestore');
       } else {
-        // Fallback to local file for initial setup
-        console.log('No auto-configuration rules found in Firestore, trying local file...');
-        const response = await fetch('/autoconfig.json');
-
-        if (!response.ok) {
-          throw new Error(`Failed to load rules: ${response.status}`);
-        }
-
-        const rulesData = await response.json();
-        setRules(rulesData);
-        console.log('Loaded auto-configuration rules from local file');
+        throw new Error('No auto-configuration rules found in Firestore');
       }
     } catch (err) {
       console.error('Error loading auto-config rules:', err);
       setError(err instanceof Error ? err.message : 'Failed to load configuration');
-
-      // Fallback to local file if Firestore fails
-      try {
-        console.log('Attempting fallback to local file...');
-        const response = await fetch('/autoconfig.json');
-        if (response.ok) {
-          const rulesData = await response.json();
-          setRules(rulesData);
-          console.log('Loaded auto-configuration rules from local file as fallback');
-        }
-      } catch (fallbackErr) {
-        console.error('Fallback to local file also failed:', fallbackErr);
-      }
     } finally {
       setLoading(false);
     }

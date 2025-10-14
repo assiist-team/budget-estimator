@@ -136,14 +136,7 @@ export default function AdminPage() {
             setAutoConfigRules(configDoc.data() as AutoConfigRules);
             console.log('Loaded auto-configuration rules from Firestore');
           } else {
-            // Fallback to local file for initial setup
-            console.log('No auto-configuration rules found in Firestore, trying local file...');
-            const response = await fetch('/autoconfig.json');
-            if (response.ok) {
-              const rulesData = await response.json();
-              setAutoConfigRules(rulesData);
-              console.log('Loaded auto-configuration rules from local file');
-            }
+            console.warn('No auto-configuration rules found in Firestore');
           }
         } catch (error) {
           console.error('Error loading auto-configuration rules:', error);
