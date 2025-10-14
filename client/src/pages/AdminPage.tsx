@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
 import type { AutoConfigRules, BedroomMixRule } from '../types/config';
 import { formatCurrency } from '../utils/calculations';
+import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 import { EditIcon, TrashIcon } from '../components/Icons';
 
 // Helper function to create slug from item name
@@ -69,10 +70,6 @@ export default function AdminPage() {
     }
   }, [editingTemplate, activeRoomSizeTab]);
 
-  // Track auto-configuration changes
-  useEffect(() => {
-    setAutoConfigUnsavedChanges(true);
-  }, [autoConfigRules]);
 
   useEffect(() => {
     async function fetchData() {
@@ -333,17 +330,30 @@ export default function AdminPage() {
   };
 
   // Function to update a bedroom rule
-  const updateBedroomRule = (ruleId: string, updates: Partial<BedroomMixRule>) => {
+  const updateBedroomRule = async (ruleId: string, updates: Partial<BedroomMixRule>) => {
     if (!autoConfigRules) return;
 
     const updatedRules = autoConfigRules.bedroomMixRules.map(rule =>
       rule.id === ruleId ? { ...rule, ...updates } : rule
     );
 
-    setAutoConfigRules({
+    const updatedAutoConfigRules = {
       ...autoConfigRules,
       bedroomMixRules: updatedRules
-    });
+    };
+
+    setAutoConfigRules(updatedAutoConfigRules);
+
+    // Auto-save to Firestore
+    try {
+      await saveAutoConfigRules(updatedAutoConfigRules);
+      setAutoConfigUnsavedChanges(false);
+      console.log('Bedroom rule updated and saved to Firestore');
+    } catch (error) {
+      console.error('Failed to save bedroom rule to Firestore:', error);
+      setAutoConfigUnsavedChanges(true);
+      alert('Failed to save changes. Please try again.');
+    }
 
     setEditingBedroomRule(null);
   };
@@ -698,12 +708,13 @@ export default function AdminPage() {
                   )}
                   <button
                     onClick={async () => {
-                      if (!autoConfigRules || !autoConfigUnsavedChanges || autoConfigSaving) return;
+                      if (!autoConfigRules || autoConfigSaving) return;
 
                       setAutoConfigSaving(true);
                       try {
                         await saveAutoConfigRules(autoConfigRules);
                         setAutoConfigUnsavedChanges(false);
+                        console.log('Manual save completed');
                       } catch (error) {
                         console.error('Failed to save auto-configuration rules:', error);
                         alert('Failed to save rules. Please try again.');
@@ -711,9 +722,9 @@ export default function AdminPage() {
                         setAutoConfigSaving(false);
                       }
                     }}
-                    disabled={!autoConfigUnsavedChanges || autoConfigSaving}
+                    disabled={autoConfigSaving}
                     className={`px-4 py-2 rounded-md text-sm font-medium ${
-                      autoConfigUnsavedChanges && !autoConfigSaving
+                      !autoConfigSaving
                         ? 'bg-primary-600 text-white hover:bg-primary-700'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
@@ -729,11 +740,10 @@ export default function AdminPage() {
                   </button>
                   <button
                     onClick={() => {
-                      if (autoConfigUnsavedChanges && !confirm('You have unsaved changes. Are you sure you want to reload?')) {
-                        return;
+                      if (confirm('Are you sure you want to cancel? Any local changes will be lost.')) {
+                        // Reload from original data
+                        window.location.reload();
                       }
-                      // Reload from original data
-                      window.location.reload();
                     }}
                     className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
                   >
@@ -795,15 +805,24 @@ export default function AdminPage() {
                         min="1"
                         max="20"
                         value={autoConfigRules?.bunkCapacities.small || 4}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           if (autoConfigRules) {
-                            setAutoConfigRules({
+                            const newValue = parseInt(e.target.value) || 4;
+                            const updatedRules = {
                               ...autoConfigRules,
                               bunkCapacities: {
                                 ...autoConfigRules.bunkCapacities,
-                                small: parseInt(e.target.value) || 4
+                                small: newValue
                               }
-                            });
+                            };
+                            setAutoConfigRules(updatedRules);
+                            try {
+                              await saveAutoConfigRules(updatedRules);
+                              setAutoConfigUnsavedChanges(false);
+                            } catch (error) {
+                              console.error('Failed to save bunk capacity change:', error);
+                              setAutoConfigUnsavedChanges(true);
+                            }
                           }
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -818,15 +837,24 @@ export default function AdminPage() {
                         min="1"
                         max="20"
                         value={autoConfigRules?.bunkCapacities.medium || 8}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           if (autoConfigRules) {
-                            setAutoConfigRules({
+                            const newValue = parseInt(e.target.value) || 8;
+                            const updatedRules = {
                               ...autoConfigRules,
                               bunkCapacities: {
                                 ...autoConfigRules.bunkCapacities,
-                                medium: parseInt(e.target.value) || 8
+                                medium: newValue
                               }
-                            });
+                            };
+                            setAutoConfigRules(updatedRules);
+                            try {
+                              await saveAutoConfigRules(updatedRules);
+                              setAutoConfigUnsavedChanges(false);
+                            } catch (error) {
+                              console.error('Failed to save bunk capacity change:', error);
+                              setAutoConfigUnsavedChanges(true);
+                            }
                           }
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -841,15 +869,24 @@ export default function AdminPage() {
                         min="1"
                         max="20"
                         value={autoConfigRules?.bunkCapacities.large || 12}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           if (autoConfigRules) {
-                            setAutoConfigRules({
+                            const newValue = parseInt(e.target.value) || 12;
+                            const updatedRules = {
                               ...autoConfigRules,
                               bunkCapacities: {
                                 ...autoConfigRules.bunkCapacities,
-                                large: parseInt(e.target.value) || 12
+                                large: newValue
                               }
-                            });
+                            };
+                            setAutoConfigRules(updatedRules);
+                            try {
+                              await saveAutoConfigRules(updatedRules);
+                              setAutoConfigUnsavedChanges(false);
+                            } catch (error) {
+                              console.error('Failed to save bunk capacity change:', error);
+                              setAutoConfigUnsavedChanges(true);
+                            }
                           }
                         }}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -863,7 +900,7 @@ export default function AdminPage() {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">Bedroom Configuration Rules</h3>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         // Create new rule with default values
                         const newRule: BedroomMixRule = {
                           id: `r${Date.now()}`,
@@ -874,10 +911,19 @@ export default function AdminPage() {
                           bedrooms: { single: 2, double: 1, bunk: null }
                         };
                         if (autoConfigRules) {
-                          setAutoConfigRules({
+                          const updatedRules = {
                             ...autoConfigRules,
                             bedroomMixRules: [...autoConfigRules.bedroomMixRules, newRule]
-                          });
+                          };
+                          setAutoConfigRules(updatedRules);
+                          // Auto-save new rule to Firestore
+                          try {
+                            await saveAutoConfigRules(updatedRules);
+                            setAutoConfigUnsavedChanges(false);
+                          } catch (error) {
+                            console.error('Failed to save new bedroom rule:', error);
+                            setAutoConfigUnsavedChanges(true);
+                          }
                         }
                       }}
                       className="btn-primary"
@@ -915,17 +961,26 @@ export default function AdminPage() {
                         </div>
 
                         <div className="mt-2 text-sm text-gray-600">
-                          Total Capacity: {rule.bedrooms.single * 2 + rule.bedrooms.double * 2 + (rule.bedrooms.bunk && autoConfigRules ? (rule.bedrooms.bunk === 'small' ? autoConfigRules.bunkCapacities.small : rule.bedrooms.bunk === 'medium' ? autoConfigRules.bunkCapacities.medium : autoConfigRules.bunkCapacities.large) : 0)} guests
+                          Total Capacity: {calculateBedroomCapacity(rule.bedrooms, autoConfigRules)} guests
                         </div>
 
                         <div className="absolute bottom-4 right-4">
                           <button
-                            onClick={() => {
+                            onClick={async () => {
                               if (autoConfigRules) {
-                                setAutoConfigRules({
+                                const updatedRules = {
                                   ...autoConfigRules,
                                   bedroomMixRules: autoConfigRules.bedroomMixRules.filter(r => r.id !== rule.id)
-                                });
+                                };
+                                setAutoConfigRules(updatedRules);
+                                // Auto-save deleted rule to Firestore
+                                try {
+                                  await saveAutoConfigRules(updatedRules);
+                                  setAutoConfigUnsavedChanges(false);
+                                } catch (error) {
+                                  console.error('Failed to save deleted bedroom rule:', error);
+                                  setAutoConfigUnsavedChanges(true);
+                                }
                               }
                             }}
                             className="text-sm text-red-600 hover:text-red-800"
@@ -971,7 +1026,7 @@ export default function AdminPage() {
                                   type="number"
                                   min="0"
                                   value={value}
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     if (autoConfigRules) {
                                       const newThresholds = [...autoConfigRules.commonAreas.kitchen.size.thresholds];
                                       const existingIndex = newThresholds.findIndex(t => t.size === size);
@@ -988,7 +1043,7 @@ export default function AdminPage() {
                                         });
                                       }
 
-                                      setAutoConfigRules({
+                                      const updatedRules = {
                                         ...autoConfigRules,
                                         commonAreas: {
                                           ...autoConfigRules.commonAreas,
@@ -1000,7 +1055,15 @@ export default function AdminPage() {
                                             }
                                           }
                                         }
-                                      });
+                                      };
+                                      setAutoConfigRules(updatedRules);
+                                      try {
+                                        await saveAutoConfigRules(updatedRules);
+                                        setAutoConfigUnsavedChanges(false);
+                                      } catch (error) {
+                                        console.error('Failed to save kitchen size change:', error);
+                                        setAutoConfigUnsavedChanges(true);
+                                      }
                                     }
                                   }}
                                   placeholder="No limit"
@@ -1098,9 +1161,9 @@ export default function AdminPage() {
                             <input
                               type="checkbox"
                               checked={autoConfigRules?.commonAreas.dining.presence.present_if_sqft_gte !== undefined}
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 if (autoConfigRules) {
-                                  setAutoConfigRules({
+                                  const updatedRules = {
                                     ...autoConfigRules,
                                     commonAreas: {
                                       ...autoConfigRules.commonAreas,
@@ -1112,7 +1175,15 @@ export default function AdminPage() {
                                         }
                                       }
                                     }
-                                  });
+                                  };
+                                  setAutoConfigRules(updatedRules);
+                                  try {
+                                    await saveAutoConfigRules(updatedRules);
+                                    setAutoConfigUnsavedChanges(false);
+                                  } catch (error) {
+                                    console.error('Failed to save dining presence change:', error);
+                                    setAutoConfigUnsavedChanges(true);
+                                  }
                                 }
                               }}
                               className="rounded border-gray-300"
@@ -1122,9 +1193,9 @@ export default function AdminPage() {
                               type="number"
                               min="0"
                               value={autoConfigRules?.commonAreas.dining.presence.present_if_sqft_gte || 1600}
-                              onChange={(e) => {
+                              onChange={async (e) => {
                                 if (autoConfigRules) {
-                                  setAutoConfigRules({
+                                  const updatedRules = {
                                     ...autoConfigRules,
                                     commonAreas: {
                                       ...autoConfigRules.commonAreas,
@@ -1136,7 +1207,15 @@ export default function AdminPage() {
                                         }
                                       }
                                     }
-                                  });
+                                  };
+                                  setAutoConfigRules(updatedRules);
+                                  try {
+                                    await saveAutoConfigRules(updatedRules);
+                                    setAutoConfigUnsavedChanges(false);
+                                  } catch (error) {
+                                    console.error('Failed to save dining threshold change:', error);
+                                    setAutoConfigUnsavedChanges(true);
+                                  }
                                 }
                               }}
                               className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
@@ -1163,7 +1242,7 @@ export default function AdminPage() {
                                   type="number"
                                   min="0"
                                   value={value}
-                                  onChange={(e) => {
+                                  onChange={async (e) => {
                                     if (autoConfigRules) {
                                       const newThresholds = [...autoConfigRules.commonAreas.dining.size.thresholds];
                                       const existingIndex = newThresholds.findIndex(t => t.size === size);
@@ -1180,7 +1259,7 @@ export default function AdminPage() {
                                         });
                                       }
 
-                                      setAutoConfigRules({
+                                      const updatedRules = {
                                         ...autoConfigRules,
                                         commonAreas: {
                                           ...autoConfigRules.commonAreas,
@@ -1192,7 +1271,15 @@ export default function AdminPage() {
                                             }
                                           }
                                         }
-                                      });
+                                      };
+                                      setAutoConfigRules(updatedRules);
+                                      try {
+                                        await saveAutoConfigRules(updatedRules);
+                                        setAutoConfigUnsavedChanges(false);
+                                      } catch (error) {
+                                        console.error('Failed to save dining size change:', error);
+                                        setAutoConfigUnsavedChanges(true);
+                                      }
                                     }
                                   }}
                                   placeholder="No limit"
@@ -1910,6 +1997,7 @@ export default function AdminPage() {
                 rule={editingBedroomRule}
                 onSubmit={(updates) => updateBedroomRule(editingBedroomRule.id, updates)}
                 onCancel={() => setEditingBedroomRule(null)}
+                autoConfigRules={autoConfigRules}
               />
             </div>
           </div>
@@ -2138,11 +2226,13 @@ function ItemForm({
 function BedroomRuleForm({
   rule,
   onSubmit,
-  onCancel
+  onCancel,
+  autoConfigRules
 }: {
   rule: BedroomMixRule;
   onSubmit: (updates: Partial<BedroomMixRule>) => void;
   onCancel: () => void;
+  autoConfigRules: AutoConfigRules | null;
 }) {
   const [formData, setFormData] = useState({
     min_sqft: rule.min_sqft,
@@ -2151,6 +2241,12 @@ function BedroomRuleForm({
     max_guests: rule.max_guests,
     bedrooms: rule.bedrooms
   });
+
+  // Calculate total capacity reactively using the proper utility function
+  const totalCapacity = useMemo(() => {
+    if (!autoConfigRules) return 0;
+    return calculateBedroomCapacity(formData.bedrooms, autoConfigRules);
+  }, [formData.bedrooms, autoConfigRules]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -2281,12 +2377,12 @@ function BedroomRuleForm({
         <div className="text-sm text-blue-800">
           <p className="font-medium mb-2">Capacity Check:</p>
           <p>
-            Total capacity: {formData.bedrooms.single * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0)} guests
+            Total capacity: {totalCapacity} guests
           </p>
           <p>
             Required capacity: {formData.max_guests} guests
           </p>
-          {formData.bedrooms.single * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0) < formData.max_guests && (
+          {totalCapacity < formData.max_guests && (
             <p className="text-red-600 font-medium">
               Warning: Configuration capacity is less than maximum guests required!
             </p>
