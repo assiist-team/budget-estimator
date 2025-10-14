@@ -18,6 +18,7 @@ export interface Item {
 export interface RoomItem {
   itemId: string;
   quantity: number;
+  name?: string; // Optional for backwards compatibility
 }
 
 export interface RoomSize {

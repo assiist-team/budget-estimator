@@ -20,7 +20,7 @@ export default function ResultsPage() {
     reset
   } = useEstimatorStore();
 
-  const { roomTemplates, loading: templatesLoading } = useRoomTemplates();
+  const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -179,7 +179,8 @@ export default function ResultsPage() {
                               <h5 className="text-sm font-medium text-gray-700 mb-2">Included Items:</h5>
                               <div className="grid gap-2">
                                 {roomSizeData.items.map((roomItem: RoomItem, itemIdx: number) => {
-                                  const itemDisplayName = roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  const item = items.get(roomItem.itemId);
+                                  const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
 
                                   return (
                                     <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-3 py-2 rounded">

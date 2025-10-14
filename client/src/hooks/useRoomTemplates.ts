@@ -28,7 +28,7 @@ function calculateRoomTotals(items: Map<string, Item>, roomSize: RoomSize): Room
 }
 
 // Function to load room templates from Firestore database
-async function loadRoomTemplatesFromFirestore(): Promise<Map<string, RoomTemplate>> {
+async function loadRoomTemplatesFromFirestore(): Promise<{ templates: Map<string, RoomTemplate>; items: Map<string, Item> }> {
   try {
     // Load both room templates and items in parallel
     const [templatesSnapshot, itemsSnapshot] = await Promise.all([
@@ -80,7 +80,7 @@ async function loadRoomTemplatesFromFirestore(): Promise<Map<string, RoomTemplat
       } as RoomTemplate);
     });
 
-    return templates;
+    return { templates, items };
   } catch (error) {
     console.error('Error loading room templates from Firestore:', error);
     throw error;
@@ -89,6 +89,7 @@ async function loadRoomTemplatesFromFirestore(): Promise<Map<string, RoomTemplat
 
 export function useRoomTemplates() {
   const [roomTemplates, setRoomTemplates] = useState<Map<string, RoomTemplate>>(new Map());
+  const [items, setItems] = useState<Map<string, Item>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -96,8 +97,9 @@ export function useRoomTemplates() {
     async function fetchRoomTemplates() {
       try {
         // Load from Firestore database
-        const templates = await loadRoomTemplatesFromFirestore();
+        const { templates, items } = await loadRoomTemplatesFromFirestore();
         setRoomTemplates(templates);
+        setItems(items);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching room templates:', err);
@@ -109,5 +111,5 @@ export function useRoomTemplates() {
     fetchRoomTemplates();
   }, []);
 
-  return { roomTemplates, loading, error };
+  return { roomTemplates, items, loading, error };
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useEstimatorStore } from '../store/estimatorStore';
@@ -14,7 +13,7 @@ export default function PropertyInputPage() {
   // Load auto-configuration rules
   const { rules, loading: rulesLoading } = useAutoConfigRules();
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<PropertySpecs>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<PropertySpecs>({
     defaultValues: propertySpecs || {
       squareFootage: 2200,
       guestCapacity: 12,
