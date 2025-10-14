@@ -26,17 +26,27 @@ export default function RoomConfigurationPage() {
   const { rules } = useAutoConfigRules();
   const [localRooms, setLocalRooms] = useState<SelectedRoom[]>(selectedRooms);
 
-  // Initialize with suggestions if no rooms selected
+  // Initialize with suggestions if no rooms selected, or update suggestions when configuration changes
   useEffect(() => {
-    if (propertySpecs && localRooms.length === 0) {
+    if (propertySpecs) {
       const suggestions = suggestRoomConfiguration(
         computedConfiguration || undefined,
         propertySpecs.squareFootage,
         propertySpecs.guestCapacity
       );
-      setLocalRooms(suggestions);
+
+      console.log('RoomConfigurationPage - Generated suggestions:', suggestions);
+      console.log('RoomConfigurationPage - Computed configuration:', computedConfiguration);
+      console.log('RoomConfigurationPage - Property specs:', propertySpecs);
+
+
+      // Only update if suggestions have changed or if no rooms are selected
+      const suggestionsChanged = JSON.stringify(suggestions) !== JSON.stringify(localRooms);
+      if (suggestionsChanged || localRooms.length === 0) {
+        setLocalRooms(suggestions);
+      }
     }
-  }, [propertySpecs, localRooms.length, computedConfiguration]);
+  }, [propertySpecs, computedConfiguration, localRooms.length]);
 
   // Redirect if no property specs
   useEffect(() => {

@@ -38,6 +38,9 @@ export function useAutoConfiguration(currentSquareFootage?: number, currentGuest
         guestCapacity,
         rules
       );
+      console.log('useAutoConfiguration - Computed configuration:', config);
+      console.log('useAutoConfiguration - Input params:', { squareFootage, guestCapacity });
+      console.log('useAutoConfiguration - Rules rec room config:', rules.commonAreas.recRoom);
       setComputedConfiguration(config);
     } catch (error) {
       console.error('Error computing auto-configuration:', error);
@@ -111,6 +114,7 @@ export function useAutoConfigRules() {
         const rulesData = configDoc.data() as AutoConfigRules;
         setRules(rulesData);
         console.log('Loaded auto-configuration rules from Firestore');
+        console.log('Rec room configuration:', rulesData.commonAreas.recRoom);
       } else {
         throw new Error('No auto-configuration rules found in Firestore');
       }

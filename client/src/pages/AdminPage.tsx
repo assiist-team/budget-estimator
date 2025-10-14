@@ -1017,18 +1017,60 @@ export default function AdminPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Size Rules
                         </label>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {['small', 'medium', 'large'].map((size) => {
                             const threshold = autoConfigRules?.commonAreas.kitchen.size.thresholds.find(t => t.size === size);
-                            const value = threshold?.max_sqft || '';
+                            const minValue = threshold?.min_sqft || '';
+                            const maxValue = threshold?.max_sqft || '';
+
                             return (
                               <div key={size} className="flex items-center gap-2">
                                 <span className="w-16 text-sm capitalize">{size}:</span>
-                                <span className="text-sm">≤</span>
                                 <input
                                   type="number"
                                   min="0"
-                                  value={value}
+                                  value={minValue}
+                                  onChange={(e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.kitchen.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                      if (existingIndex >= 0) {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
+
+                                      const updatedRules = {
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          kitchen: {
+                                            ...autoConfigRules.commonAreas.kitchen,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.kitchen.size,
+                                              thresholds: newThresholds
+                                            }
+                                          }
+                                        }
+                                      };
+                                      setAutoConfigRules(updatedRules);
+                                    }
+                                  }}
+                                  placeholder="Min"
+                                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">to</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={maxValue}
                                   onChange={async (e) => {
                                     if (autoConfigRules) {
                                       const newThresholds = [...autoConfigRules.commonAreas.kitchen.size.thresholds];
@@ -1095,18 +1137,59 @@ export default function AdminPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Size Rules
                         </label>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {['small', 'medium', 'large'].map((size) => {
                             const threshold = autoConfigRules?.commonAreas.living.size.thresholds.find(t => t.size === size);
-                            const value = threshold?.max_sqft || '';
+                            const minValue = threshold?.min_sqft || '';
+                            const maxValue = threshold?.max_sqft || '';
+
                             return (
                               <div key={size} className="flex items-center gap-2">
                                 <span className="w-16 text-sm capitalize">{size}:</span>
-                                <span className="text-sm">≤</span>
                                 <input
                                   type="number"
                                   min="0"
-                                  value={value}
+                                  value={minValue}
+                                  onChange={(e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.living.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                      if (existingIndex >= 0) {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
+
+                                      setAutoConfigRules({
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          living: {
+                                            ...autoConfigRules.commonAreas.living,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.living.size,
+                                              thresholds: newThresholds
+                                            }
+                                          }
+                                        }
+                                      });
+                                    }
+                                  }}
+                                  placeholder="Min"
+                                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">to</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={maxValue}
                                   onChange={(e) => {
                                     if (autoConfigRules) {
                                       const newThresholds = [...autoConfigRules.commonAreas.living.size.thresholds];
@@ -1233,18 +1316,60 @@ export default function AdminPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Size Rules
                         </label>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {['small', 'medium', 'large'].map((size) => {
                             const threshold = autoConfigRules?.commonAreas.dining.size.thresholds.find(t => t.size === size);
-                            const value = threshold?.max_sqft || '';
+                            const minValue = threshold?.min_sqft || '';
+                            const maxValue = threshold?.max_sqft || '';
+
                             return (
                               <div key={size} className="flex items-center gap-2">
                                 <span className="w-16 text-sm capitalize">{size}:</span>
-                                <span className="text-sm">≤</span>
                                 <input
                                   type="number"
                                   min="0"
-                                  value={value}
+                                  value={minValue}
+                                  onChange={(e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.dining.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                      if (existingIndex >= 0) {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
+
+                                      const updatedRules = {
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          dining: {
+                                            ...autoConfigRules.commonAreas.dining,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.dining.size,
+                                              thresholds: newThresholds
+                                            }
+                                          }
+                                        }
+                                      };
+                                      setAutoConfigRules(updatedRules);
+                                    }
+                                  }}
+                                  placeholder="Min"
+                                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">to</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={maxValue}
                                   onChange={async (e) => {
                                     if (autoConfigRules) {
                                       const newThresholds = [...autoConfigRules.commonAreas.dining.size.thresholds];
@@ -1364,20 +1489,74 @@ export default function AdminPage() {
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Size Rules
                         </label>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           {['small', 'medium', 'large'].map((size) => {
                             const threshold = autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size);
-                            const value = threshold?.max_sqft || '';
+                            const minValue = threshold?.min_sqft || '';
+                            const maxValue = threshold?.max_sqft || '';
 
                             return (
                               <div key={size} className="flex items-center gap-2">
                                 <span className="w-16 text-sm capitalize">{size}:</span>
-                                <span className="text-sm">≤</span>
                                 <input
                                   type="number"
                                   min="0"
-                                  value={value}
-                                  onChange={(e) => {
+                                  value={minValue}
+                                  onChange={async (e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.recRoom.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                      if (existingIndex >= 0) {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
+
+                                      const updatedRules = {
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          recRoom: {
+                                            ...autoConfigRules.commonAreas.recRoom,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.recRoom.size,
+                                              thresholds: newThresholds
+                                            }
+                                          }
+                                        }
+                                      };
+
+                                      setAutoConfigRules(updatedRules);
+                                      setAutoConfigUnsavedChanges(true);
+
+                                      // Auto-save to Firestore
+                                      try {
+                                        await saveAutoConfigRules(updatedRules);
+                                        setAutoConfigUnsavedChanges(false);
+                                        console.log('Rec room min threshold updated and saved to Firestore');
+                                      } catch (error) {
+                                        console.error('Failed to save rec room min threshold to Firestore:', error);
+                                        setAutoConfigUnsavedChanges(true);
+                                        alert('Failed to save changes. Please try again.');
+                                      }
+                                    }
+                                  }}
+                                  placeholder="Min"
+                                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">to</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={maxValue}
+                                  onChange={async (e) => {
                                     if (autoConfigRules) {
                                       const newThresholds = [...autoConfigRules.commonAreas.recRoom.size.thresholds];
                                       const existingIndex = newThresholds.findIndex(t => t.size === size);
@@ -1394,7 +1573,7 @@ export default function AdminPage() {
                                         });
                                       }
 
-                                      setAutoConfigRules({
+                                      const updatedRules = {
                                         ...autoConfigRules,
                                         commonAreas: {
                                           ...autoConfigRules.commonAreas,
@@ -1406,7 +1585,21 @@ export default function AdminPage() {
                                             }
                                           }
                                         }
-                                      });
+                                      };
+
+                                      setAutoConfigRules(updatedRules);
+                                      setAutoConfigUnsavedChanges(true);
+
+                                      // Auto-save to Firestore
+                                      try {
+                                        await saveAutoConfigRules(updatedRules);
+                                        setAutoConfigUnsavedChanges(false);
+                                        console.log('Rec room max threshold updated and saved to Firestore');
+                                      } catch (error) {
+                                        console.error('Failed to save rec room max threshold to Firestore:', error);
+                                        setAutoConfigUnsavedChanges(true);
+                                        alert('Failed to save changes. Please try again.');
+                                      }
                                     }
                                   }}
                                   placeholder="No limit"

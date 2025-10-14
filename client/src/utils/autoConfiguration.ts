@@ -37,7 +37,7 @@ export function getBedroomRule(
     }
 
     // Validate capacity for closest rule
-    if (closestRule && !hasSufficientBedroomCapacity(closestRule, rules)) {
+    if (closestRule && !hasSufficientBedroomCapacity(closestRule, guestCount, rules)) {
       return null; // No valid rule found
     }
 
@@ -51,9 +51,9 @@ export function getBedroomRule(
 
   if (exact) {
     // Validate capacity for exact match
-    if (!hasSufficientBedroomCapacity(exact, rules)) {
+    if (!hasSufficientBedroomCapacity(exact, guestCount, rules)) {
       // Find alternative rule with sufficient capacity
-      const validRules = sqftMatches.filter(r => hasSufficientBedroomCapacity(r, rules));
+      const validRules = sqftMatches.filter(r => hasSufficientBedroomCapacity(r, guestCount, rules));
       if (validRules.length === 0) return null;
 
       return validRules.reduce((prev, curr) => {
@@ -73,7 +73,7 @@ export function getBedroomRule(
   }
 
   // Find rule with minimal boundary distance to guestCount that also has sufficient capacity
-  const validRules = sqftMatches.filter(r => hasSufficientBedroomCapacity(r, rules));
+  const validRules = sqftMatches.filter(r => hasSufficientBedroomCapacity(r, guestCount, rules));
   if (validRules.length === 0) return null;
 
   return validRules.reduce((prev, curr) => {
@@ -96,33 +96,27 @@ export function getBedroomRule(
  */
 export function deriveCommonAreas(
   squareFootage: number,
-  guestCount: number,
+  _guestCount: number,
   rules: AutoConfigRules
 ): ComputedConfiguration['commonAreas'] {
   const computeSpace = (
-    presence: { present_if_sqft_gte?: number; present_if_guests_gte?: number },
-    size: { thresholds: Array<{ min_sqft?: number; max_sqft?: number; min_guests?: number; max_guests?: number; size: CommonSize }>; default: CommonSize }
+    presence: { present_if_sqft_gte?: number },
+    size: { thresholds: Array<{ min_sqft?: number; max_sqft?: number; size: CommonSize }>; default: CommonSize }
   ): CommonSize => {
-    // Presence: OR semantics — shown if sqft condition OR guest condition is met
-    const present =
-      (presence.present_if_sqft_gte !== undefined && squareFootage >= presence.present_if_sqft_gte) ||
-      (presence.present_if_guests_gte !== undefined && guestCount >= presence.present_if_guests_gte);
+    // Presence: only sqft-based checks (guest-based presence removed)
+    const present = presence.present_if_sqft_gte !== undefined && squareFootage >= presence.present_if_sqft_gte;
 
     if (!present) return size.default;
 
-    // Size: First matching ordered threshold wins; else default
+    // Size: Simple first-match logic - iterate through thresholds and return first match
+    // Thresholds are matched only by sqft ranges (guest-based thresholds removed)
     for (const threshold of size.thresholds) {
-      const sqftOk = (threshold.min_sqft === undefined || squareFootage >= threshold.min_sqft) &&
-                     (threshold.max_sqft === undefined || squareFootage <= threshold.max_sqft);
+      const minOk = (threshold.min_sqft === undefined || squareFootage >= threshold.min_sqft);
+      const maxOk = (threshold.max_sqft === undefined || squareFootage <= threshold.max_sqft);
 
-      // Check if threshold has guest conditions - if not, only sqft matters for dining size
-      const hasGuestConditions = threshold.min_guests !== undefined || threshold.max_guests !== undefined;
-      const guestOk = hasGuestConditions
-        ? (threshold.min_guests === undefined || guestCount >= threshold.min_guests) &&
-          (threshold.max_guests === undefined || guestCount <= threshold.max_guests)
-        : true; // No guest conditions means guest check always passes
-
-      if (sqftOk && guestOk) return threshold.size;
+      if (minOk && maxOk) {
+        return threshold.size;
+      }
     }
 
     return size.default;
@@ -205,27 +199,135 @@ export function computeAutoConfiguration(
   guestCount: number,
   rules: AutoConfigRules
 ): ComputedConfiguration {
+  // Try rule-first approach: if a bedroom rule matches, use it and derive common areas
   const bedroomRule = getBedroomRule(squareFootage, guestCount, rules);
 
-  if (!bedroomRule) {
-    throw new Error('No bedroom configuration rule found for the given parameters');
+  if (bedroomRule) {
+    const commonAreas = deriveCommonAreas(squareFootage, guestCount, rules);
+
+    return {
+      bedrooms: bedroomRule.bedrooms,
+      commonAreas
+    };
   }
 
-  const commonAreas = deriveCommonAreas(squareFootage, guestCount, rules);
+  // No rule matched: fall back to a bedroom-only generator that respects
+  // user preferences: prefer singles (at least 2 when possible), at most 1 bunk,
+  // doubles only for large homes. The fallback MUST NOT generate common areas.
+  const fallbackBedrooms = generateBedroomFallback(squareFootage, guestCount, rules);
 
   return {
-    bedrooms: bedroomRule.bedrooms,
-    commonAreas
+    bedrooms: fallbackBedrooms,
+    // Explicitly set common areas to 'none' when using the fallback so the
+    // fallback does not attempt to compute or alter common areas.
+    commonAreas: {
+      kitchen: 'none',
+      dining: 'none',
+      living: 'none',
+      recRoom: 'none'
+    }
   };
+}
+
+/**
+ * Generate a bedroom configuration when no rule matches.
+ * Rules enforced:
+ * - Include at least 2 singles when guestCount >= 4 (so two couples can sleep alone)
+ * - At most one bunk room (0 or 1)
+ * - Doubles are rare: allow doubles only for large homes (heuristic threshold)
+ * - Do not generate common areas
+ */
+export function generateBedroomFallback(
+  squareFootage: number,
+  guestCount: number,
+  rules: AutoConfigRules
+): ComputedConfiguration['bedrooms'] {
+  // Heuristic threshold for allowing doubles. This is intentionally conservative;
+  // doubles will only be used if the home is fairly large or the party is very big.
+  const DOUBLES_SQFT_THRESHOLD = 3000;
+  const DOUBLES_GUEST_THRESHOLD = 18;
+
+  let singles = 0;
+  let doubles = 0;
+  let bunk: BunkSize | null = null;
+
+  // Ensure at least two singles when the guest party is large enough
+  if (guestCount >= 4) {
+    singles = 2; // covers up to 4 guests
+  }
+
+  let remaining = Math.max(0, guestCount - singles * 2);
+
+  // Try to allocate a single bunk room (children often sleep in bunks)
+  if (remaining > 0) {
+    // Pick the smallest bunk size that can accommodate the remaining guests,
+    // otherwise pick the largest available bunk.
+    const candidate = selectBunkSizeForGuests(remaining, rules);
+    if (candidate) {
+      bunk = candidate;
+      remaining = Math.max(0, remaining - getBunkCapacity(bunk, rules));
+    }
+  }
+
+  // If still remaining, allocate doubles only if heuristics allow
+  const doublesAllowed = squareFootage >= DOUBLES_SQFT_THRESHOLD || guestCount >= DOUBLES_GUEST_THRESHOLD;
+
+  if (remaining > 0 && doublesAllowed) {
+    // Use doubles to cover as many guests as possible (4 per double)
+    doubles = Math.ceil(remaining / 4);
+    remaining = 0;
+  }
+
+  // If doubles not allowed or still remaining after doubles, use additional singles
+  if (remaining > 0) {
+    const moreSingles = Math.ceil(remaining / 2);
+    singles += moreSingles;
+    remaining = 0;
+  }
+
+  // Safety: never produce negative counts and cap bunk to 1
+  if (bunk === null) bunk = null;
+
+  return {
+    single: singles,
+    double: doubles,
+    bunk
+  };
+}
+
+/**
+ * Select a bunk size that best fits the required guests. Prefer the smallest size
+ * that satisfies the number of guests; if none fits, return the largest available.
+ */
+function selectBunkSizeForGuests(guests: number, rules: AutoConfigRules): BunkSize | null {
+  const sizes: BunkSize[] = ['small', 'medium', 'large'];
+
+  for (const sz of sizes) {
+    const cap = rules.bunkCapacities[sz];
+    if (cap >= guests && cap > 0) return sz;
+  }
+
+  // No single bunk size can fit all guests; pick the largest if it has capacity > 0
+  for (let i = sizes.length - 1; i >= 0; i--) {
+    const cap = rules.bunkCapacities[sizes[i]];
+    if (cap > 0) return sizes[i];
+  }
+
+  return null;
 }
 
 /**
  * Check if a bedroom rule has sufficient capacity for the given guest count
  * Returns: boolean indicating if the rule can accommodate the required guests
  */
-export function hasSufficientBedroomCapacity(rule: BedroomMixRule, rules: AutoConfigRules): boolean {
+export function hasSufficientBedroomCapacity(
+  rule: BedroomMixRule,
+  guestCount: number,
+  rules: AutoConfigRules
+): boolean {
   const capacity = calculateBedroomCapacity(rule.bedrooms, rules);
-  return capacity >= rule.max_guests;
+  // Ensure the selected rule can accommodate the actual requested guests
+  return capacity >= guestCount;
 }
 
 /**
@@ -245,8 +347,8 @@ export function calculateBedroomCapacity(
   bedrooms: { single: number; double: number; bunk: BunkSize | null },
   rules: AutoConfigRules
 ): number {
-  const singleCapacity = bedrooms.single * 2; // Each single bed sleeps 2
-  const doubleCapacity = bedrooms.double * 2; // Each double bed sleeps 2
+  const singleCapacity = bedrooms.single * 2; // Each single bedroom sleeps 2 guests
+  const doubleCapacity = bedrooms.double * 4; // Each double bedroom sleeps 4 guests
   const bunkCapacity = getBunkCapacity(bedrooms.bunk, rules);
 
   return singleCapacity + doubleCapacity + bunkCapacity;
