@@ -417,7 +417,7 @@ export default function AdminPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              ⚙️ Auto Config Rules
+              👥 Size & Capacity
             </button>
           </nav>
         </div>
@@ -667,7 +667,7 @@ export default function AdminPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                    Auto Configuration Rules
+                    Size & Capacity Rules
                   </h2>
                   <p className="text-gray-600">
                     Configure automatic room layouts based on square footage and guest capacity
@@ -757,7 +757,7 @@ export default function AdminPage() {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  ✅ Validation & Ranges
+                  ⚙️ Slider Settings
                 </button>
               </nav>
             </div>
@@ -1110,56 +1110,6 @@ export default function AdminPage() {
                             />
                             <span className="text-sm">sqft</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={autoConfigRules?.commonAreas.dining.presence.present_if_guests_gte !== undefined}
-                              onChange={(e) => {
-                                if (autoConfigRules) {
-                                  setAutoConfigRules({
-                                    ...autoConfigRules,
-                                    commonAreas: {
-                                      ...autoConfigRules.commonAreas,
-                                      dining: {
-                                        ...autoConfigRules.commonAreas.dining,
-                                        presence: {
-                                          ...autoConfigRules.commonAreas.dining.presence,
-                                          present_if_guests_gte: e.target.checked ? 8 : undefined
-                                        }
-                                      }
-                                    }
-                                  });
-                                }
-                              }}
-                              className="rounded border-gray-300"
-                            />
-                            <span className="text-sm">Present if ≥ </span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={autoConfigRules?.commonAreas.dining.presence.present_if_guests_gte || 8}
-                              onChange={(e) => {
-                                if (autoConfigRules) {
-                                  setAutoConfigRules({
-                                    ...autoConfigRules,
-                                    commonAreas: {
-                                      ...autoConfigRules.commonAreas,
-                                      dining: {
-                                        ...autoConfigRules.commonAreas.dining,
-                                        presence: {
-                                          ...autoConfigRules.commonAreas.dining.presence,
-                                          present_if_guests_gte: parseInt(e.target.value) || 8
-                                        }
-                                      }
-                                    }
-                                  });
-                                }
-                              }}
-                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                              disabled={autoConfigRules?.commonAreas.dining.presence.present_if_guests_gte === undefined}
-                            />
-                            <span className="text-sm">guests</span>
-                          </div>
                         </div>
                       </div>
 
@@ -1172,7 +1122,7 @@ export default function AdminPage() {
                             <div key={size} className="flex items-center gap-2">
                               <span className="w-16 text-sm capitalize">{size}:</span>
                               <select
-                                value={autoConfigRules?.commonAreas.dining.size.thresholds.find(t => t.size === size)?.max_guests || ''}
+                                value={autoConfigRules?.commonAreas.dining.size.thresholds.find(t => t.size === size)?.max_sqft || ''}
                                 onChange={(e) => {
                                   if (autoConfigRules) {
                                     const newThresholds = [...autoConfigRules.commonAreas.dining.size.thresholds];
@@ -1181,12 +1131,12 @@ export default function AdminPage() {
                                     if (existingIndex >= 0) {
                                       newThresholds[existingIndex] = {
                                         ...newThresholds[existingIndex],
-                                        max_guests: parseInt(e.target.value) || undefined
+                                        max_sqft: parseInt(e.target.value) || undefined
                                       };
                                     } else {
                                       newThresholds.push({
                                         size: size as any,
-                                        max_guests: parseInt(e.target.value) || undefined
+                                        max_sqft: parseInt(e.target.value) || undefined
                                       });
                                     }
 
@@ -1208,69 +1158,15 @@ export default function AdminPage() {
                                 className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
                               >
                                 <option value="">No limit</option>
-                                <option value="8">≤ 8 guests</option>
-                                <option value="12">≤ 12 guests</option>
-                                <option value="20">≤ 20 guests</option>
+                                <option value="2000">≤ 2000 sqft</option>
+                                <option value="3200">≤ 3200 sqft</option>
+                                <option value="5000">≤ 5000 sqft</option>
                               </select>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Seats per Guest
-                          </label>
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0.5"
-                            max="2"
-                            value={autoConfigRules?.commonAreas.dining.seatsPerGuestRatio || 1.0}
-                            onChange={(e) => {
-                              if (autoConfigRules) {
-                                setAutoConfigRules({
-                                  ...autoConfigRules,
-                                  commonAreas: {
-                                    ...autoConfigRules.commonAreas,
-                                    dining: {
-                                      ...autoConfigRules.commonAreas.dining,
-                                      seatsPerGuestRatio: parseFloat(e.target.value) || 1.0
-                                    }
-                                  }
-                                });
-                              }
-                            }}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Minimum Seats
-                          </label>
-                          <input
-                            type="number"
-                            min="0"
-                            value={autoConfigRules?.commonAreas.dining.minSeats || 6}
-                            onChange={(e) => {
-                              if (autoConfigRules) {
-                                setAutoConfigRules({
-                                  ...autoConfigRules,
-                                  commonAreas: {
-                                    ...autoConfigRules.commonAreas,
-                                    dining: {
-                                      ...autoConfigRules.commonAreas.dining,
-                                      minSeats: parseInt(e.target.value) || 6
-                                    }
-                                  }
-                                });
-                              }
-                            }}
-                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                          />
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -1332,56 +1228,6 @@ export default function AdminPage() {
                               disabled={autoConfigRules?.commonAreas.recRoom.presence.present_if_sqft_gte === undefined}
                             />
                             <span className="text-sm">sqft</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={autoConfigRules?.commonAreas.recRoom.presence.present_if_guests_gte !== undefined}
-                              onChange={(e) => {
-                                if (autoConfigRules) {
-                                  setAutoConfigRules({
-                                    ...autoConfigRules,
-                                    commonAreas: {
-                                      ...autoConfigRules.commonAreas,
-                                      recRoom: {
-                                        ...autoConfigRules.commonAreas.recRoom,
-                                        presence: {
-                                          ...autoConfigRules.commonAreas.recRoom.presence,
-                                          present_if_guests_gte: e.target.checked ? 12 : undefined
-                                        }
-                                      }
-                                    }
-                                  });
-                                }
-                              }}
-                              className="rounded border-gray-300"
-                            />
-                            <span className="text-sm">Present if ≥ </span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={autoConfigRules?.commonAreas.recRoom.presence.present_if_guests_gte || 12}
-                              onChange={(e) => {
-                                if (autoConfigRules) {
-                                  setAutoConfigRules({
-                                    ...autoConfigRules,
-                                    commonAreas: {
-                                      ...autoConfigRules.commonAreas,
-                                      recRoom: {
-                                        ...autoConfigRules.commonAreas.recRoom,
-                                        presence: {
-                                          ...autoConfigRules.commonAreas.recRoom.presence,
-                                          present_if_guests_gte: parseInt(e.target.value) || 12
-                                        }
-                                      }
-                                    }
-                                  });
-                                }
-                              }}
-                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                              disabled={autoConfigRules?.commonAreas.recRoom.presence.present_if_guests_gte === undefined}
-                            />
-                            <span className="text-sm">guests</span>
                           </div>
                         </div>
                       </div>

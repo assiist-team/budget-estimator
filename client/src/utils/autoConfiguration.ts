@@ -114,8 +114,13 @@ export function deriveCommonAreas(
     for (const threshold of size.thresholds) {
       const sqftOk = (threshold.min_sqft === undefined || squareFootage >= threshold.min_sqft) &&
                      (threshold.max_sqft === undefined || squareFootage <= threshold.max_sqft);
-      const guestOk = (threshold.min_guests === undefined || guestCount >= threshold.min_guests) &&
-                      (threshold.max_guests === undefined || guestCount <= threshold.max_guests);
+
+      // Check if threshold has guest conditions - if not, only sqft matters for dining size
+      const hasGuestConditions = threshold.min_guests !== undefined || threshold.max_guests !== undefined;
+      const guestOk = hasGuestConditions
+        ? (threshold.min_guests === undefined || guestCount >= threshold.min_guests) &&
+          (threshold.max_guests === undefined || guestCount <= threshold.max_guests)
+        : true; // No guest conditions means guest check always passes
 
       if (sqftOk && guestOk) return threshold.size;
     }
@@ -124,19 +129,13 @@ export function deriveCommonAreas(
   };
 
   const kitchen = computeSpace(rules.commonAreas.kitchen.presence, rules.commonAreas.kitchen.size);
-  const diningSize = computeSpace(rules.commonAreas.dining.presence, rules.commonAreas.dining.size);
+  const dining = computeSpace(rules.commonAreas.dining.presence, rules.commonAreas.dining.size);
   const living = computeSpace(rules.commonAreas.living.presence, rules.commonAreas.living.size);
   const recRoom = computeSpace(rules.commonAreas.recRoom.presence, rules.commonAreas.recRoom.size);
 
-  // Calculate dining seats if dining area is present
-  const diningSeats = diningSize === "none" ? undefined : Math.max(
-    rules.commonAreas.dining.minSeats ?? 0,
-    Math.ceil((rules.commonAreas.dining.seatsPerGuestRatio ?? 1) * guestCount)
-  );
-
   return {
     kitchen,
-    dining: { size: diningSize, seatCount: diningSeats },
+    dining,
     living,
     recRoom
   };

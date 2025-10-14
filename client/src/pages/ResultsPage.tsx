@@ -204,13 +204,12 @@ export default function ResultsPage() {
                         <div className="flex justify-between items-center">
                           <span className="text-gray-700">Dining:</span>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            computedConfiguration.commonAreas.dining.size === 'none' ? 'bg-gray-100 text-gray-700' :
-                            computedConfiguration.commonAreas.dining.size === 'small' ? 'bg-blue-100 text-blue-800' :
-                            computedConfiguration.commonAreas.dining.size === 'medium' ? 'bg-green-100 text-green-800' :
+                            computedConfiguration.commonAreas.dining === 'none' ? 'bg-gray-100 text-gray-700' :
+                            computedConfiguration.commonAreas.dining === 'small' ? 'bg-blue-100 text-blue-800' :
+                            computedConfiguration.commonAreas.dining === 'medium' ? 'bg-green-100 text-green-800' :
                             'bg-purple-100 text-purple-800'
                           }`}>
-                            {computedConfiguration.commonAreas.dining.size === 'none' ? 'Not Included' : computedConfiguration.commonAreas.dining.size.charAt(0).toUpperCase() + computedConfiguration.commonAreas.dining.size.slice(1)}
-                            {computedConfiguration.commonAreas.dining.seatCount && ` (${computedConfiguration.commonAreas.dining.seatCount} seats)`}
+                            {computedConfiguration.commonAreas.dining === 'none' ? 'Not Included' : computedConfiguration.commonAreas.dining.charAt(0).toUpperCase() + computedConfiguration.commonAreas.dining.slice(1)}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">

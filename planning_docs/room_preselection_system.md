@@ -66,13 +66,7 @@ export interface SpaceSizeRule {
 
 export interface CommonAreaRules {
   kitchen: { size: SpaceSizeRule }; // universal
-  dining: {
-    presence: SpacePresenceRule;
-    size: SpaceSizeRule;
-    seatsPerGuestRatio?: number; // e.g., 1.0 => seat per guest
-    minSeats?: number;
-    maxSeats?: number | null;
-  };
+  dining: { presence: SpacePresenceRule; size: SpaceSizeRule };
   living: { size: SpaceSizeRule }; // universal
   recRoom: { presence: SpacePresenceRule; size: SpaceSizeRule };
 }
@@ -111,7 +105,7 @@ export interface ComputedConfiguration {
   };
   commonAreas: {
     kitchen: CommonSize;
-    dining: { size: CommonSize; seatCount?: number };
+    dining: CommonSize;
     living: CommonSize;
     recRoom: CommonSize;
   };
@@ -147,18 +141,15 @@ Seed values (preserves your bedroom ranges; adds common-areas and validation):
       }
     },
     "dining": {
-      "presence": { "present_if_sqft_gte": 1600, "present_if_guests_gte": 8 },
+      "presence": { "present_if_sqft_gte": 1600 },
       "size": {
         "thresholds": [
-          { "max_guests": 8, "size": "small" },
-          { "min_guests": 9, "max_guests": 12, "size": "medium" },
-          { "min_guests": 13, "size": "large" }
+          { "max_sqft": 2000, "size": "small" },
+          { "min_sqft": 2001, "max_sqft": 3200, "size": "medium" },
+          { "min_sqft": 3201, "size": "large" }
         ],
         "default": "none"
-      },
-      "seatsPerGuestRatio": 1.0,
-      "minSeats": 6,
-      "maxSeats": null
+      }
     },
     "living": {
       "size": {
@@ -171,7 +162,7 @@ Seed values (preserves your bedroom ranges; adds common-areas and validation):
       }
     },
     "recRoom": {
-      "presence": { "present_if_sqft_gte": 2600, "present_if_guests_gte": 12 },
+      "presence": { "present_if_sqft_gte": 2600 },
       "size": {
         "thresholds": [
           { "min_sqft": 2600, "max_sqft": 3200, "size": "small" },
@@ -220,7 +211,6 @@ Assumptions around bedrooms by sq ft (reference):
 #### Common Area Derivation
 - Presence: Dining and Rec Room use OR semantics (sqft OR guests); Kitchen and Living are always present.
 - Size: First matching ordered threshold wins; else `default`.
-- Dining seats (if present): `ceil(guests * seatsPerGuestRatio)` clamped to `[minSeats..maxSeats]`.
 
 #### Slider Validation (UI)
 - Use `validation.legalPairs` rectangles to derive permitted guests for the current sqft:
@@ -232,7 +222,7 @@ Assumptions around bedrooms by sq ft (reference):
 
 ### 5) Admin UI and Workflows
 
-Location: extend `client/src/pages/AdminPage.tsx` with a new section "Auto Configuration Rules" (tabs).
+Location: extend `client/src/pages/AdminPage.tsx` with a new section "Size & Capacity Rules" (tabs).
 
 - **Bedrooms**
   - Edit bunk capacities (small/medium/large).
@@ -241,9 +231,9 @@ Location: extend `client/src/pages/AdminPage.tsx` with a new section "Auto Confi
 
 - **Common Areas**
   - Presence rule editor for Dining and Rec Room (sqft/guests thresholds). Kitchen and Living are always present.
-  - Ordered size thresholds editor (drag to reorder). Dining seat ratio/min/max.
+  - Ordered size thresholds editor (drag to reorder).
 
-- **Validation & Ranges**
+- **Slider Ranges**
   - Global min/max for sqft/guests.
   - Legal pair rectangles editor with a live tester: “Is (sqft, guests) valid?”
 
@@ -271,8 +261,8 @@ Location: extend `client/src/pages/AdminPage.tsx` with a new section "Auto Confi
 
 - **Existing Pages**
   - `PropertyInputPage.tsx`: Clamp sliders via `validation.legalPairs`; help text for out-of-range.
-  - `ResultsPage.tsx`: Display computed configuration and dining seat count.
-  - `AdminPage.tsx`: New "Auto Configuration Rules" section.
+  - `ResultsPage.tsx`: Display computed configuration.
+  - `AdminPage.tsx`: New "Size & Capacity Rules" section.
 
 - **Pricing Integration**
   - `client/src/utils/calculations.ts`: Accept `ComputedConfiguration` to derive item counts via `roomTemplates.json`.
@@ -314,17 +304,17 @@ function deriveCommonAreas(squareFootage: number, guestCount: number, rules: Aut
     return size.default;
   };
 
-  const kitchen = compute(rules.commonAreas.kitchen.presence, rules.commonAreas.kitchen.size);
+  const kitchenSize = compute(rules.commonAreas.kitchen.presence, rules.commonAreas.kitchen.size);
   const diningSize = compute(rules.commonAreas.dining.presence, rules.commonAreas.dining.size);
-  const living = compute(rules.commonAreas.living.presence, rules.commonAreas.living.size);
-  const recRoom = compute(rules.commonAreas.recRoom.presence, rules.commonAreas.recRoom.size);
+  const livingSize = compute(rules.commonAreas.living.presence, rules.commonAreas.living.size);
+  const recRoomSize = compute(rules.commonAreas.recRoom.presence, rules.commonAreas.recRoom.size);
 
-  const diningSeats = diningSize === "none" ? undefined : Math.max(
-    rules.commonAreas.dining.minSeats ?? 0,
-    Math.ceil((rules.commonAreas.dining.seatsPerGuestRatio ?? 1) * guestCount)
-  );
-
-  return { kitchen, dining: { size: diningSize, seatCount: diningSeats }, living, recRoom };
+  return {
+    kitchen: kitchenSize,
+    dining: diningSize,
+    living: livingSize,
+    recRoom: recRoomSize
+  };
 }
 
 function clampGuestsForSqft(squareFootage: number, desired: number, rules: AutoConfigRules) {
@@ -359,7 +349,6 @@ function clampGuestsForSqft(squareFootage: number, desired: number, rules: AutoC
 ---
 
 ### 11) Notes and Feedback Hooks
-- Dining seat ratio defaults to 1.0; adjust for island/bench seating strategies.
 - We can add bathrooms and outdoor areas with the same presence/size threshold model.
 - If you want to densify >20 guests, extend policy to multiple bunks and/or add `queen` rooms.
 

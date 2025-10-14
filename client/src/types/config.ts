@@ -45,9 +45,6 @@ export interface CommonAreaRules {
   dining: {
     presence: SpacePresenceRule;
     size: SpaceSizeRule;
-    seatsPerGuestRatio?: number; // e.g., 1.0 => seat per guest
-    minSeats?: number;
-    maxSeats?: number | null;
   };
   living: { presence: SpacePresenceRule; size: SpaceSizeRule };
   recRoom: { presence: SpacePresenceRule; size: SpaceSizeRule };
@@ -87,7 +84,7 @@ export interface ComputedConfiguration {
   };
   commonAreas: {
     kitchen: CommonSize;
-    dining: { size: CommonSize; seatCount?: number };
+    dining: CommonSize;
     living: CommonSize;
     recRoom: CommonSize;
   };

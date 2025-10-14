@@ -155,10 +155,10 @@ export function suggestRoomConfiguration(
     }
 
     // Add dining room based on computed configuration
-    if (computedConfig.commonAreas.dining.size !== 'none') {
+    if (computedConfig.commonAreas.dining !== 'none') {
       suggestions.push({
         roomType: 'dining_room',
-        roomSize: computedConfig.commonAreas.dining.size,
+        roomSize: computedConfig.commonAreas.dining,
         quantity: 1,
         displayName: 'Dining Room',
       });
