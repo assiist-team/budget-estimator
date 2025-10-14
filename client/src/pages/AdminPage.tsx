@@ -59,6 +59,7 @@ export default function AdminPage() {
   const [autoConfigTab, setAutoConfigTab] = useState<'bedrooms' | 'commonareas' | 'validation'>('bedrooms');
   const [autoConfigUnsavedChanges, setAutoConfigUnsavedChanges] = useState(false);
   const [autoConfigSaving, setAutoConfigSaving] = useState(false);
+  const [editingBedroomRule, setEditingBedroomRule] = useState<BedroomMixRule | null>(null);
 
   // Set initial room size tab when editing template opens
   useEffect(() => {
@@ -329,6 +330,22 @@ export default function AdminPage() {
       console.error('Error deleting item:', error);
       alert('Failed to delete item. Please try again.');
     }
+  };
+
+  // Function to update a bedroom rule
+  const updateBedroomRule = (ruleId: string, updates: Partial<BedroomMixRule>) => {
+    if (!autoConfigRules) return;
+
+    const updatedRules = autoConfigRules.bedroomMixRules.map(rule =>
+      rule.id === ruleId ? { ...rule, ...updates } : rule
+    );
+
+    setAutoConfigRules({
+      ...autoConfigRules,
+      bedroomMixRules: updatedRules
+    });
+
+    setEditingBedroomRule(null);
   };
 
 
@@ -871,42 +888,51 @@ export default function AdminPage() {
 
                   <div className="space-y-4">
                     {autoConfigRules?.bedroomMixRules.map((rule) => (
-                      <div key={rule.id} className="border rounded-lg p-4">
+                      <div key={rule.id} className="relative border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-4">
                             <span className="font-medium text-gray-900">
                               {rule.min_sqft}-{rule.max_sqft} sqft, {rule.min_guests}-{rule.max_guests} guests
                             </span>
+                          </div>
+                          <div className="flex items-center gap-2">
                             <button
-                              onClick={() => {
-                                if (autoConfigRules) {
-                                  setAutoConfigRules({
-                                    ...autoConfigRules,
-                                    bedroomMixRules: autoConfigRules.bedroomMixRules.filter(r => r.id !== rule.id)
-                                  });
-                                }
-                              }}
-                              className="text-sm text-red-600 hover:text-red-800"
+                              onClick={() => setEditingBedroomRule(rule)}
+                              className="text-sm text-primary-600 hover:text-primary-800"
+                              title="Edit Rule"
                             >
-                              <TrashIcon />
+                              <EditIcon />
                             </button>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">King Beds:</span> {rule.bedrooms.king}
-                          </div>
-                          <div>
-                            <span className="font-medium">Double Beds:</span> {rule.bedrooms.double}
-                          </div>
-                          <div>
-                            <span className="font-medium">Bunk Bed:</span> {rule.bedrooms.bunk || 'None'}
-                          </div>
+                        <div className="flex items-center gap-3 text-sm">
+                          <span className="font-medium">Single Rooms:</span> {rule.bedrooms.king}
+                          <span className="text-gray-400">|</span>
+                          <span className="font-medium">Double Rooms:</span> {rule.bedrooms.double}
+                          <span className="text-gray-400">|</span>
+                          <span className="font-medium">Bunk Rooms:</span> {rule.bedrooms.bunk || 'None'}
                         </div>
 
                         <div className="mt-2 text-sm text-gray-600">
-                          Total Capacity: {rule.bedrooms.king * 2 + rule.bedrooms.double * 2 + (rule.bedrooms.bunk ? (rule.bedrooms.bunk === 'small' ? autoConfigRules.bunkCapacities.small : rule.bedrooms.bunk === 'medium' ? autoConfigRules.bunkCapacities.medium : autoConfigRules.bunkCapacities.large) : 0)} guests
+                          Total Capacity: {rule.bedrooms.king * 2 + rule.bedrooms.double * 2 + (rule.bedrooms.bunk && autoConfigRules ? (rule.bedrooms.bunk === 'small' ? autoConfigRules.bunkCapacities.small : rule.bedrooms.bunk === 'medium' ? autoConfigRules.bunkCapacities.medium : autoConfigRules.bunkCapacities.large) : 0)} guests
+                        </div>
+
+                        <div className="absolute bottom-4 right-4">
+                          <button
+                            onClick={() => {
+                              if (autoConfigRules) {
+                                setAutoConfigRules({
+                                  ...autoConfigRules,
+                                  bedroomMixRules: autoConfigRules.bedroomMixRules.filter(r => r.id !== rule.id)
+                                });
+                              }
+                            }}
+                            className="text-sm text-red-600 hover:text-red-800"
+                            title="Delete Rule"
+                          >
+                            <TrashIcon />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -934,52 +960,56 @@ export default function AdminPage() {
                           Size Rules
                         </label>
                         <div className="space-y-2">
-                          {['small', 'medium', 'large'].map((size) => (
-                            <div key={size} className="flex items-center gap-2">
-                              <span className="w-16 text-sm capitalize">{size}:</span>
-                              <select
-                                value={autoConfigRules?.commonAreas.kitchen.size.thresholds.find(t => t.size === size)?.max_sqft || ''}
-                                onChange={(e) => {
-                                  if (autoConfigRules) {
-                                    const newThresholds = [...autoConfigRules.commonAreas.kitchen.size.thresholds];
-                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+                          {['small', 'medium', 'large'].map((size) => {
+                            const threshold = autoConfigRules?.commonAreas.kitchen.size.thresholds.find(t => t.size === size);
+                            const value = threshold?.max_sqft || '';
+                            return (
+                              <div key={size} className="flex items-center gap-2">
+                                <span className="w-16 text-sm capitalize">{size}:</span>
+                                <span className="text-sm">≤</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={value}
+                                  onChange={(e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.kitchen.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
 
-                                    if (existingIndex >= 0) {
-                                      newThresholds[existingIndex] = {
-                                        ...newThresholds[existingIndex],
-                                        max_sqft: parseInt(e.target.value) || undefined
-                                      };
-                                    } else {
-                                      newThresholds.push({
-                                        size: size as any,
-                                        max_sqft: parseInt(e.target.value) || undefined
-                                      });
-                                    }
+                                      if (existingIndex >= 0) {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
 
-                                    setAutoConfigRules({
-                                      ...autoConfigRules,
-                                      commonAreas: {
-                                        ...autoConfigRules.commonAreas,
-                                        kitchen: {
-                                          ...autoConfigRules.commonAreas.kitchen,
-                                          size: {
-                                            ...autoConfigRules.commonAreas.kitchen.size,
-                                            thresholds: newThresholds
+                                      setAutoConfigRules({
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          kitchen: {
+                                            ...autoConfigRules.commonAreas.kitchen,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.kitchen.size,
+                                              thresholds: newThresholds
+                                            }
                                           }
                                         }
-                                      }
-                                    });
-                                  }
-                                }}
-                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                              >
-                                <option value="">No limit</option>
-                                <option value="2000">≤ 2,000 sqft</option>
-                                <option value="3200">≤ 3,200 sqft</option>
-                                <option value="5000">≤ 5,000 sqft</option>
-                              </select>
-                            </div>
-                          ))}
+                                      });
+                                    }
+                                  }}
+                                  placeholder="No limit"
+                                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">sqft</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -1000,52 +1030,56 @@ export default function AdminPage() {
                           Size Rules
                         </label>
                         <div className="space-y-2">
-                          {['small', 'medium', 'large'].map((size) => (
-                            <div key={size} className="flex items-center gap-2">
-                              <span className="w-16 text-sm capitalize">{size}:</span>
-                              <select
-                                value={autoConfigRules?.commonAreas.living.size.thresholds.find(t => t.size === size)?.max_sqft || ''}
-                                onChange={(e) => {
-                                  if (autoConfigRules) {
-                                    const newThresholds = [...autoConfigRules.commonAreas.living.size.thresholds];
-                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+                          {['small', 'medium', 'large'].map((size) => {
+                            const threshold = autoConfigRules?.commonAreas.living.size.thresholds.find(t => t.size === size);
+                            const value = threshold?.max_sqft || '';
+                            return (
+                              <div key={size} className="flex items-center gap-2">
+                                <span className="w-16 text-sm capitalize">{size}:</span>
+                                <span className="text-sm">≤</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={value}
+                                  onChange={(e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.living.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
 
-                                    if (existingIndex >= 0) {
-                                      newThresholds[existingIndex] = {
-                                        ...newThresholds[existingIndex],
-                                        max_sqft: parseInt(e.target.value) || undefined
-                                      };
-                                    } else {
-                                      newThresholds.push({
-                                        size: size as any,
-                                        max_sqft: parseInt(e.target.value) || undefined
-                                      });
-                                    }
+                                      if (existingIndex >= 0) {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
 
-                                    setAutoConfigRules({
-                                      ...autoConfigRules,
-                                      commonAreas: {
-                                        ...autoConfigRules.commonAreas,
-                                        living: {
-                                          ...autoConfigRules.commonAreas.living,
-                                          size: {
-                                            ...autoConfigRules.commonAreas.living.size,
-                                            thresholds: newThresholds
+                                      setAutoConfigRules({
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          living: {
+                                            ...autoConfigRules.commonAreas.living,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.living.size,
+                                              thresholds: newThresholds
+                                            }
                                           }
                                         }
-                                      }
-                                    });
-                                  }
-                                }}
-                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                              >
-                                <option value="">No limit</option>
-                                <option value="2000">≤ 2,000 sqft</option>
-                                <option value="3200">≤ 3,200 sqft</option>
-                                <option value="5000">≤ 5,000 sqft</option>
-                              </select>
-                            </div>
-                          ))}
+                                      });
+                                    }
+                                  }}
+                                  placeholder="No limit"
+                                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">sqft</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -1118,52 +1152,56 @@ export default function AdminPage() {
                           Size Rules
                         </label>
                         <div className="space-y-2">
-                          {['small', 'medium', 'large'].map((size) => (
-                            <div key={size} className="flex items-center gap-2">
-                              <span className="w-16 text-sm capitalize">{size}:</span>
-                              <select
-                                value={autoConfigRules?.commonAreas.dining.size.thresholds.find(t => t.size === size)?.max_sqft || ''}
-                                onChange={(e) => {
-                                  if (autoConfigRules) {
-                                    const newThresholds = [...autoConfigRules.commonAreas.dining.size.thresholds];
-                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+                          {['small', 'medium', 'large'].map((size) => {
+                            const threshold = autoConfigRules?.commonAreas.dining.size.thresholds.find(t => t.size === size);
+                            const value = threshold?.max_sqft || '';
+                            return (
+                              <div key={size} className="flex items-center gap-2">
+                                <span className="w-16 text-sm capitalize">{size}:</span>
+                                <span className="text-sm">≤</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={value}
+                                  onChange={(e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.dining.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
 
-                                    if (existingIndex >= 0) {
-                                      newThresholds[existingIndex] = {
-                                        ...newThresholds[existingIndex],
-                                        max_sqft: parseInt(e.target.value) || undefined
-                                      };
-                                    } else {
-                                      newThresholds.push({
-                                        size: size as any,
-                                        max_sqft: parseInt(e.target.value) || undefined
-                                      });
-                                    }
+                                      if (existingIndex >= 0) {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
 
-                                    setAutoConfigRules({
-                                      ...autoConfigRules,
-                                      commonAreas: {
-                                        ...autoConfigRules.commonAreas,
-                                        dining: {
-                                          ...autoConfigRules.commonAreas.dining,
-                                          size: {
-                                            ...autoConfigRules.commonAreas.dining.size,
-                                            thresholds: newThresholds
+                                      setAutoConfigRules({
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          dining: {
+                                            ...autoConfigRules.commonAreas.dining,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.dining.size,
+                                              thresholds: newThresholds
+                                            }
                                           }
                                         }
-                                      }
-                                    });
-                                  }
-                                }}
-                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                              >
-                                <option value="">No limit</option>
-                                <option value="2000">≤ 2000 sqft</option>
-                                <option value="3200">≤ 3200 sqft</option>
-                                <option value="5000">≤ 5000 sqft</option>
-                              </select>
-                            </div>
-                          ))}
+                                      });
+                                    }
+                                  }}
+                                  placeholder="No limit"
+                                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">sqft</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -1237,82 +1275,87 @@ export default function AdminPage() {
                           Size Rules
                         </label>
                         <div className="space-y-2">
-                          {['small', 'medium', 'large'].map((size) => (
-                            <div key={size} className="flex items-center gap-2">
-                              <span className="w-16 text-sm capitalize">{size}:</span>
-                              <select
-                                value={
-                                  size === 'small' ? (autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size)?.max_sqft || '') :
-                                  size === 'medium' ? (autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size)?.max_sqft || '') :
-                                  (autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size)?.min_sqft || '')
-                                }
-                                onChange={(e) => {
-                                  if (autoConfigRules) {
-                                    const newThresholds = [...autoConfigRules.commonAreas.recRoom.size.thresholds];
-                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+                          {['small', 'medium', 'large'].map((size) => {
+                            const threshold = autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size);
+                            const value = size === 'small' ? threshold?.max_sqft || '' :
+                                         size === 'medium' ? threshold?.min_sqft || '' :
+                                         threshold?.min_sqft || '';
 
-                                    if (existingIndex >= 0) {
-                                      if (size === 'small') {
-                                        newThresholds[existingIndex] = {
-                                          ...newThresholds[existingIndex],
-                                          max_sqft: parseInt(e.target.value) || undefined
-                                        };
-                                      } else if (size === 'medium') {
-                                        newThresholds[existingIndex] = {
-                                          ...newThresholds[existingIndex],
-                                          min_sqft: parseInt(e.target.value) || undefined,
-                                          max_sqft: parseInt(e.target.value) || undefined
-                                        };
-                                      } else {
-                                        newThresholds[existingIndex] = {
-                                          ...newThresholds[existingIndex],
-                                          min_sqft: parseInt(e.target.value) || undefined
-                                        };
-                                      }
-                                    } else {
-                                      if (size === 'small') {
-                                        newThresholds.push({
-                                          size: size as any,
-                                          max_sqft: parseInt(e.target.value) || undefined
-                                        });
-                                      } else if (size === 'medium') {
-                                        newThresholds.push({
-                                          size: size as any,
-                                          min_sqft: parseInt(e.target.value) || undefined,
-                                          max_sqft: parseInt(e.target.value) || undefined
-                                        });
-                                      } else {
-                                        newThresholds.push({
-                                          size: size as any,
-                                          min_sqft: parseInt(e.target.value) || undefined
-                                        });
-                                      }
-                                    }
+                            return (
+                              <div key={size} className="flex items-center gap-2">
+                                <span className="w-16 text-sm capitalize">{size}:</span>
+                                {size === 'small' && <span className="text-sm">≤</span>}
+                                {size === 'medium' && <span className="text-sm">≥</span>}
+                                {size === 'large' && <span className="text-sm">≥</span>}
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={value}
+                                  onChange={(e) => {
+                                    if (autoConfigRules) {
+                                      const newThresholds = [...autoConfigRules.commonAreas.recRoom.size.thresholds];
+                                      const existingIndex = newThresholds.findIndex(t => t.size === size);
 
-                                    setAutoConfigRules({
-                                      ...autoConfigRules,
-                                      commonAreas: {
-                                        ...autoConfigRules.commonAreas,
-                                        recRoom: {
-                                          ...autoConfigRules.commonAreas.recRoom,
-                                          size: {
-                                            ...autoConfigRules.commonAreas.recRoom.size,
-                                            thresholds: newThresholds
-                                          }
+                                      if (existingIndex >= 0) {
+                                        if (size === 'small') {
+                                          newThresholds[existingIndex] = {
+                                            ...newThresholds[existingIndex],
+                                            max_sqft: parseInt(e.target.value) || undefined
+                                          };
+                                        } else if (size === 'medium') {
+                                          newThresholds[existingIndex] = {
+                                            ...newThresholds[existingIndex],
+                                            min_sqft: parseInt(e.target.value) || undefined,
+                                            max_sqft: parseInt(e.target.value) || undefined
+                                          };
+                                        } else {
+                                          newThresholds[existingIndex] = {
+                                            ...newThresholds[existingIndex],
+                                            min_sqft: parseInt(e.target.value) || undefined
+                                          };
+                                        }
+                                      } else {
+                                        if (size === 'small') {
+                                          newThresholds.push({
+                                            size: size as any,
+                                            max_sqft: parseInt(e.target.value) || undefined
+                                          });
+                                        } else if (size === 'medium') {
+                                          newThresholds.push({
+                                            size: size as any,
+                                            min_sqft: parseInt(e.target.value) || undefined,
+                                            max_sqft: parseInt(e.target.value) || undefined
+                                          });
+                                        } else {
+                                          newThresholds.push({
+                                            size: size as any,
+                                            min_sqft: parseInt(e.target.value) || undefined
+                                          });
                                         }
                                       }
-                                    });
-                                  }
-                                }}
-                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
-                              >
-                                <option value="">No limit</option>
-                                <option value="2600">≥ 2,600 sqft</option>
-                                <option value="3200">≥ 3,200 sqft</option>
-                                <option value="3800">≥ 3,800 sqft</option>
-                              </select>
-                            </div>
-                          ))}
+
+                                      setAutoConfigRules({
+                                        ...autoConfigRules,
+                                        commonAreas: {
+                                          ...autoConfigRules.commonAreas,
+                                          recRoom: {
+                                            ...autoConfigRules.commonAreas.recRoom,
+                                            size: {
+                                              ...autoConfigRules.commonAreas.recRoom.size,
+                                              thresholds: newThresholds
+                                            }
+                                          }
+                                        }
+                                      });
+                                    }
+                                  }}
+                                  placeholder="No limit"
+                                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                />
+                                <span className="text-sm">sqft</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -1846,6 +1889,33 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Edit Bedroom Rule Modal */}
+      {editingBedroomRule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Edit Bedroom Configuration Rule
+                </h2>
+                <button
+                  onClick={() => setEditingBedroomRule(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <BedroomRuleForm
+                rule={editingBedroomRule}
+                onSubmit={(updates) => updateBedroomRule(editingBedroomRule.id, updates)}
+                onCancel={() => setEditingBedroomRule(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -2064,7 +2134,182 @@ function ItemForm({
   );
 }
 
+// Bedroom Rule Form Component
+function BedroomRuleForm({
+  rule,
+  onSubmit,
+  onCancel
+}: {
+  rule: BedroomMixRule;
+  onSubmit: (updates: Partial<BedroomMixRule>) => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    min_sqft: rule.min_sqft,
+    max_sqft: rule.max_sqft,
+    min_guests: rule.min_guests,
+    max_guests: rule.max_guests,
+    bedrooms: rule.bedrooms
+  });
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Min Square Footage
+          </label>
+          <input
+            type="number"
+            min="0"
+            step="100"
+            value={formData.min_sqft}
+            onChange={(e) => setFormData(prev => ({ ...prev, min_sqft: parseInt(e.target.value) || 0 }))}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Max Square Footage
+          </label>
+          <input
+            type="number"
+            min="0"
+            step="100"
+            value={formData.max_sqft}
+            onChange={(e) => setFormData(prev => ({ ...prev, max_sqft: parseInt(e.target.value) || 0 }))}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+      </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Min Guests
+          </label>
+          <input
+            type="number"
+            min="0"
+            value={formData.min_guests}
+            onChange={(e) => setFormData(prev => ({ ...prev, min_guests: parseInt(e.target.value) || 0 }))}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Max Guests
+          </label>
+          <input
+            type="number"
+            min="0"
+            value={formData.max_guests}
+            onChange={(e) => setFormData(prev => ({ ...prev, max_guests: parseInt(e.target.value) || 0 }))}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-4">
+          Bedroom Configuration
+        </label>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Single Rooms
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={formData.bedrooms.king}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                bedrooms: { ...prev.bedrooms, king: parseInt(e.target.value) || 0 }
+              }))}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Double Rooms
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={formData.bedrooms.double}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                bedrooms: { ...prev.bedrooms, double: parseInt(e.target.value) || 0 }
+              }))}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Bunk Room Size
+            </label>
+            <select
+              value={formData.bedrooms.bunk || ''}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                bedrooms: { ...prev.bedrooms, bunk: e.target.value as any }
+              }))}
+              className="w-full p-2 border border-gray-300 rounded"
+            >
+              <option value="">None</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large">Large</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <div className="text-sm text-blue-800">
+          <p className="font-medium mb-2">Capacity Check:</p>
+          <p>
+            Total capacity: {formData.bedrooms.king * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0)} guests
+          </p>
+          <p>
+            Required capacity: {formData.max_guests} guests
+          </p>
+          {formData.bedrooms.king * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0) < formData.max_guests && (
+            <p className="text-red-600 font-medium">
+              Warning: Configuration capacity is less than maximum guests required!
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-6 border-t">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="btn-secondary"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="btn-primary"
+        >
+          Update Rule
+        </button>
+      </div>
+    </form>
+  );
+}
 
