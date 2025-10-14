@@ -4,11 +4,13 @@ import { useForm } from 'react-hook-form';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useEstimatorStore } from '../store/estimatorStore';
+import { useAutoConfiguration, useAutoConfigRules } from '../hooks/useAutoConfiguration';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
 import type { ClientInfo, RoomItem } from '../types';
 import { formatCurrency, generateEstimateId } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
+import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ export default function ResultsPage() {
   } = useEstimatorStore();
 
   const { roomTemplates, loading: templatesLoading } = useRoomTemplates();
+  const { computedConfiguration, hasValidConfiguration } = useAutoConfiguration();
+  const { rules } = useAutoConfigRules();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -135,6 +139,116 @@ export default function ResultsPage() {
               </p>
             </div>
           </div>
+
+          {/* Auto-Configuration Display */}
+          {hasValidConfiguration && computedConfiguration && (
+            <div className="mb-8">
+              <div className="card">
+                <div className="w-full text-left">
+                  <div className="mb-1">
+                    <span className="text-2xl font-bold text-primary-800">
+                      Recommended Room Configuration
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-6">
+                    Auto-generated layout based on your {propertySpecs.squareFootage.toLocaleString()} sqft property and {propertySpecs.guestCapacity} guest capacity
+                  </p>
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Bedrooms */}
+                    <div className="border rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        🛏️ Bedrooms
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700">King Beds:</span>
+                          <span className="font-medium">{computedConfiguration.bedrooms.king}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700">Double Beds:</span>
+                          <span className="font-medium">{computedConfiguration.bedrooms.double}</span>
+                        </div>
+                        {computedConfiguration.bedrooms.bunk && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-700">Bunk Bed ({computedConfiguration.bedrooms.bunk}):</span>
+                            <span className="font-medium">1</span>
+                          </div>
+                        )}
+                        <div className="border-t pt-2 mt-3">
+                          <div className="flex justify-between items-center font-semibold">
+                            <span>Total Sleep Capacity:</span>
+                            <span>{rules ? calculateBedroomCapacity(computedConfiguration.bedrooms, rules) : 0}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Common Areas */}
+                    <div className="border rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        🏠 Common Areas
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700">Kitchen:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            computedConfiguration.commonAreas.kitchen === 'none' ? 'bg-gray-100 text-gray-700' :
+                            computedConfiguration.commonAreas.kitchen === 'small' ? 'bg-blue-100 text-blue-800' :
+                            computedConfiguration.commonAreas.kitchen === 'medium' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {computedConfiguration.commonAreas.kitchen === 'none' ? 'Not Included' : computedConfiguration.commonAreas.kitchen.charAt(0).toUpperCase() + computedConfiguration.commonAreas.kitchen.slice(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700">Dining:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            computedConfiguration.commonAreas.dining.size === 'none' ? 'bg-gray-100 text-gray-700' :
+                            computedConfiguration.commonAreas.dining.size === 'small' ? 'bg-blue-100 text-blue-800' :
+                            computedConfiguration.commonAreas.dining.size === 'medium' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {computedConfiguration.commonAreas.dining.size === 'none' ? 'Not Included' : computedConfiguration.commonAreas.dining.size.charAt(0).toUpperCase() + computedConfiguration.commonAreas.dining.size.slice(1)}
+                            {computedConfiguration.commonAreas.dining.seatCount && ` (${computedConfiguration.commonAreas.dining.seatCount} seats)`}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700">Living Room:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            computedConfiguration.commonAreas.living === 'none' ? 'bg-gray-100 text-gray-700' :
+                            computedConfiguration.commonAreas.living === 'small' ? 'bg-blue-100 text-blue-800' :
+                            computedConfiguration.commonAreas.living === 'medium' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {computedConfiguration.commonAreas.living === 'none' ? 'Not Included' : computedConfiguration.commonAreas.living.charAt(0).toUpperCase() + computedConfiguration.commonAreas.living.slice(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700">Rec Room:</span>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            computedConfiguration.commonAreas.recRoom === 'none' ? 'bg-gray-100 text-gray-700' :
+                            computedConfiguration.commonAreas.recRoom === 'small' ? 'bg-blue-100 text-blue-800' :
+                            computedConfiguration.commonAreas.recRoom === 'medium' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {computedConfiguration.commonAreas.recRoom === 'none' ? 'Not Included' : computedConfiguration.commonAreas.recRoom.charAt(0).toUpperCase() + computedConfiguration.commonAreas.recRoom.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-blue-800 text-sm">
+                      💡 This configuration is automatically generated based on your property specifications.
+                      You can customize individual rooms in the next step if needed.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Budget Estimate */}
           <div className="mb-8">

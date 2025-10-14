@@ -1,6 +1,8 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useEstimatorStore } from '../store/estimatorStore';
+import { useAutoConfigRules, useAutoConfiguration } from '../hooks/useAutoConfiguration';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
 import type { PropertySpecs } from '../types';
@@ -8,8 +10,11 @@ import type { PropertySpecs } from '../types';
 export default function PropertyInputPage() {
   const navigate = useNavigate();
   const { setPropertySpecs, setCurrentStep, propertySpecs } = useEstimatorStore();
-  
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<PropertySpecs>({
+
+  // Load auto-configuration rules
+  const { rules, loading: rulesLoading } = useAutoConfigRules();
+
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<PropertySpecs>({
     defaultValues: propertySpecs || {
       squareFootage: 3000,
       guestCapacity: 12,
@@ -19,6 +24,16 @@ export default function PropertyInputPage() {
 
   const squareFootage = watch('squareFootage');
   const guestCapacity = watch('guestCapacity');
+
+  // Get auto-configuration validation
+  const { validation } = useAutoConfiguration();
+
+  // Update guest capacity when validation changes (e.g., when sqft changes)
+  React.useEffect(() => {
+    if (rules && validation.clampedGuests !== guestCapacity) {
+      setValue('guestCapacity', validation.clampedGuests);
+    }
+  }, [validation.clampedGuests, guestCapacity, setValue, rules]);
 
   const onSubmit = (data: PropertySpecs) => {
     setPropertySpecs(data);
@@ -50,10 +65,10 @@ export default function PropertyInputPage() {
               <div className="flex items-center gap-4 mb-2">
                 <input
                   type="number"
-                  {...register('squareFootage', { 
+                  {...register('squareFootage', {
                     required: 'Square footage is required',
-                    min: { value: 1500, message: 'Minimum 1,500 sqft' },
-                    max: { value: 5000, message: 'Maximum 5,000 sqft' }
+                    min: { value: rules?.validation.global.min_sqft || 1500, message: `Minimum ${rules?.validation.global.min_sqft || 1500} sqft` },
+                    max: { value: rules?.validation.global.max_sqft || 5000, message: `Maximum ${rules?.validation.global.max_sqft || 5000} sqft` }
                   })}
                   className="input-field flex-1"
                 />
@@ -61,16 +76,17 @@ export default function PropertyInputPage() {
               </div>
               <input
                 type="range"
-                min="1500"
-                max="5000"
+                min={rules?.validation.global.min_sqft || 1500}
+                max={rules?.validation.global.max_sqft || 5000}
                 step="100"
                 value={squareFootage}
                 {...register('squareFootage')}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                disabled={rulesLoading}
               />
               <div className="flex justify-between text-sm text-gray-500 mt-1">
-                <span>1,500 sqft</span>
-                <span>5,000 sqft</span>
+                <span>{(rules?.validation.global.min_sqft || 1500).toLocaleString()} sqft</span>
+                <span>{(rules?.validation.global.max_sqft || 5000).toLocaleString()} sqft</span>
               </div>
               {errors.squareFootage && (
                 <p className="text-red-600 text-sm mt-2">{errors.squareFootage.message}</p>
@@ -85,28 +101,52 @@ export default function PropertyInputPage() {
               <div className="flex items-center gap-4 mb-2">
                 <input
                   type="number"
-                  {...register('guestCapacity', { 
+                  {...register('guestCapacity', {
                     required: 'Guest capacity is required',
-                    min: { value: 8, message: 'Minimum 8 guests' },
-                    max: { value: 20, message: 'Maximum 20 guests' }
+                    min: { value: validation.allowedRange?.min || 8, message: `Minimum ${validation.allowedRange?.min || 8} guests for ${squareFootage} sqft` },
+                    max: { value: validation.allowedRange?.max || 20, message: `Maximum ${validation.allowedRange?.max || 20} guests for ${squareFootage} sqft` }
                   })}
                   className="input-field flex-1"
+                  disabled={rulesLoading}
                 />
                 <span className="text-gray-600 font-medium">guests</span>
               </div>
               <input
                 type="range"
-                min="8"
-                max="20"
+                min={validation.allowedRange?.min || 8}
+                max={validation.allowedRange?.max || 20}
                 step="1"
                 value={guestCapacity}
                 {...register('guestCapacity')}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
+                disabled={rulesLoading}
               />
               <div className="flex justify-between text-sm text-gray-500 mt-1">
-                <span>8 guests</span>
-                <span>20 guests</span>
+                <span>{validation.allowedRange?.min || 8} guests</span>
+                <span>{validation.allowedRange?.max || 20} guests</span>
               </div>
+
+              {/* Validation feedback */}
+              {rules && !validation.isValid && validation.reason && (
+                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-yellow-800 text-sm">{validation.reason}</p>
+                </div>
+              )}
+
+              {rules && validation.isValid && validation.allowedRange && propertySpecs && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <p className="text-green-800 text-sm">
+                    ✓ {propertySpecs.squareFootage.toLocaleString()} sqft with {propertySpecs.guestCapacity} guests is within recommended limits
+                  </p>
+                </div>
+              )}
+
+              {rulesLoading && (
+                <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-blue-800 text-sm">Loading configuration rules...</p>
+                </div>
+              )}
+
               {errors.guestCapacity && (
                 <p className="text-red-600 text-sm mt-2">{errors.guestCapacity.message}</p>
               )}

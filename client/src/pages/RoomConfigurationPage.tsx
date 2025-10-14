@@ -7,6 +7,7 @@ import RoomCard from '../components/RoomCard';
 import type { SelectedRoom } from '../types';
 import { suggestRoomConfiguration, formatCurrency, calculateEstimate } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
+import { useAutoConfiguration } from '../hooks/useAutoConfiguration';
 
 export default function RoomConfigurationPage() {
   const navigate = useNavigate();
@@ -20,18 +21,20 @@ export default function RoomConfigurationPage() {
   } = useEstimatorStore();
   
   const { roomTemplates, loading } = useRoomTemplates();
+  const { computedConfiguration } = useAutoConfiguration();
   const [localRooms, setLocalRooms] = useState<SelectedRoom[]>(selectedRooms);
 
   // Initialize with suggestions if no rooms selected
   useEffect(() => {
     if (propertySpecs && localRooms.length === 0) {
       const suggestions = suggestRoomConfiguration(
+        computedConfiguration || undefined,
         propertySpecs.squareFootage,
         propertySpecs.guestCapacity
       );
       setLocalRooms(suggestions);
     }
-  }, [propertySpecs, localRooms.length]);
+  }, [propertySpecs, localRooms.length, computedConfiguration]);
 
   // Redirect if no property specs
   useEffect(() => {

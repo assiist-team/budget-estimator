@@ -1,5 +1,6 @@
 // Budget calculation utilities
 import type { RoomTemplate, SelectedRoom, Budget, RoomBreakdown, QualityTier } from '../types';
+import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
 export { QUALITY_TIERS } from '../types';
@@ -122,76 +123,145 @@ export function centsToDollars(cents: number): number {
 }
 
 /**
- * Generate suggested room configuration based on property specs
+ * Generate suggested room configuration based on property specs and computed configuration
  */
 export function suggestRoomConfiguration(
-  squareFootage: number,
-  guestCapacity: number
+  computedConfig?: ComputedConfiguration,
+  fallbackSquareFootage?: number,
+  fallbackGuestCapacity?: number
 ): SelectedRoom[] {
   const suggestions: SelectedRoom[] = [];
 
-  // Always include basics
-  suggestions.push({
-    roomType: 'living_room',
-    roomSize: squareFootage > 3500 ? 'large' : squareFootage > 2000 ? 'medium' : 'small',
-    quantity: 1,
-    displayName: 'Living Room',
-  });
+  // Use computed configuration if available, otherwise fall back to basic logic
+  if (computedConfig) {
+    // Add living room based on computed configuration
+    if (computedConfig.commonAreas.living !== 'none') {
+      suggestions.push({
+        roomType: 'living_room',
+        roomSize: computedConfig.commonAreas.living,
+        quantity: 1,
+        displayName: 'Living Room',
+      });
+    }
 
-  suggestions.push({
-    roomType: 'kitchen',
-    roomSize: squareFootage > 3500 ? 'large' : squareFootage > 2000 ? 'medium' : 'small',
-    quantity: 1,
-    displayName: 'Kitchen',
-  });
+    // Add kitchen based on computed configuration
+    if (computedConfig.commonAreas.kitchen !== 'none') {
+      suggestions.push({
+        roomType: 'kitchen',
+        roomSize: computedConfig.commonAreas.kitchen,
+        quantity: 1,
+        displayName: 'Kitchen',
+      });
+    }
 
-  // Dining based on capacity (now that minimum is 8, always include dining)
-  suggestions.push({
-    roomType: 'dining_room',
-    roomSize: guestCapacity > 14 ? 'large' : guestCapacity > 10 ? 'medium' : 'small',
-    quantity: 1,
-    displayName: 'Dining Room',
-  });
+    // Add dining room based on computed configuration
+    if (computedConfig.commonAreas.dining.size !== 'none') {
+      suggestions.push({
+        roomType: 'dining_room',
+        roomSize: computedConfig.commonAreas.dining.size,
+        quantity: 1,
+        displayName: 'Dining Room',
+      });
+    }
 
-  // Bedrooms based on capacity
-  const bedroomCount = Math.ceil(guestCapacity / 2);
-  if (bedroomCount > 0) {
+    // Add bedrooms based on computed configuration
+    if (computedConfig.bedrooms.king > 0) {
+      suggestions.push({
+        roomType: 'king_bedroom',
+        roomSize: 'medium', // Default size, could be made configurable
+        quantity: computedConfig.bedrooms.king,
+        displayName: 'King Bedroom',
+      });
+    }
+
+    if (computedConfig.bedrooms.double > 0) {
+      suggestions.push({
+        roomType: 'double_bedroom',
+        roomSize: 'medium', // Default size, could be made configurable
+        quantity: computedConfig.bedrooms.double,
+        displayName: 'Double Bedroom',
+      });
+    }
+
+    if (computedConfig.bedrooms.bunk) {
+      suggestions.push({
+        roomType: 'bunk_room',
+        roomSize: computedConfig.bedrooms.bunk === 'small' ? 'small' :
+                 computedConfig.bedrooms.bunk === 'medium' ? 'medium' : 'large',
+        quantity: 1,
+        displayName: 'Bunk Room',
+      });
+    }
+
+    // Add rec room based on computed configuration
+    if (computedConfig.commonAreas.recRoom !== 'none') {
+      suggestions.push({
+        roomType: 'rec_room',
+        roomSize: computedConfig.commonAreas.recRoom,
+        quantity: 1,
+        displayName: 'Rec Room',
+      });
+    }
+  } else if (fallbackSquareFootage && fallbackGuestCapacity) {
+    // Fallback logic when computed configuration is not available
     suggestions.push({
-      roomType: 'single_bedroom',
-      roomSize: 'medium',
-      quantity: Math.min(bedroomCount, 4),
-      displayName: 'Single Bedroom',
-    });
-  }
-
-  // Double bedroom for larger properties (now that minimum is 8, always include for larger groups)
-  if (guestCapacity >= 10) {
-    suggestions.push({
-      roomType: 'double_bedroom',
-      roomSize: squareFootage > 3000 ? 'large' : 'medium',
+      roomType: 'living_room',
+      roomSize: fallbackSquareFootage > 3500 ? 'large' : fallbackSquareFootage > 2000 ? 'medium' : 'small',
       quantity: 1,
-      displayName: 'Double Bedroom',
+      displayName: 'Living Room',
     });
-  }
 
-  // Bunk room for larger properties with many guests
-  if (guestCapacity > 10) {
     suggestions.push({
-      roomType: 'bunk_room',
-      roomSize: 'medium',
+      roomType: 'kitchen',
+      roomSize: fallbackSquareFootage > 3500 ? 'large' : fallbackSquareFootage > 2000 ? 'medium' : 'small',
       quantity: 1,
-      displayName: 'Bunk Room',
+      displayName: 'Kitchen',
     });
-  }
 
-  // Rec room for larger properties
-  if (squareFootage > 3000) {
     suggestions.push({
-      roomType: 'rec_room',
-      roomSize: 'medium',
+      roomType: 'dining_room',
+      roomSize: fallbackGuestCapacity > 14 ? 'large' : fallbackGuestCapacity > 10 ? 'medium' : 'small',
       quantity: 1,
-      displayName: 'Rec Room',
+      displayName: 'Dining Room',
     });
+
+    // Bedrooms based on capacity
+    const bedroomCount = Math.ceil(fallbackGuestCapacity / 2);
+    if (bedroomCount > 0) {
+      suggestions.push({
+        roomType: 'single_bedroom',
+        roomSize: 'medium',
+        quantity: Math.min(bedroomCount, 4),
+        displayName: 'Single Bedroom',
+      });
+    }
+
+    if (fallbackGuestCapacity >= 10) {
+      suggestions.push({
+        roomType: 'double_bedroom',
+        roomSize: fallbackSquareFootage > 3000 ? 'large' : 'medium',
+        quantity: 1,
+        displayName: 'Double Bedroom',
+      });
+    }
+
+    if (fallbackGuestCapacity > 10) {
+      suggestions.push({
+        roomType: 'bunk_room',
+        roomSize: 'medium',
+        quantity: 1,
+        displayName: 'Bunk Room',
+      });
+    }
+
+    if (fallbackSquareFootage > 3000) {
+      suggestions.push({
+        roomType: 'rec_room',
+        roomSize: 'medium',
+        quantity: 1,
+        displayName: 'Rec Room',
+      });
+    }
   }
 
   return suggestions;

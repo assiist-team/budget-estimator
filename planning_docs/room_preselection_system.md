@@ -11,7 +11,7 @@
 ### 2) Scope and Definitions
 - **Range**: A rule bucket `[min_sqft..max_sqft] × [min_guests..max_guests]`.
 - **Bedroom mix**: Counts of bedroom types (`king`, `double`) and optional `bunk` size.
-- **Common areas**: Kitchen, Dining, Living, Rec Room — each has presence rule and size mapping.
+ - **Common areas**: Kitchen and Living are universal; Dining and Rec Room have presence rules; all have size mapping.
 - **Admin ruleset**: Authoritative configuration used by the estimator and by UI bounds.
 
 Non-goals (MVP): bathrooms, laundry, outdoor areas, multi-bunk policies beyond 1 bunk per rule.
@@ -65,7 +65,7 @@ export interface SpaceSizeRule {
 }
 
 export interface CommonAreaRules {
-  kitchen: { presence: SpacePresenceRule; size: SpaceSizeRule };
+  kitchen: { size: SpaceSizeRule }; // universal
   dining: {
     presence: SpacePresenceRule;
     size: SpaceSizeRule;
@@ -73,7 +73,7 @@ export interface CommonAreaRules {
     minSeats?: number;
     maxSeats?: number | null;
   };
-  living: { presence: SpacePresenceRule; size: SpaceSizeRule };
+  living: { size: SpaceSizeRule }; // universal
   recRoom: { presence: SpacePresenceRule; size: SpaceSizeRule };
 }
 
@@ -137,7 +137,6 @@ Seed values (preserves your bedroom ranges; adds common-areas and validation):
   ],
   "commonAreas": {
     "kitchen": {
-      "presence": { "present_if_sqft_gte": 0 },
       "size": {
         "thresholds": [
           { "max_sqft": 2000, "size": "small" },
@@ -162,7 +161,6 @@ Seed values (preserves your bedroom ranges; adds common-areas and validation):
       "maxSeats": null
     },
     "living": {
-      "presence": { "present_if_sqft_gte": 0 },
       "size": {
         "thresholds": [
           { "max_sqft": 2000, "size": "small" },
@@ -220,7 +218,7 @@ Assumptions around bedrooms by sq ft (reference):
 - Policy: Start comfortable (kings), use doubles for density, at most one bunk by default.
 
 #### Common Area Derivation
-- Presence: OR semantics — shown if sqft condition OR guest condition is met.
+- Presence: Dining and Rec Room use OR semantics (sqft OR guests); Kitchen and Living are always present.
 - Size: First matching ordered threshold wins; else `default`.
 - Dining seats (if present): `ceil(guests * seatsPerGuestRatio)` clamped to `[minSeats..maxSeats]`.
 
@@ -242,7 +240,7 @@ Location: extend `client/src/pages/AdminPage.tsx` with a new section "Auto Confi
   - Display computed capacity vs `max_guests`; warn if insufficient.
 
 - **Common Areas**
-  - Presence rule editor (sqft/guests thresholds).
+  - Presence rule editor for Dining and Rec Room (sqft/guests thresholds). Kitchen and Living are always present.
   - Ordered size thresholds editor (drag to reorder). Dining seat ratio/min/max.
 
 - **Validation & Ranges**

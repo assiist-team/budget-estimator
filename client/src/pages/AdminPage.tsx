@@ -3,6 +3,7 @@ import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, 
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
+import type { AutoConfigRules, BedroomMixRule } from '../types/config';
 import { formatCurrency } from '../utils/calculations';
 import { EditIcon, TrashIcon } from '../components/Icons';
 
@@ -31,12 +32,22 @@ async function generateItemId(itemName: string): Promise<string> {
   }
 }
 
+// Helper function to save auto-configuration rules
+async function saveAutoConfigRules(rules: AutoConfigRules): Promise<void> {
+  const configRef = doc(db, 'config', 'roomMappingRules');
+  await setDoc(configRef, {
+    ...rules,
+    updatedAt: new Date().toISOString()
+  });
+}
+
 export default function AdminPage() {
   const [estimates, setEstimates] = useState<Estimate[]>([]);
   const [roomTemplates, setRoomTemplates] = useState<RoomTemplate[]>([]);
   const [items, setItems] = useState<Item[]>([]);
+  const [autoConfigRules, setAutoConfigRules] = useState<AutoConfigRules | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'estimates' | 'templates' | 'items'>('estimates');
+  const [activeTab, setActiveTab] = useState<'estimates' | 'templates' | 'items' | 'autoconfig'>('estimates');
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [showCreateItem, setShowCreateItem] = useState(false);
@@ -45,6 +56,9 @@ export default function AdminPage() {
   const [activeRoomSizeTab, setActiveRoomSizeTab] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [autoConfigTab, setAutoConfigTab] = useState<'bedrooms' | 'commonareas' | 'validation'>('bedrooms');
+  const [autoConfigUnsavedChanges, setAutoConfigUnsavedChanges] = useState(false);
+  const [autoConfigSaving, setAutoConfigSaving] = useState(false);
 
   // Set initial room size tab when editing template opens
   useEffect(() => {
@@ -53,6 +67,11 @@ export default function AdminPage() {
       setHasUnsavedChanges(false); // Reset unsaved changes when opening a template
     }
   }, [editingTemplate, activeRoomSizeTab]);
+
+  // Track auto-configuration changes
+  useEffect(() => {
+    setAutoConfigUnsavedChanges(true);
+  }, [autoConfigRules]);
 
   useEffect(() => {
     async function fetchData() {
@@ -111,6 +130,26 @@ export default function AdminPage() {
           } as Item);
         });
         console.log(`Loaded ${itemsData.length} items from Firestore`);
+
+        // Fetch auto-configuration rules
+        try {
+          const configDoc = await getDoc(doc(db, 'config', 'roomMappingRules'));
+          if (configDoc.exists()) {
+            setAutoConfigRules(configDoc.data() as AutoConfigRules);
+            console.log('Loaded auto-configuration rules from Firestore');
+          } else {
+            // Fallback to local file for initial setup
+            console.log('No auto-configuration rules found in Firestore, trying local file...');
+            const response = await fetch('/autoconfig.json');
+            if (response.ok) {
+              const rulesData = await response.json();
+              setAutoConfigRules(rulesData);
+              console.log('Loaded auto-configuration rules from local file');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading auto-configuration rules:', error);
+        }
 
         setEstimates(estimatesData);
         setRoomTemplates(templatesData);
@@ -370,6 +409,16 @@ export default function AdminPage() {
             >
               🏷️ Items ({items.length})
             </button>
+            <button
+              onClick={() => setActiveTab('autoconfig')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'autoconfig'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              ⚙️ Auto Config Rules
+            </button>
           </nav>
         </div>
 
@@ -609,6 +658,957 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'autoconfig' && (
+          <div>
+            <div className="mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    Auto Configuration Rules
+                  </h2>
+                  <p className="text-gray-600">
+                    Configure automatic room layouts based on square footage and guest capacity
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {autoConfigUnsavedChanges && (
+                    <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                      Unsaved Changes
+                    </span>
+                  )}
+                  <button
+                    onClick={async () => {
+                      if (!autoConfigRules || !autoConfigUnsavedChanges || autoConfigSaving) return;
+
+                      setAutoConfigSaving(true);
+                      try {
+                        await saveAutoConfigRules(autoConfigRules);
+                        setAutoConfigUnsavedChanges(false);
+                      } catch (error) {
+                        console.error('Failed to save auto-configuration rules:', error);
+                        alert('Failed to save rules. Please try again.');
+                      } finally {
+                        setAutoConfigSaving(false);
+                      }
+                    }}
+                    disabled={!autoConfigUnsavedChanges || autoConfigSaving}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${
+                      autoConfigUnsavedChanges && !autoConfigSaving
+                        ? 'bg-primary-600 text-white hover:bg-primary-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {autoConfigSaving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 inline-block"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (autoConfigUnsavedChanges && !confirm('You have unsaved changes. Are you sure you want to reload?')) {
+                        return;
+                      }
+                      // Reload from original data
+                      window.location.reload();
+                    }}
+                    className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Auto Config Sub-tabs */}
+            <div className="border-b border-gray-200 mb-8">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setAutoConfigTab('bedrooms')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    autoConfigTab === 'bedrooms'
+                      ? 'border-primary-500 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  🛏️ Bedrooms ({autoConfigRules?.bedroomMixRules.length || 0})
+                </button>
+                <button
+                  onClick={() => setAutoConfigTab('commonareas')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    autoConfigTab === 'commonareas'
+                      ? 'border-primary-500 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  🏠 Common Areas
+                </button>
+                <button
+                  onClick={() => setAutoConfigTab('validation')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                    autoConfigTab === 'validation'
+                      ? 'border-primary-500 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  ✅ Validation & Ranges
+                </button>
+              </nav>
+            </div>
+
+            {/* Bedrooms Tab */}
+            {autoConfigTab === 'bedrooms' && (
+              <div className="space-y-6">
+                {/* Bunk Capacities */}
+                <div className="card">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Bunk Bed Capacities</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Small Bunk (guests)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={autoConfigRules?.bunkCapacities.small || 4}
+                        onChange={(e) => {
+                          if (autoConfigRules) {
+                            setAutoConfigRules({
+                              ...autoConfigRules,
+                              bunkCapacities: {
+                                ...autoConfigRules.bunkCapacities,
+                                small: parseInt(e.target.value) || 4
+                              }
+                            });
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Medium Bunk (guests)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={autoConfigRules?.bunkCapacities.medium || 8}
+                        onChange={(e) => {
+                          if (autoConfigRules) {
+                            setAutoConfigRules({
+                              ...autoConfigRules,
+                              bunkCapacities: {
+                                ...autoConfigRules.bunkCapacities,
+                                medium: parseInt(e.target.value) || 8
+                              }
+                            });
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Large Bunk (guests)
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={autoConfigRules?.bunkCapacities.large || 12}
+                        onChange={(e) => {
+                          if (autoConfigRules) {
+                            setAutoConfigRules({
+                              ...autoConfigRules,
+                              bunkCapacities: {
+                                ...autoConfigRules.bunkCapacities,
+                                large: parseInt(e.target.value) || 12
+                              }
+                            });
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bedroom Rules */}
+                <div className="card">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Bedroom Configuration Rules</h3>
+                    <button
+                      onClick={() => {
+                        // Create new rule with default values
+                        const newRule: BedroomMixRule = {
+                          id: `r${Date.now()}`,
+                          min_sqft: 2000,
+                          max_sqft: 2500,
+                          min_guests: 10,
+                          max_guests: 12,
+                          bedrooms: { king: 2, double: 1, bunk: null }
+                        };
+                        if (autoConfigRules) {
+                          setAutoConfigRules({
+                            ...autoConfigRules,
+                            bedroomMixRules: [...autoConfigRules.bedroomMixRules, newRule]
+                          });
+                        }
+                      }}
+                      className="btn-primary"
+                    >
+                      + Add Rule
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    {autoConfigRules?.bedroomMixRules.map((rule) => (
+                      <div key={rule.id} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-4">
+                            <span className="font-medium text-gray-900">
+                              {rule.min_sqft}-{rule.max_sqft} sqft, {rule.min_guests}-{rule.max_guests} guests
+                            </span>
+                            <button
+                              onClick={() => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    bedroomMixRules: autoConfigRules.bedroomMixRules.filter(r => r.id !== rule.id)
+                                  });
+                                }
+                              }}
+                              className="text-sm text-red-600 hover:text-red-800"
+                            >
+                              <TrashIcon />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium">King Beds:</span> {rule.bedrooms.king}
+                          </div>
+                          <div>
+                            <span className="font-medium">Double Beds:</span> {rule.bedrooms.double}
+                          </div>
+                          <div>
+                            <span className="font-medium">Bunk Bed:</span> {rule.bedrooms.bunk || 'None'}
+                          </div>
+                        </div>
+
+                        <div className="mt-2 text-sm text-gray-600">
+                          Total Capacity: {rule.bedrooms.king * 2 + rule.bedrooms.double * 2 + (rule.bedrooms.bunk ? (rule.bedrooms.bunk === 'small' ? autoConfigRules.bunkCapacities.small : rule.bedrooms.bunk === 'medium' ? autoConfigRules.bunkCapacities.medium : autoConfigRules.bunkCapacities.large) : 0)} guests
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Common Areas Tab */}
+            {autoConfigTab === 'commonareas' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Kitchen */}
+                  <div className="card">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">🍳 Kitchen</h3>
+                    <div className="space-y-4">
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-sm text-blue-800">
+                          <strong>Always Present:</strong> Kitchen is always included in configurations
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Size Rules
+                        </label>
+                        <div className="space-y-2">
+                          {['small', 'medium', 'large'].map((size) => (
+                            <div key={size} className="flex items-center gap-2">
+                              <span className="w-16 text-sm capitalize">{size}:</span>
+                              <select
+                                value={autoConfigRules?.commonAreas.kitchen.size.thresholds.find(t => t.size === size)?.max_sqft || ''}
+                                onChange={(e) => {
+                                  if (autoConfigRules) {
+                                    const newThresholds = [...autoConfigRules.commonAreas.kitchen.size.thresholds];
+                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                    if (existingIndex >= 0) {
+                                      newThresholds[existingIndex] = {
+                                        ...newThresholds[existingIndex],
+                                        max_sqft: parseInt(e.target.value) || undefined
+                                      };
+                                    } else {
+                                      newThresholds.push({
+                                        size: size as any,
+                                        max_sqft: parseInt(e.target.value) || undefined
+                                      });
+                                    }
+
+                                    setAutoConfigRules({
+                                      ...autoConfigRules,
+                                      commonAreas: {
+                                        ...autoConfigRules.commonAreas,
+                                        kitchen: {
+                                          ...autoConfigRules.commonAreas.kitchen,
+                                          size: {
+                                            ...autoConfigRules.commonAreas.kitchen.size,
+                                            thresholds: newThresholds
+                                          }
+                                        }
+                                      }
+                                    });
+                                  }
+                                }}
+                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                              >
+                                <option value="">No limit</option>
+                                <option value="2000">≤ 2,000 sqft</option>
+                                <option value="3200">≤ 3,200 sqft</option>
+                                <option value="5000">≤ 5,000 sqft</option>
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Living Room */}
+                  <div className="card">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">🛋️ Living Room</h3>
+                    <div className="space-y-4">
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <p className="text-sm text-blue-800">
+                          <strong>Always Present:</strong> Living room is always included in configurations
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Size Rules
+                        </label>
+                        <div className="space-y-2">
+                          {['small', 'medium', 'large'].map((size) => (
+                            <div key={size} className="flex items-center gap-2">
+                              <span className="w-16 text-sm capitalize">{size}:</span>
+                              <select
+                                value={autoConfigRules?.commonAreas.living.size.thresholds.find(t => t.size === size)?.max_sqft || ''}
+                                onChange={(e) => {
+                                  if (autoConfigRules) {
+                                    const newThresholds = [...autoConfigRules.commonAreas.living.size.thresholds];
+                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                    if (existingIndex >= 0) {
+                                      newThresholds[existingIndex] = {
+                                        ...newThresholds[existingIndex],
+                                        max_sqft: parseInt(e.target.value) || undefined
+                                      };
+                                    } else {
+                                      newThresholds.push({
+                                        size: size as any,
+                                        max_sqft: parseInt(e.target.value) || undefined
+                                      });
+                                    }
+
+                                    setAutoConfigRules({
+                                      ...autoConfigRules,
+                                      commonAreas: {
+                                        ...autoConfigRules.commonAreas,
+                                        living: {
+                                          ...autoConfigRules.commonAreas.living,
+                                          size: {
+                                            ...autoConfigRules.commonAreas.living.size,
+                                            thresholds: newThresholds
+                                          }
+                                        }
+                                      }
+                                    });
+                                  }
+                                }}
+                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                              >
+                                <option value="">No limit</option>
+                                <option value="2000">≤ 2,000 sqft</option>
+                                <option value="3200">≤ 3,200 sqft</option>
+                                <option value="5000">≤ 5,000 sqft</option>
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dining */}
+                  <div className="card">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">🍽️ Dining</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Presence Rules
+                        </label>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={autoConfigRules?.commonAreas.dining.presence.present_if_sqft_gte !== undefined}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      dining: {
+                                        ...autoConfigRules.commonAreas.dining,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.dining.presence,
+                                          present_if_sqft_gte: e.target.checked ? 1600 : undefined
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">Present if ≥ </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={autoConfigRules?.commonAreas.dining.presence.present_if_sqft_gte || 1600}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      dining: {
+                                        ...autoConfigRules.commonAreas.dining,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.dining.presence,
+                                          present_if_sqft_gte: parseInt(e.target.value) || 1600
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                              disabled={autoConfigRules?.commonAreas.dining.presence.present_if_sqft_gte === undefined}
+                            />
+                            <span className="text-sm">sqft</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={autoConfigRules?.commonAreas.dining.presence.present_if_guests_gte !== undefined}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      dining: {
+                                        ...autoConfigRules.commonAreas.dining,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.dining.presence,
+                                          present_if_guests_gte: e.target.checked ? 8 : undefined
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">Present if ≥ </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={autoConfigRules?.commonAreas.dining.presence.present_if_guests_gte || 8}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      dining: {
+                                        ...autoConfigRules.commonAreas.dining,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.dining.presence,
+                                          present_if_guests_gte: parseInt(e.target.value) || 8
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                              disabled={autoConfigRules?.commonAreas.dining.presence.present_if_guests_gte === undefined}
+                            />
+                            <span className="text-sm">guests</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Size Rules
+                        </label>
+                        <div className="space-y-2">
+                          {['small', 'medium', 'large'].map((size) => (
+                            <div key={size} className="flex items-center gap-2">
+                              <span className="w-16 text-sm capitalize">{size}:</span>
+                              <select
+                                value={autoConfigRules?.commonAreas.dining.size.thresholds.find(t => t.size === size)?.max_guests || ''}
+                                onChange={(e) => {
+                                  if (autoConfigRules) {
+                                    const newThresholds = [...autoConfigRules.commonAreas.dining.size.thresholds];
+                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                    if (existingIndex >= 0) {
+                                      newThresholds[existingIndex] = {
+                                        ...newThresholds[existingIndex],
+                                        max_guests: parseInt(e.target.value) || undefined
+                                      };
+                                    } else {
+                                      newThresholds.push({
+                                        size: size as any,
+                                        max_guests: parseInt(e.target.value) || undefined
+                                      });
+                                    }
+
+                                    setAutoConfigRules({
+                                      ...autoConfigRules,
+                                      commonAreas: {
+                                        ...autoConfigRules.commonAreas,
+                                        dining: {
+                                          ...autoConfigRules.commonAreas.dining,
+                                          size: {
+                                            ...autoConfigRules.commonAreas.dining.size,
+                                            thresholds: newThresholds
+                                          }
+                                        }
+                                      }
+                                    });
+                                  }
+                                }}
+                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                              >
+                                <option value="">No limit</option>
+                                <option value="8">≤ 8 guests</option>
+                                <option value="12">≤ 12 guests</option>
+                                <option value="20">≤ 20 guests</option>
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Seats per Guest
+                          </label>
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0.5"
+                            max="2"
+                            value={autoConfigRules?.commonAreas.dining.seatsPerGuestRatio || 1.0}
+                            onChange={(e) => {
+                              if (autoConfigRules) {
+                                setAutoConfigRules({
+                                  ...autoConfigRules,
+                                  commonAreas: {
+                                    ...autoConfigRules.commonAreas,
+                                    dining: {
+                                      ...autoConfigRules.commonAreas.dining,
+                                      seatsPerGuestRatio: parseFloat(e.target.value) || 1.0
+                                    }
+                                  }
+                                });
+                              }
+                            }}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Minimum Seats
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={autoConfigRules?.commonAreas.dining.minSeats || 6}
+                            onChange={(e) => {
+                              if (autoConfigRules) {
+                                setAutoConfigRules({
+                                  ...autoConfigRules,
+                                  commonAreas: {
+                                    ...autoConfigRules.commonAreas,
+                                    dining: {
+                                      ...autoConfigRules.commonAreas.dining,
+                                      minSeats: parseInt(e.target.value) || 6
+                                    }
+                                  }
+                                });
+                              }
+                            }}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rec Room */}
+                  <div className="card">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">🎮 Rec Room</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Presence Rules
+                        </label>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={autoConfigRules?.commonAreas.recRoom.presence.present_if_sqft_gte !== undefined}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      recRoom: {
+                                        ...autoConfigRules.commonAreas.recRoom,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.recRoom.presence,
+                                          present_if_sqft_gte: e.target.checked ? 2600 : undefined
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">Present if ≥ </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={autoConfigRules?.commonAreas.recRoom.presence.present_if_sqft_gte || 2600}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      recRoom: {
+                                        ...autoConfigRules.commonAreas.recRoom,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.recRoom.presence,
+                                          present_if_sqft_gte: parseInt(e.target.value) || 2600
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                              disabled={autoConfigRules?.commonAreas.recRoom.presence.present_if_sqft_gte === undefined}
+                            />
+                            <span className="text-sm">sqft</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={autoConfigRules?.commonAreas.recRoom.presence.present_if_guests_gte !== undefined}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      recRoom: {
+                                        ...autoConfigRules.commonAreas.recRoom,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.recRoom.presence,
+                                          present_if_guests_gte: e.target.checked ? 12 : undefined
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="rounded border-gray-300"
+                            />
+                            <span className="text-sm">Present if ≥ </span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={autoConfigRules?.commonAreas.recRoom.presence.present_if_guests_gte || 12}
+                              onChange={(e) => {
+                                if (autoConfigRules) {
+                                  setAutoConfigRules({
+                                    ...autoConfigRules,
+                                    commonAreas: {
+                                      ...autoConfigRules.commonAreas,
+                                      recRoom: {
+                                        ...autoConfigRules.commonAreas.recRoom,
+                                        presence: {
+                                          ...autoConfigRules.commonAreas.recRoom.presence,
+                                          present_if_guests_gte: parseInt(e.target.value) || 12
+                                        }
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                              disabled={autoConfigRules?.commonAreas.recRoom.presence.present_if_guests_gte === undefined}
+                            />
+                            <span className="text-sm">guests</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Size Rules
+                        </label>
+                        <div className="space-y-2">
+                          {['small', 'medium', 'large'].map((size) => (
+                            <div key={size} className="flex items-center gap-2">
+                              <span className="w-16 text-sm capitalize">{size}:</span>
+                              <select
+                                value={
+                                  size === 'small' ? (autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size)?.max_sqft || '') :
+                                  size === 'medium' ? (autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size)?.max_sqft || '') :
+                                  (autoConfigRules?.commonAreas.recRoom.size.thresholds.find(t => t.size === size)?.min_sqft || '')
+                                }
+                                onChange={(e) => {
+                                  if (autoConfigRules) {
+                                    const newThresholds = [...autoConfigRules.commonAreas.recRoom.size.thresholds];
+                                    const existingIndex = newThresholds.findIndex(t => t.size === size);
+
+                                    if (existingIndex >= 0) {
+                                      if (size === 'small') {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else if (size === 'medium') {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          min_sqft: parseInt(e.target.value) || undefined,
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      } else {
+                                        newThresholds[existingIndex] = {
+                                          ...newThresholds[existingIndex],
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        };
+                                      }
+                                    } else {
+                                      if (size === 'small') {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      } else if (size === 'medium') {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          min_sqft: parseInt(e.target.value) || undefined,
+                                          max_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      } else {
+                                        newThresholds.push({
+                                          size: size as any,
+                                          min_sqft: parseInt(e.target.value) || undefined
+                                        });
+                                      }
+                                    }
+
+                                    setAutoConfigRules({
+                                      ...autoConfigRules,
+                                      commonAreas: {
+                                        ...autoConfigRules.commonAreas,
+                                        recRoom: {
+                                          ...autoConfigRules.commonAreas.recRoom,
+                                          size: {
+                                            ...autoConfigRules.commonAreas.recRoom.size,
+                                            thresholds: newThresholds
+                                          }
+                                        }
+                                      }
+                                    });
+                                  }
+                                }}
+                                className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                              >
+                                <option value="">No limit</option>
+                                <option value="2600">≥ 2,600 sqft</option>
+                                <option value="3200">≥ 3,200 sqft</option>
+                                <option value="3800">≥ 3,800 sqft</option>
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Validation Tab */}
+            {autoConfigTab === 'validation' && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="card">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Global Limits</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Min Sqft
+                        </label>
+                        <input
+                          type="number"
+                          min="1000"
+                          max="10000"
+                          step="100"
+                          value={autoConfigRules?.validation.global.min_sqft || 1500}
+                          onChange={(e) => {
+                            if (autoConfigRules) {
+                              setAutoConfigRules({
+                                ...autoConfigRules,
+                                validation: {
+                                  ...autoConfigRules.validation,
+                                  global: {
+                                    ...autoConfigRules.validation.global,
+                                    min_sqft: parseInt(e.target.value) || 1500
+                                  }
+                                }
+                              });
+                            }
+                          }}
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Max Sqft
+                        </label>
+                        <input
+                          type="number"
+                          min="1000"
+                          max="10000"
+                          step="100"
+                          value={autoConfigRules?.validation.global.max_sqft || 5000}
+                          onChange={(e) => {
+                            if (autoConfigRules) {
+                              setAutoConfigRules({
+                                ...autoConfigRules,
+                                validation: {
+                                  ...autoConfigRules.validation,
+                                  global: {
+                                    ...autoConfigRules.validation.global,
+                                    max_sqft: parseInt(e.target.value) || 5000
+                                  }
+                                }
+                              });
+                            }
+                          }}
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Min Guests
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={autoConfigRules?.validation.global.min_guests || 8}
+                          onChange={(e) => {
+                            if (autoConfigRules) {
+                              setAutoConfigRules({
+                                ...autoConfigRules,
+                                validation: {
+                                  ...autoConfigRules.validation,
+                                  global: {
+                                    ...autoConfigRules.validation.global,
+                                    min_guests: parseInt(e.target.value) || 8
+                                  }
+                                }
+                              });
+                            }
+                          }}
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Max Guests
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={autoConfigRules?.validation.global.max_guests || 20}
+                          onChange={(e) => {
+                            if (autoConfigRules) {
+                              setAutoConfigRules({
+                                ...autoConfigRules,
+                                validation: {
+                                  ...autoConfigRules.validation,
+                                  global: {
+                                    ...autoConfigRules.validation.global,
+                                    max_guests: parseInt(e.target.value) || 20
+                                  }
+                                }
+                              });
+                            }
+                          }}
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Legal Combinations</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      {autoConfigRules?.validation.legalPairs.length || 0} sqft/guest ranges defined
+                    </p>
+                    <div className="space-y-2">
+                      {autoConfigRules?.validation.legalPairs.map((pair, index) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm">
+                          <span>{pair.min_sqft}-{pair.max_sqft} sqft</span>
+                          <span>→</span>
+                          <span>{pair.min_guests}-{pair.max_guests} guests</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
