@@ -1,0 +1,91 @@
+{
+  "updatedRooms": 4,
+  "totalExistingTemplates": 7,
+  "updateDetails": [
+    {
+      "roomId": "bunk_room",
+      "roomName": "Bunk Room",
+      "updatesBySize": {
+        "small": {
+          "currentCount": 0,
+          "newCount": 19,
+          "itemsAdded": 19
+        },
+        "medium": {
+          "currentCount": 0,
+          "newCount": 25,
+          "itemsAdded": 25
+        },
+        "large": {
+          "currentCount": 0,
+          "newCount": 30,
+          "itemsAdded": 30
+        }
+      }
+    },
+    {
+      "roomId": "double_bedroom",
+      "roomName": "Double Bedroom",
+      "updatesBySize": {
+        "small": {
+          "currentCount": 0,
+          "newCount": 21,
+          "itemsAdded": 21
+        },
+        "medium": {
+          "currentCount": 0,
+          "newCount": 26,
+          "itemsAdded": 26
+        },
+        "large": {
+          "currentCount": 0,
+          "newCount": 33,
+          "itemsAdded": 33
+        }
+      }
+    },
+    {
+      "roomId": "rec_room",
+      "roomName": "Rec Room",
+      "updatesBySize": {
+        "small": {
+          "currentCount": 0,
+          "newCount": 16,
+          "itemsAdded": 16
+        },
+        "medium": {
+          "currentCount": 0,
+          "newCount": 20,
+          "itemsAdded": 20
+        },
+        "large": {
+          "currentCount": 0,
+          "newCount": 20,
+          "itemsAdded": 20
+        }
+      }
+    },
+    {
+      "roomId": "single_bedroom",
+      "roomName": "Single Bedroom",
+      "updatesBySize": {
+        "small": {
+          "currentCount": 0,
+          "newCount": 21,
+          "itemsAdded": 21
+        },
+        "medium": {
+          "currentCount": 0,
+          "newCount": 27,
+          "itemsAdded": 27
+        },
+        "large": {
+          "currentCount": 0,
+          "newCount": 29,
+          "itemsAdded": 29
+        }
+      }
+    }
+  ],
+  "timestamp": "2025-10-14T00:09:01.290Z"
+}

@@ -1,10 +1,35 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy, limit, doc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
 import { formatCurrency } from '../utils/calculations';
 import { EditIcon, TrashIcon } from '../components/Icons';
+
+// Helper function to create slug from item name
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+// Helper function to generate unique item ID from name
+async function generateItemId(itemName: string): Promise<string> {
+  const baseSlug = slugify(itemName);
+  let itemId = baseSlug;
+  let counter = 1;
+
+  // Check if the ID already exists and increment counter if needed
+  while (true) {
+    const itemDoc = await getDoc(doc(db, 'items', itemId));
+    if (!itemDoc.exists()) {
+      return itemId;
+    }
+    itemId = `${baseSlug}_${counter}`;
+    counter++;
+  }
+}
 
 export default function AdminPage() {
   const [estimates, setEstimates] = useState<Estimate[]>([]);
@@ -18,11 +43,14 @@ export default function AdminPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [activeRoomSizeTab, setActiveRoomSizeTab] = useState<string>('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Set initial room size tab when editing template opens
   useEffect(() => {
     if (editingTemplate && !activeRoomSizeTab) {
       setActiveRoomSizeTab('small');
+      setHasUnsavedChanges(false); // Reset unsaved changes when opening a template
     }
   }, [editingTemplate, activeRoomSizeTab]);
 
@@ -111,7 +139,7 @@ export default function AdminPage() {
   });
 
   // Function to update a room template
-  const updateRoomTemplate = async (templateId: string, updates: Partial<RoomTemplate>) => {
+  const updateRoomTemplate = async (templateId: string, updates: Partial<RoomTemplate>, closeModal: boolean = true) => {
     // Store original template for potential rollback
     const originalTemplate = roomTemplates.find(template => template.id === templateId);
 
@@ -137,8 +165,19 @@ export default function AdminPage() {
         )
       );
 
+      // Also update the editingTemplate state if it's the same template
+      setEditingTemplate(prev =>
+        prev && prev.id === templateId
+          ? { ...prev, ...updates, updatedAt: new Date() }
+          : prev
+      );
+
       console.log('Local state updated');
-      setEditingTemplate(null);
+
+      // Only close modal if explicitly requested
+      if (closeModal) {
+        setEditingTemplate(null);
+      }
     } catch (error) {
       console.error('Error updating room template:', error);
       console.error('Error details:', {
@@ -171,16 +210,21 @@ export default function AdminPage() {
         updatedAt: new Date(),
       };
 
-      const docRef = await addDoc(collection(db, 'items'), newItem);
+      // Generate custom ID from item name
+      const itemId = await generateItemId(itemData.name);
+
+      // Create document with custom ID
+      const itemRef = doc(db, 'items', itemId);
+      await setDoc(itemRef, newItem);
 
       // Update local state
       setItems(prev => [...prev, {
-        id: docRef.id,
+        id: itemId,
         ...newItem,
       } as Item]);
 
       setShowCreateItem(false);
-      return docRef.id;
+      return itemId;
     } catch (error) {
       console.error('Error creating item:', error);
       alert('Failed to create item. Please try again.');
@@ -417,21 +461,13 @@ export default function AdminPage() {
 
         {activeTab === 'templates' && (
           <div>
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  Rooms
-                </h2>
-                <p className="text-gray-600">
-                  Configure items and quantities for each room size
-                </p>
-              </div>
-              <button
-                onClick={() => setEditingTemplate(roomTemplates[0] || null)}
-                className="btn-primary"
-              >
-                Edit Templates
-              </button>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Rooms
+              </h2>
+              <p className="text-gray-600">
+                Configure items and quantities for each room size
+              </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -585,18 +621,63 @@ export default function AdminPage() {
             <div className="sticky top-0 z-20 bg-white border-b border-gray-200">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Edit Room Template: {editingTemplate.displayName}
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setEditingTemplate(null);
-                      setActiveRoomSizeTab('');
-                    }}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    ✕
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Edit Room Template: {editingTemplate.displayName}
+                    </h2>
+                    {hasUnsavedChanges && (
+                      <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                        Unsaved Changes
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        if (!editingTemplate || !hasUnsavedChanges || isSaving) return;
+
+                        setIsSaving(true);
+                        try {
+                          await updateRoomTemplate(editingTemplate.id, editingTemplate, false);
+                          setHasUnsavedChanges(false);
+                          // Success is indicated by the badge disappearing
+                        } catch (error) {
+                          console.error('Failed to save template:', error);
+                          alert('Failed to save template. Please try again.');
+                        } finally {
+                          setIsSaving(false);
+                        }
+                      }}
+                      disabled={!hasUnsavedChanges || isSaving}
+                      className={`px-4 py-2 rounded-md text-sm font-medium ${
+                        hasUnsavedChanges && !isSaving
+                          ? 'bg-primary-600 text-white hover:bg-primary-700'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      {isSaving ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Saving...
+                        </div>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (hasUnsavedChanges && !confirm('You have unsaved changes. Are you sure you want to close?')) {
+                          return;
+                        }
+                        setEditingTemplate(null);
+                        setActiveRoomSizeTab('');
+                        setHasUnsavedChanges(false);
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
 
                 {/* Room Size Tabs */}
@@ -683,16 +764,21 @@ export default function AdminPage() {
                             console.log('New items array:', newItems);
                             console.log('New totals:', newTotals);
 
-                            updateRoomTemplate(editingTemplate.id, {
+                            // Update editingTemplate state directly for immediate UI feedback
+                            setEditingTemplate(prev => prev ? {
+                              ...prev,
                               sizes: {
-                                ...editingTemplate.sizes,
+                                ...prev.sizes,
                                 [activeRoomSizeTab]: {
                                   ...sizeData,
                                   items: newItems,
                                   totals: newTotals,
                                 },
                               },
-                            });
+                              updatedAt: new Date(),
+                            } : null);
+
+                            setHasUnsavedChanges(true);
 
                             e.target.value = '';
                           }
@@ -739,27 +825,109 @@ export default function AdminPage() {
                                 <input
                                   type="number"
                                   min="0"
-                                  value={roomItem.quantity}
+                                  step="1"
+                                  value={roomItem.quantity === 0 ? '' : (roomItem.quantity || '')}
                                   onChange={(e) => {
-                                    const newQuantity = parseInt(e.target.value) || 0;
+                                    const inputValue = e.target.value;
+
+                                    // Handle empty input (user deleted everything or entered nothing)
+                                    if (inputValue === '') {
+                                      const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                      const newItems = [...sizeData.items];
+                                      newItems[index] = { ...roomItem, quantity: 0 };
+
+                                      const newTotals = calculateRoomTotals(newItems);
+
+                                      setEditingTemplate(prev => prev ? {
+                                        ...prev,
+                                        sizes: {
+                                          ...prev.sizes,
+                                          [activeRoomSizeTab]: {
+                                            ...sizeData,
+                                            items: newItems,
+                                            totals: newTotals,
+                                          },
+                                        },
+                                        updatedAt: new Date(),
+                                      } : null);
+
+                                      setHasUnsavedChanges(true);
+                                      return;
+                                    }
+
+                                    const newQuantity = parseInt(inputValue) || 0;
+
+                                    // Skip if no change
+                                    if (newQuantity === roomItem.quantity) {
+                                      return;
+                                    }
+
                                     const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
                                     const newItems = [...sizeData.items];
                                     newItems[index] = { ...roomItem, quantity: newQuantity };
 
                                     const newTotals = calculateRoomTotals(newItems);
 
-                                    updateRoomTemplate(editingTemplate.id, {
+                                    // Update state
+                                    setEditingTemplate(prev => prev ? {
+                                      ...prev,
                                       sizes: {
-                                        ...editingTemplate.sizes,
+                                        ...prev.sizes,
                                         [activeRoomSizeTab]: {
                                           ...sizeData,
                                           items: newItems,
                                           totals: newTotals,
                                         },
                                       },
-                                    });
+                                      updatedAt: new Date(),
+                                    } : null);
+
+                                    setHasUnsavedChanges(true);
                                   }}
-                                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                  onBlur={(e) => {
+                                    const inputValue = e.target.value;
+
+                                    // If empty on blur, ensure it's set to 0
+                                    if (inputValue === '' || inputValue === '0') {
+                                      e.target.value = '0';
+
+                                      const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                      const newItems = [...sizeData.items];
+                                      newItems[index] = { ...roomItem, quantity: 0 };
+
+                                      const newTotals = calculateRoomTotals(newItems);
+
+                                      setEditingTemplate(prev => prev ? {
+                                        ...prev,
+                                        sizes: {
+                                          ...prev.sizes,
+                                          [activeRoomSizeTab]: {
+                                            ...sizeData,
+                                            items: newItems,
+                                            totals: newTotals,
+                                          },
+                                        },
+                                        updatedAt: new Date(),
+                                      } : null);
+
+                                      setHasUnsavedChanges(true);
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    // Handle the case where user tries to delete the last digit
+                                    if ((e.key === 'Backspace' || e.key === 'Delete') && e.target instanceof HTMLInputElement) {
+                                      const input = e.target;
+                                      if (input.value.length === 1 && input.selectionStart === 1 && input.selectionEnd === 1) {
+                                        // User is trying to delete the last single digit
+                                        e.preventDefault();
+                                        input.value = '';
+                                        // Trigger onChange to handle empty value
+                                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                                        return;
+                                      }
+                                    }
+                                  }}
+                                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                                 />
                                 <button
                                   onClick={() => {
@@ -767,16 +935,21 @@ export default function AdminPage() {
                                     const newItems = sizeData.items.filter((_: RoomItem, i: number) => i !== index);
                                     const newTotals = calculateRoomTotals(newItems);
 
-                                    updateRoomTemplate(editingTemplate.id, {
+                                    // Update editingTemplate state directly for immediate UI feedback
+                                    setEditingTemplate(prev => prev ? {
+                                      ...prev,
                                       sizes: {
-                                        ...editingTemplate.sizes,
+                                        ...prev.sizes,
                                         [activeRoomSizeTab]: {
                                           ...sizeData,
                                           items: newItems,
                                           totals: newTotals,
                                         },
                                       },
-                                    });
+                                      updatedAt: new Date(),
+                                    } : null);
+
+                                    setHasUnsavedChanges(true);
                                   }}
                                   className="text-red-600 hover:text-red-800 p-1"
                                 >
@@ -986,8 +1159,11 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.budgetPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, budgetPrice: parseFloat(e.target.value) || 0 }))}
+              value={formData.budgetPrice || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData(prev => ({ ...prev, budgetPrice: value === '' ? 0 : parseFloat(value) || 0 }));
+              }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -1000,8 +1176,11 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.midPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, midPrice: parseFloat(e.target.value) || 0 }))}
+              value={formData.midPrice || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData(prev => ({ ...prev, midPrice: value === '' ? 0 : parseFloat(value) || 0 }));
+              }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -1014,8 +1193,11 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.midHighPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, midHighPrice: parseFloat(e.target.value) || 0 }))}
+              value={formData.midHighPrice || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData(prev => ({ ...prev, midHighPrice: value === '' ? 0 : parseFloat(value) || 0 }));
+              }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />
@@ -1028,8 +1210,11 @@ function ItemForm({
               type="number"
               step="0.01"
               min="0"
-              value={formData.highPrice}
-              onChange={(e) => setFormData(prev => ({ ...prev, highPrice: parseFloat(e.target.value) || 0 }))}
+              value={formData.highPrice || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setFormData(prev => ({ ...prev, highPrice: value === '' ? 0 : parseFloat(value) || 0 }));
+              }}
               className="w-full p-2 border border-gray-300 rounded"
               required
             />

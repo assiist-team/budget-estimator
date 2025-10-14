@@ -1,5 +1,6 @@
 // Data import script to convert CSV data to Firestore
-import admin from 'firebase-admin';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, updateDoc, getDoc, collection, getDocs } from 'firebase/firestore';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -11,27 +12,23 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '..', 'client', '.env') });
 
-// Initialize Firebase Admin
-// TODO: Replace with your service account key
-const serviceAccount = {
-  // You'll need to download your Firebase service account key and place it here
-  // or load it from a file
+// Initialize Firebase Client SDK with logged-in credentials
+// Use the same configuration as the client application
+const firebaseConfig = {
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'project-estimator-1584',
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.VITE_FIREBASE_APP_ID
 };
 
-let db = null;
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-try {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-  db = admin.firestore();
-  console.log('Firebase Admin initialized successfully');
-} catch (error) {
-  console.log('Note: Firebase Admin initialization skipped. Add service account credentials to use.');
-  console.log('For now, this script will generate the data structure for manual import.');
-  console.log('Error:', error.message);
-}
+console.log('✓ Firebase Client SDK initialized with logged-in credentials');
+console.log('✓ Ready to update Firestore room templates');
 
 // Helper function to parse currency string to cents
 function parseCurrency(value) {
@@ -47,6 +44,96 @@ function slugify(text) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
+}
+
+// Track CSV item names that don't have an explicit mapping (for manual review)
+const unmappedCsvItemNames = new Set();
+
+// Helper function to normalize item names from CSV to system item IDs
+function normalizeItemName(itemName) {
+  const name = itemName.toLowerCase().trim();
+
+  // Define mapping for items that have different names in CSV vs system
+  // Only include mappings that are exact matches or explicitly confirmed
+  const nameMappings = {
+    // Specific mappings based on user feedback
+    'chair throw pillow': 'throw_pillows',
+    'chair throw blanket': 'throw_blanket',
+    'tv mount + install': 'tv_mount',
+
+    // Exact matches from existing system
+    'sofa/sectional': 'sofa_sectional',
+    'coffee table': 'coffee_table',
+    'side table': 'side_table',
+    'tv console': 'tv_console',
+    'tv mount': 'tv_mount',
+    'area rug': 'area_rug',
+    'lamps': 'lamps',
+    'throw pillows': 'throw_pillows',
+    'throw blanket': 'throw_blanket',
+    'curtains': 'curtains',
+    'curtain rod': 'curtain_rod',
+    'wall art': 'wall_art',
+    'greenery': 'greenery',
+    'mirror': 'mirror',
+    'chair': 'chair',
+    'tv': 'tv',
+    'dining table': 'dining_table',
+    'dining chair': 'dining_chair',
+    'bar stool': 'bar_stool',
+    'nightstands': 'nightstands',
+    'dresser': 'dresser',
+    'mattress': 'mattress',
+    'sheets': 'sheets',
+    'sleeping pillows': 'sleeping_pillows',
+    'bunk bed': 'bunk_bed',
+    'bunk bed mattress': 'bunk_bed_mattress',
+    'bench or stools': 'bench_or_stools',
+    'ottoman or pouf': 'ottoman_or_pouf',
+    'buffet or sideboard': 'buffet_or_sideboard',
+    'display cabinet': 'display_cabinet',
+    'bookshelf': 'bookshelf',
+    'large game table': 'large_game_table',
+    'game table': 'game_table',
+    'games': 'games',
+    'bean bag': 'bean_bag',
+    'desk': 'desk',
+    'island centerpiece': 'island_centerpiece',
+    'counter accessories': 'counter_accessories',
+    'kitchen towels': 'kitchen_towels',
+    'kitchen runner rug': 'kitchen_runner_rug',
+    'open shelving decor': 'open_shelving_decor',
+    'top of cabinetry decor': 'top_of_cabinetry_decor',
+    'table centerpiece': 'table_centerpiece',
+    'nightstand accessories': 'nightstand_accessories',
+    'dresser accessories': 'dresser_accessories',
+
+    // Mappings for previously unmapped items
+    'bed frame': 'bed_frame',
+    'curtain set': 'curtain_set',
+    'decorative bedding': 'decorative_bedding',
+    'desk accessories': 'desk_accessories',
+    'desk chair': 'desk_chair',
+    'down pillows': 'down_pillows',
+    'floor lamp': 'floor_lamp',
+    'lamps (table/floor)': 'lamps',
+    'mattress protector': 'mattress_protector',
+    'pillow protectors': 'pillow_protectors',
+    'shelving accessories': 'open_shelving_decor',
+    'throw blanket on bed': 'throw_blanket_on_bed'
+  };
+
+  // Check for exact matches first
+  if (nameMappings[name]) {
+    return nameMappings[name];
+  }
+
+  // Record unmapped CSV name for manual mapping review
+  unmappedCsvItemNames.add(itemName.trim());
+
+  // For items not in the mapping, use slugified version as a fallback
+  // Maintains backward compatibility while highlighting unmapped names
+  return slugify(name);
 }
 
 // Import items from Item Pricing CSV
@@ -74,8 +161,8 @@ async function importItems() {
           highPrice: parseCurrency(row['High Price'] || row['high']),
           unit: 'each',
           notes: '',
-          createdAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date(),
-          updatedAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date(),
+          createdAt: db ? new Date() : new Date(),
+          updatedAt: db ? new Date() : new Date(),
         };
 
         if (item.name && item.budgetPrice > 0) {
@@ -210,8 +297,8 @@ async function importRoomData() {
               }
             }
           },
-          createdAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date(),
-          updatedAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date()
+          createdAt: db ? new Date() : new Date(),
+          updatedAt: db ? new Date() : new Date()
         };
       }
     } catch (error) {
@@ -242,44 +329,88 @@ async function parseRoomCSV(csvPath) {
       largeTotals: { budget: 0, mid: 0, midHigh: 0, high: 0 }
     };
 
-    fs.createReadStream(csvPath)
-      .pipe(csv())
-      .on('data', (row) => {
-        // Skip header rows and total rows
-        if (row.Item && !row.Item.includes('Totals') && !row.Item.includes('Pricing')) {
-          const itemName = row.Item.toLowerCase().trim();
-          const smallQty = parseInt(row['Small Rm Qnty'] || row['Small Room Quantity'] || '0');
-          const mediumQty = parseInt(row['Mid Rm Qnty'] || row['Medium Room Quantity'] || '0');
-          const largeQty = parseInt(row['Large Rm Qnty'] || row['Large Room Quantity'] || '0');
+    // Read file line by line and parse manually
+    try {
+      const content = fs.readFileSync(csvPath, 'utf8');
+      const lines = content.split('\n').filter(line => line.trim());
 
-          // Skip items with zero quantities
-          if (smallQty === 0 && mediumQty === 0 && largeQty === 0) return;
-
-          // Convert item name to item ID
-          const itemId = slugify(itemName);
-
-          // Add items for each size if quantity > 0
-          if (smallQty > 0) {
-            roomData.small.push({ itemId, quantity: smallQty });
-          }
-          if (mediumQty > 0) {
-            roomData.medium.push({ itemId, quantity: mediumQty });
-          }
-          if (largeQty > 0) {
-            roomData.large.push({ itemId, quantity: largeQty });
-          }
-        }
-      })
-      .on('end', () => {
-        // Calculate totals from the CSV data at the end
-        // For now, we'll use placeholder totals until we can properly parse them
-        roomData.smallTotals = { budget: 8285, mid: 16890, midHigh: 29640, high: 58840 };
-        roomData.mediumTotals = { budget: 11215, mid: 22030, midHigh: 37830, high: 75880 };
-        roomData.largeTotals = { budget: 16615, mid: 31670, midHigh: 55420, high: 109220 };
-
+      if (lines.length < 2) {
+        console.log(`CSV file ${csvPath} has insufficient data`);
         resolve(roomData);
-      })
-      .on('error', reject);
+        return;
+      }
+
+      // Skip the first line (title) and use the second line as headers
+      const headerLine = lines[1];
+      const headers = headerLine.split(',').map(h => h.trim());
+
+      console.log(`Headers found: [${headers.join(', ')}]`);
+
+      // Find quantity column indices
+      const headersLower = headers.map(h => h.toLowerCase());
+      const quantityColumnIndices = {
+        small: headersLower.findIndex(h => /small/.test(h) && (/qty|qnty|quantity|rm|room/.test(h))),
+        medium: headersLower.findIndex(h => (/mid|medium/.test(h) && (/qty|qnty|quantity|rm|room/.test(h)))),
+        large: headersLower.findIndex(h => /large/.test(h) && (/qty|qnty|quantity|rm|room/.test(h)))
+      };
+
+      console.log(`Detected quantity columns for ${path.basename(csvPath)}:`, {
+        small: headers[quantityColumnIndices.small] || 'not found',
+        medium: headers[quantityColumnIndices.medium] || 'not found',
+        large: headers[quantityColumnIndices.large] || 'not found'
+      });
+
+      // Process data rows (starting from line 2, index 2)
+      for (let i = 2; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line || line.includes('Totals') || line.includes('Pricing')) continue;
+
+        const columns = line.split(',').map(col => col.trim());
+
+        // Skip empty rows or total rows
+        if (columns.length < 2 || columns[0].includes(' Totals') || columns[0].includes('Pricing')) continue;
+
+        const itemName = columns[0];
+        const itemNameClean = itemName.toLowerCase().trim();
+
+        // Get quantities
+        const smallQty = quantityColumnIndices.small >= 0 ? parseInt(columns[quantityColumnIndices.small] || '0') : 0;
+        const mediumQty = quantityColumnIndices.medium >= 0 ? parseInt(columns[quantityColumnIndices.medium] || '0') : 0;
+        const largeQty = quantityColumnIndices.large >= 0 ? parseInt(columns[quantityColumnIndices.large] || '0') : 0;
+
+        // Skip items with zero quantities across all sizes
+        if (smallQty === 0 && mediumQty === 0 && largeQty === 0) continue;
+
+        // Convert item name to item ID
+        const itemId = normalizeItemName(itemNameClean);
+
+        // Add items for each size if quantity > 0
+        if (smallQty > 0) {
+          roomData.small.push({ itemId, quantity: smallQty });
+        }
+        if (mediumQty > 0) {
+          roomData.medium.push({ itemId, quantity: mediumQty });
+        }
+        if (largeQty > 0) {
+          roomData.large.push({ itemId, quantity: largeQty });
+        }
+      }
+
+      console.log(`Parsed ${roomData.small.length + roomData.medium.length + roomData.large.length} items for ${csvPath}`);
+
+      // Use hardcoded totals for now (these should match the CSV totals)
+      const roomId = csvPath.split('/').pop().replace('1584 - Standard Room Items_Pricing Ranges - ', '').replace('.csv', '').toLowerCase().replace(' ', '_');
+
+      const totals = getHardcodedRoomTotals(roomId);
+      roomData.smallTotals = totals.small;
+      roomData.mediumTotals = totals.medium;
+      roomData.largeTotals = totals.large;
+
+      resolve(roomData);
+    } catch (error) {
+      console.error('Error parsing CSV file:', error);
+      reject(error);
+    }
   });
 }
 
@@ -435,227 +566,15 @@ function getHardcodedRoomTotals(roomId) {
   };
 }
 
-// Fallback function to create default room data if CSV parsing fails
-function createDefaultRoomData(roomData, roomType) {
-  const basicItems = [
-    { itemId: 'basic_furniture', quantity: 1 },
-    { itemId: 'decorative_items', quantity: 2 },
-    { itemId: 'lighting', quantity: 1 }
-  ];
-
-  roomData[roomType.id] = {
-    id: roomType.id,
-    name: roomType.name,
-    displayName: roomType.name,
-    description: `Complete ${roomType.name.toLowerCase()} setup with furnishings`,
-    category: roomType.category,
-    icon: roomType.icon,
-    active: true,
-    sortOrder: roomTypes.findIndex(r => r.id === roomType.id) + 1,
-    sizes: {
-      small: {
-        displayName: `Small ${roomType.name}`,
-        items: basicItems,
-        totals: {
-          budget: 800000,    // $8,000 - fallback
-          mid: 1500000,      // $15,000
-          midHigh: 2500000,  // $25,000
-          high: 4000000      // $40,000
-        }
-      },
-      medium: {
-        displayName: `Medium ${roomType.name}`,
-        items: basicItems.map(item => ({ ...item, quantity: Math.ceil(item.quantity * 1.5) })),
-        totals: {
-          budget: 1200000,   // $12,000
-          mid: 2250000,      // $22,500
-          midHigh: 3750000,  // $37,500
-          high: 6000000      // $60,000
-        }
-      },
-      large: {
-        displayName: `Large ${roomType.name}`,
-        items: basicItems.map(item => ({ ...item, quantity: item.quantity * 2 })),
-        totals: {
-          budget: 1600000,   // $16,000
-          mid: 3000000,      // $30,000
-          midHigh: 5000000,  // $50,000
-          high: 8000000      // $80,000
-        }
-      }
-    },
-    createdAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date(),
-    updatedAt: db ? admin.firestore.FieldValue.serverTimestamp() : new Date()
-  };
-}
-
-// Calculate room totals based on items
-function calculateRoomTotal(items, size) {
-  let multiplier = 1;
-  if (size === 'medium') multiplier = 1.5;
-  if (size === 'large') multiplier = 2;
-
-  // For now, use placeholder totals - in a real implementation,
-  // you'd look up actual prices from the items collection
-  const baseTotal = 1000000; // $10,000 base
-  return {
-    budget: Math.round(baseTotal * multiplier),
-    mid: Math.round(baseTotal * 2 * multiplier),
-    midHigh: Math.round(baseTotal * 3.5 * multiplier),
-    high: Math.round(baseTotal * 7 * multiplier)
-  };
-}
-
-// Helper functions for room metadata
-function formatRoomName(roomName) {
-  return roomName.split(' ').map(word =>
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
-}
-
-function formatRoomDisplayName(roomName) {
-  return formatRoomName(roomName);
-}
-
-function getRoomDescription(roomId) {
-  const descriptions = {
-    'living_room': 'Common living space with seating',
-    'kitchen': 'Kitchen space with appliances and furnishings',
-    'dining_room': 'Dining space with table and seating',
-    'single_bedroom': 'Guest bedroom with one bed',
-    'double_bedroom': 'Bedroom with two beds',
-    'bunk_room': 'Room with bunk beds',
-    'rec_room': 'Recreation/entertainment room'
-  };
-  return descriptions[roomId] || 'Room description';
-}
-
-function getRoomCategory(roomId) {
-  const categories = {
-    'living_room': 'common_spaces',
-    'kitchen': 'common_spaces',
-    'dining_room': 'common_spaces',
-    'rec_room': 'common_spaces',
-    'single_bedroom': 'sleeping_spaces',
-    'double_bedroom': 'sleeping_spaces',
-    'bunk_room': 'sleeping_spaces'
-  };
-  return categories[roomId] || 'common_spaces';
-}
-
-function getRoomIcon(roomId) {
-  const icons = {
-    'living_room': '🛋️',
-    'kitchen': '🍳',
-    'dining_room': '🍽️',
-    'single_bedroom': '🛏️',
-    'double_bedroom': '🛏️',
-    'bunk_room': '🛏️',
-    'rec_room': '🎮'
-  };
-  return icons[roomId] || '🏠';
-}
-
-function getRoomSortOrder(roomId) {
-  const orders = {
-    'living_room': 1,
-    'kitchen': 2,
-    'dining_room': 3,
-    'single_bedroom': 4,
-    'double_bedroom': 5,
-    'bunk_room': 6,
-    'rec_room': 7
-  };
-  return orders[roomId] || 99;
-}
-
-// Create room templates (legacy function for backward compatibility)
-function createRoomTemplates() {
-  const templates = [
-    {
-      id: 'living_room',
-      name: 'Living Room',
-      displayName: 'Living Room',
-      description: 'Common living space with seating',
-      category: 'common_spaces',
-      icon: '🛋️',
-      active: true,
-      sortOrder: 1,
-    },
-    {
-      id: 'kitchen',
-      name: 'Kitchen',
-      displayName: 'Kitchen',
-      description: 'Kitchen space with appliances and furnishings',
-      category: 'common_spaces',
-      icon: '🍳',
-      active: true,
-      sortOrder: 2,
-    },
-    {
-      id: 'dining_room',
-      name: 'Dining Room',
-      displayName: 'Dining Room',
-      description: 'Dining space with table and seating',
-      category: 'common_spaces',
-      icon: '🍽️',
-      active: true,
-      sortOrder: 3,
-    },
-    {
-      id: 'single_bedroom',
-      name: 'Single Bedroom',
-      displayName: 'Single Bedroom',
-      description: 'Guest bedroom with one bed',
-      category: 'sleeping_spaces',
-      icon: '🛏️',
-      active: true,
-      sortOrder: 4,
-    },
-    {
-      id: 'double_bedroom',
-      name: 'Double Bedroom',
-      displayName: 'Double Bedroom',
-      description: 'Bedroom with two beds',
-      category: 'sleeping_spaces',
-      icon: '🛏️',
-      active: true,
-      sortOrder: 5,
-    },
-    {
-      id: 'bunk_room',
-      name: 'Bunk Room',
-      displayName: 'Bunk Room',
-      description: 'Room with bunk beds',
-      category: 'sleeping_spaces',
-      icon: '🛏️',
-      active: true,
-      sortOrder: 6,
-    },
-    {
-      id: 'rec_room',
-      name: 'Rec Room',
-      displayName: 'Rec Room',
-      description: 'Recreation/entertainment room',
-      category: 'common_spaces',
-      icon: '🎮',
-      active: true,
-      sortOrder: 7,
-    },
-  ];
-
-  return templates;
-}
-
 // Main import function
 async function runImport() {
   console.log('Starting data import...\n');
 
   try {
-    // Import items
+    // Import items (for reference only - won't be imported to Firestore)
     console.log('1. Importing items from CSV...');
     const items = await importItems();
-    console.log(`Found ${items.length} items to import\n`);
+    console.log(`Found ${items.length} items (for reference only)\n`);
 
     // Create room templates with pricing data
     console.log('2. Creating room templates with pricing data...');
@@ -687,41 +606,26 @@ async function runImport() {
     );
     console.log('✓ Room data exported to scripts/output/roomData.json');
 
+    // Export unmapped CSV item names for manual review and mapping
+    const unmappedArray = Array.from(unmappedCsvItemNames).sort();
+    fs.writeFileSync(
+      path.join(outputDir, 'unmapped_items.json'),
+      JSON.stringify(unmappedArray, null, 2)
+    );
+    console.log(`✓ Unmapped CSV item names exported to scripts/output/unmapped_items.json (${unmappedArray.length})`);
+
     // Import to Firestore if Firebase Admin is available
     if (db) {
-      console.log('\n3. Importing data to Firestore...');
+      console.log('\n3. Importing room templates to Firestore...');
       try {
-        // Import items
-        const batch = db.batch();
-        items.forEach(item => {
-          const docRef = db.collection('items').doc(item.id);
-          batch.set(docRef, item);
-        });
+        // Skip creating new templates - only update existing ones
+        console.log('✓ Skipping template creation (documents already exist in Firestore)');
 
-        await batch.commit();
-        console.log(`✓ Imported ${items.length} items to Firestore`);
+        // Update ONLY the items arrays in existing room templates
+        console.log('\n4. Updating items arrays in existing room templates...');
+        await updateExistingRoomTemplates(templates);
 
-        // Import room templates
-        const templateBatch = db.batch();
-        templates.forEach(template => {
-          const docRef = db.collection('roomTemplates').doc(template.id);
-          templateBatch.set(docRef, template);
-        });
-
-        await templateBatch.commit();
-        console.log(`✓ Imported ${templates.length} room templates to Firestore`);
-
-        // Also import as roomData collection for easier lookup
-        const roomDataBatch = db.batch();
-        Object.entries(roomData).forEach(([roomId, room]) => {
-          const docRef = db.collection('roomData').doc(roomId);
-          roomDataBatch.set(docRef, room);
-        });
-
-        await roomDataBatch.commit();
-        console.log(`✓ Imported ${Object.keys(roomData).length} room data entries to Firestore`);
-
-        console.log('\n✅ Data import complete!');
+        console.log('\n✅ Items arrays update complete!');
       } catch (error) {
         console.error('Error importing to Firestore:', error);
         console.log('Please import the JSON files manually using Firebase Console');
@@ -730,8 +634,8 @@ async function runImport() {
       console.log('\n✅ Data export complete!');
       console.log('\nNext steps:');
       console.log('1. Review the generated JSON files in scripts/output/');
-      console.log('2. Set up Firebase project and add service account credentials');
-      console.log('3. Import the data to Firestore using Firebase Console or this script');
+      console.log('2. Import room templates from scripts/output/roomTemplates.json to Firestore');
+      console.log('3. To enable automatic Firestore import, add service account credentials');
     }
 
     process.exit(0);
@@ -741,6 +645,94 @@ async function runImport() {
   }
 }
 
+// Update ONLY the items arrays in existing room templates
+async function updateExistingRoomTemplates(templates) {
+  try {
+    const existingTemplates = await getDocs(collection(db, 'roomTemplates'));
+    let updatedCount = 0;
+    const updateDetails = [];
+
+    // Process each template sequentially to avoid overwhelming Firestore
+    for (const doc of existingTemplates.docs) {
+      const existingTemplate = doc.data();
+      const roomId = existingTemplate.id;
+
+      // Find the corresponding template with populated items
+      const templateWithItems = templates.find(t => t.id === roomId);
+
+      if (templateWithItems) {
+        let needsUpdate = false;
+        const updatesBySize = {};
+
+        // Check each size for missing items
+        ['small', 'medium', 'large'].forEach(size => {
+          const currentItems = existingTemplate.sizes?.[size]?.items || [];
+          const newItems = templateWithItems.sizes[size]?.items || [];
+
+          // Update if current items array is empty but we have items to add
+          if (currentItems.length === 0 && newItems.length > 0) {
+            needsUpdate = true;
+            updatesBySize[size] = {
+              currentCount: currentItems.length,
+              newCount: newItems.length,
+              itemsAdded: newItems.length
+            };
+            console.log(`   📝 ${roomId} ${size} size: ${newItems.length} items to add`);
+          }
+        });
+
+        if (needsUpdate) {
+          // Update ONLY the items arrays - nothing else
+          const updateData = {};
+          Object.keys(updatesBySize).forEach(size => {
+            updateData[`sizes.${size}.items`] = templateWithItems.sizes[size].items;
+          });
+
+          const docRef = doc.ref;
+          await updateDoc(docRef, updateData);
+
+          updatedCount++;
+          updateDetails.push({
+            roomId,
+            roomName: existingTemplate.name,
+            updatesBySize
+          });
+        }
+      }
+    }
+
+    if (updatedCount > 0) {
+      console.log(`\n✅ Updated ${updatedCount} existing room templates with populated items arrays`);
+
+      // Export detailed update report
+      const updateReport = {
+        updatedRooms: updatedCount,
+        totalExistingTemplates: existingTemplates.docs.length,
+        updateDetails,
+        timestamp: new Date().toISOString()
+      };
+
+      fs.writeFileSync(
+        path.join(__dirname, 'output', 'room_template_update_report.json'),
+        JSON.stringify(updateReport, null, 2)
+      );
+      console.log(`✅ Detailed update report exported to scripts/output/room_template_update_report.json`);
+
+      // Show summary
+      console.log('\n📋 Update Summary:');
+      updateDetails.forEach(detail => {
+        console.log(`   ${detail.roomName}:`);
+        Object.entries(detail.updatesBySize).forEach(([size, update]) => {
+          console.log(`     ${size}: +${update.itemsAdded} items`);
+        });
+      });
+    } else {
+      console.log('\n✅ All existing room templates already have their items populated!');
+    }
+  } catch (error) {
+    console.error('Error updating room templates:', error.message);
+  }
+}
+
 // Run the import
 runImport();
-
