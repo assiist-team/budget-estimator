@@ -871,7 +871,7 @@ export default function AdminPage() {
                           max_sqft: 2500,
                           min_guests: 10,
                           max_guests: 12,
-                          bedrooms: { king: 2, double: 1, bunk: null }
+                          bedrooms: { single: 2, double: 1, bunk: null }
                         };
                         if (autoConfigRules) {
                           setAutoConfigRules({
@@ -907,7 +907,7 @@ export default function AdminPage() {
                         </div>
 
                         <div className="flex items-center gap-3 text-sm">
-                          <span className="font-medium">Single Rooms:</span> {rule.bedrooms.king}
+                          <span className="font-medium">Single Rooms:</span> {rule.bedrooms.single}
                           <span className="text-gray-400">|</span>
                           <span className="font-medium">Double Rooms:</span> {rule.bedrooms.double}
                           <span className="text-gray-400">|</span>
@@ -915,7 +915,7 @@ export default function AdminPage() {
                         </div>
 
                         <div className="mt-2 text-sm text-gray-600">
-                          Total Capacity: {rule.bedrooms.king * 2 + rule.bedrooms.double * 2 + (rule.bedrooms.bunk && autoConfigRules ? (rule.bedrooms.bunk === 'small' ? autoConfigRules.bunkCapacities.small : rule.bedrooms.bunk === 'medium' ? autoConfigRules.bunkCapacities.medium : autoConfigRules.bunkCapacities.large) : 0)} guests
+                          Total Capacity: {rule.bedrooms.single * 2 + rule.bedrooms.double * 2 + (rule.bedrooms.bunk && autoConfigRules ? (rule.bedrooms.bunk === 'small' ? autoConfigRules.bunkCapacities.small : rule.bedrooms.bunk === 'medium' ? autoConfigRules.bunkCapacities.medium : autoConfigRules.bunkCapacities.large) : 0)} guests
                         </div>
 
                         <div className="absolute bottom-4 right-4">
@@ -2231,10 +2231,10 @@ function BedroomRuleForm({
             <input
               type="number"
               min="0"
-              value={formData.bedrooms.king}
+              value={formData.bedrooms.single}
               onChange={(e) => setFormData(prev => ({
                 ...prev,
-                bedrooms: { ...prev.bedrooms, king: parseInt(e.target.value) || 0 }
+                bedrooms: { ...prev.bedrooms, single: parseInt(e.target.value) || 0 }
               }))}
               className="w-full p-2 border border-gray-300 rounded"
               required
@@ -2281,12 +2281,12 @@ function BedroomRuleForm({
         <div className="text-sm text-blue-800">
           <p className="font-medium mb-2">Capacity Check:</p>
           <p>
-            Total capacity: {formData.bedrooms.king * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0)} guests
+            Total capacity: {formData.bedrooms.single * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0)} guests
           </p>
           <p>
             Required capacity: {formData.max_guests} guests
           </p>
-          {formData.bedrooms.king * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0) < formData.max_guests && (
+          {formData.bedrooms.single * 2 + formData.bedrooms.double * 2 + (formData.bedrooms.bunk === 'small' ? 4 : formData.bedrooms.bunk === 'medium' ? 8 : formData.bedrooms.bunk === 'large' ? 12 : 0) < formData.max_guests && (
             <p className="text-red-600 font-medium">
               Warning: Configuration capacity is less than maximum guests required!
             </p>

@@ -162,8 +162,8 @@ export default function ResultsPage() {
                       </h3>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-700">King Beds:</span>
-                          <span className="font-medium">{computedConfiguration.bedrooms.king}</span>
+                          <span className="text-gray-700">Single Bedrooms:</span>
+                          <span className="font-medium">{computedConfiguration.bedrooms.single}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-700">Double Beds:</span>

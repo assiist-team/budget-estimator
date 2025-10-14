@@ -165,12 +165,12 @@ export function suggestRoomConfiguration(
     }
 
     // Add bedrooms based on computed configuration
-    if (computedConfig.bedrooms.king > 0) {
+    if (computedConfig.bedrooms.single > 0) {
       suggestions.push({
-        roomType: 'king_bedroom',
+        roomType: 'single_bedroom',
         roomSize: 'medium', // Default size, could be made configurable
-        quantity: computedConfig.bedrooms.king,
-        displayName: 'King Bedroom',
+        quantity: computedConfig.bedrooms.single,
+        displayName: 'Single Bedroom',
       });
     }
 

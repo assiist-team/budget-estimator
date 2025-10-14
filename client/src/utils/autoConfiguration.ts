@@ -242,12 +242,12 @@ export function getBunkCapacity(bunkSize: BunkSize | null, rules: AutoConfigRule
  * Returns: maximum number of guests that can be accommodated
  */
 export function calculateBedroomCapacity(
-  bedrooms: { king: number; double: number; bunk: BunkSize | null },
+  bedrooms: { single: number; double: number; bunk: BunkSize | null },
   rules: AutoConfigRules
 ): number {
-  const kingCapacity = bedrooms.king * 2; // Each king bed sleeps 2
+  const singleCapacity = bedrooms.single * 2; // Each single bed sleeps 2
   const doubleCapacity = bedrooms.double * 2; // Each double bed sleeps 2
   const bunkCapacity = getBunkCapacity(bedrooms.bunk, rules);
 
-  return kingCapacity + doubleCapacity + bunkCapacity;
+  return singleCapacity + doubleCapacity + bunkCapacity;
 }

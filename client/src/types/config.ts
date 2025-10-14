@@ -9,7 +9,7 @@ export interface BedroomMixRule {
   min_guests: number;
   max_guests: number;
   bedrooms: {
-    king: number;
+    single: number;
     double: number;
     bunk: BunkSize | null;
   };
@@ -72,7 +72,7 @@ export interface AutoConfigRules {
 
 export interface ComputedConfiguration {
   bedrooms: {
-    king: number;
+    single: number;
     double: number;
     bunk: BunkSize | null;
   };
