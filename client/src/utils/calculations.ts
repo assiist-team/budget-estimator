@@ -43,13 +43,16 @@ export function calculateEstimate(
     };
 
     if (budgetMode) {
-      // Budget mode: only calculate budget tier and create range with 20% markup
+      // Budget mode: calculate budget tier for lower range and mid tier for upper range
       const budgetTotal = roomSize.totals.budget * room.quantity;
       roomData.budgetAmount = budgetTotal;
       budget.budget.subtotal += budgetTotal;
 
+      const midTotal = roomSize.totals.mid * room.quantity;
+      roomData.midAmount = midTotal;
+      budget.mid.subtotal += midTotal;
+
       // Set other tiers to 0 for display purposes
-      budget.mid.subtotal += 0;
       budget.midHigh.subtotal += 0;
       budget.high.subtotal += 0;
     } else {
