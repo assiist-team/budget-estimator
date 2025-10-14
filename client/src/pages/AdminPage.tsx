@@ -376,6 +376,16 @@ export default function AdminPage() {
     return { budget, mid, midHigh, high };
   };
 
+  // Function to get current totals for the active room size (always calculated fresh)
+  const getCurrentRoomTotals = (): { budget: number; mid: number; midHigh: number; high: number } => {
+    if (!editingTemplate || !activeRoomSizeTab) {
+      return { budget: 0, mid: 0, midHigh: 0, high: 0 };
+    }
+
+    const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+    return calculateRoomTotals(sizeData.items || []);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -572,10 +582,10 @@ export default function AdminPage() {
                         <div className="text-sm text-gray-600">
                           <p>{sizeData.items.length} items</p>
                           <div className="grid grid-cols-2 gap-2 mt-1">
-                            <span>Budget: {formatCurrency(sizeData.totals.budget)}</span>
-                            <span>Mid: {formatCurrency(sizeData.totals.mid)}</span>
-                            <span>Mid/High: {formatCurrency(sizeData.totals.midHigh)}</span>
-                            <span>High: {formatCurrency(sizeData.totals.high)}</span>
+                            <span>Budget: {formatCurrency(calculateRoomTotals(sizeData.items || []).budget)}</span>
+                            <span>Mid: {formatCurrency(calculateRoomTotals(sizeData.items || []).mid)}</span>
+                            <span>Mid/High: {formatCurrency(calculateRoomTotals(sizeData.items || []).midHigh)}</span>
+                            <span>High: {formatCurrency(calculateRoomTotals(sizeData.items || []).high)}</span>
                           </div>
                         </div>
                       </div>
@@ -1663,7 +1673,7 @@ export default function AdminPage() {
                           Budget
                         </div>
                         <div className="text-lg font-bold text-primary-500">
-                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.budget)}
+                          {formatCurrency(getCurrentRoomTotals().budget)}
                         </div>
                       </div>
                       <div className="text-center">
@@ -1671,7 +1681,7 @@ export default function AdminPage() {
                           Mid
                         </div>
                         <div className="text-lg font-bold text-primary-600">
-                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.mid)}
+                          {formatCurrency(getCurrentRoomTotals().mid)}
                         </div>
                       </div>
                       <div className="text-center">
@@ -1679,7 +1689,7 @@ export default function AdminPage() {
                           Mid/High
                         </div>
                         <div className="text-lg font-bold text-primary-900">
-                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.midHigh)}
+                          {formatCurrency(getCurrentRoomTotals().midHigh)}
                         </div>
                       </div>
                       <div className="text-center">
@@ -1687,7 +1697,7 @@ export default function AdminPage() {
                           High
                         </div>
                         <div className="text-lg font-bold text-black">
-                          {formatCurrency(editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].totals.high)}
+                          {formatCurrency(getCurrentRoomTotals().high)}
                         </div>
                       </div>
                     </div>

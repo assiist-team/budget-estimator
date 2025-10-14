@@ -7,7 +7,8 @@ import RoomCard from '../components/RoomCard';
 import type { SelectedRoom } from '../types';
 import { suggestRoomConfiguration, formatCurrency, calculateEstimate } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
-import { useAutoConfiguration } from '../hooks/useAutoConfiguration';
+import { useAutoConfiguration, useAutoConfigRules } from '../hooks/useAutoConfiguration';
+import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 
 export default function RoomConfigurationPage() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function RoomConfigurationPage() {
   
   const { roomTemplates, loading } = useRoomTemplates();
   const { computedConfiguration } = useAutoConfiguration();
+  const { rules } = useAutoConfigRules();
   const [localRooms, setLocalRooms] = useState<SelectedRoom[]>(selectedRooms);
 
   // Initialize with suggestions if no rooms selected
@@ -230,7 +232,7 @@ export default function RoomConfigurationPage() {
                   {formatCurrency(runningTotal.low)} - {formatCurrency(runningTotal.high)}
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Based on {localRooms.length} room{localRooms.length !== 1 ? 's' : ''}
+                  Max capacity: {computedConfiguration && rules ? calculateBedroomCapacity(computedConfiguration.bedrooms, rules) : 0} guests
                 </p>
               </div>
             </div>

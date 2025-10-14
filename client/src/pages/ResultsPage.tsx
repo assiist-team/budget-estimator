@@ -134,7 +134,7 @@ export default function ResultsPage() {
                 {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
               </div>
               <p className="text-sm opacity-75 mt-4">
-                Based on {selectedRooms.length} room{selectedRooms.length !== 1 ? 's' : ''},
+                Max capacity: {computedConfiguration && rules ? calculateBedroomCapacity(computedConfiguration.bedrooms, rules) : 0} guests,
                 {propertySpecs.squareFootage.toLocaleString()} sqft property
               </p>
             </div>

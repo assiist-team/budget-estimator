@@ -1,32 +1,35 @@
-// Hook to fetch room templates from local JSON file (for development/testing)
+// Hook to fetch room templates from Firestore database
 import { useState, useEffect } from 'react';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import type { RoomTemplate } from '../types';
 
-// Temporary function to load room templates from local JSON file
-async function loadRoomTemplatesFromFile(): Promise<Map<string, RoomTemplate>> {
+// Function to load room templates from Firestore database
+async function loadRoomTemplatesFromFirestore(): Promise<Map<string, RoomTemplate>> {
   try {
-    const response = await fetch('/roomTemplates.json');
-    const templatesArray = await response.json();
+    const templatesQuery = query(collection(db, 'roomTemplates'), orderBy('sortOrder'));
+    const templatesSnapshot = await getDocs(templatesQuery);
     const templates = new Map<string, RoomTemplate>();
 
-    templatesArray.forEach((template: any) => {
-      templates.set(template.id, {
-        id: template.id,
-        name: template.name,
-        displayName: template.displayName,
-        description: template.description,
-        category: template.category,
-        icon: template.icon,
-        sortOrder: template.sortOrder,
-        sizes: template.sizes,
-        createdAt: new Date(template.createdAt),
-        updatedAt: new Date(template.updatedAt),
+    templatesSnapshot.forEach((doc) => {
+      const docData = doc.data();
+      templates.set(doc.id, {
+        id: doc.id,
+        name: docData.name,
+        displayName: docData.displayName,
+        description: docData.description,
+        category: docData.category,
+        icon: docData.icon,
+        sortOrder: docData.sortOrder,
+        sizes: docData.sizes,
+        createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
+        updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
       } as RoomTemplate);
     });
 
     return templates;
   } catch (error) {
-    console.error('Error loading room templates from file:', error);
+    console.error('Error loading room templates from Firestore:', error);
     throw error;
   }
 }
@@ -39,8 +42,8 @@ export function useRoomTemplates() {
   useEffect(() => {
     async function fetchRoomTemplates() {
       try {
-        // Load from local JSON file for development/testing
-        const templates = await loadRoomTemplatesFromFile();
+        // Load from Firestore database
+        const templates = await loadRoomTemplatesFromFirestore();
         setRoomTemplates(templates);
         setLoading(false);
       } catch (err) {
