@@ -1750,6 +1750,7 @@ export default function AdminPage() {
                         <option value="">+ Add Item</option>
                         {items
                           .filter(item => !editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].items.some((roomItem: RoomItem) => roomItem.itemId === item.id))
+                          .sort((a, b) => a.name.localeCompare(b.name))
                           .map(item => (
                             <option key={item.id} value={item.id}>
                               {item.name} ({item.category})
@@ -1769,7 +1770,15 @@ export default function AdminPage() {
                       </h3>
 
                       <div className="space-y-3">
-                        {editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].items.map((roomItem: RoomItem, index: number) => {
+                        {editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].items
+                          .sort((a: RoomItem, b: RoomItem) => {
+                            const itemA = items.find(i => i.id === a.itemId);
+                            const itemB = items.find(i => i.id === b.itemId);
+                            const nameA = itemA?.name || a.itemId;
+                            const nameB = itemB?.name || b.itemId;
+                            return nameA.localeCompare(nameB);
+                          })
+                          .map((roomItem: RoomItem, index: number) => {
                           const item = items.find(i => i.id === roomItem.itemId);
                           return (
                             <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded">

@@ -178,21 +178,29 @@ export default function ResultsPage() {
                             <div className="ml-4 space-y-2">
                               <h5 className="text-sm font-medium text-gray-700 mb-2">Included Items:</h5>
                               <div className="grid gap-2">
-                                {roomSizeData.items.map((roomItem: RoomItem, itemIdx: number) => {
-                                  const item = items.get(roomItem.itemId);
-                                  const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                {roomSizeData.items
+                                  .sort((a: RoomItem, b: RoomItem) => {
+                                    const itemA = items.get(a.itemId);
+                                    const itemB = items.get(b.itemId);
+                                    const nameA = itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                    const nameB = itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                    return nameA.localeCompare(nameB);
+                                  })
+                                  .map((roomItem: RoomItem, itemIdx: number) => {
+                                    const item = items.get(roomItem.itemId);
+                                    const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
 
-                                  return (
-                                    <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-3 py-2 rounded">
-                                      <span className="text-gray-700">
-                                        {itemDisplayName}
-                                      </span>
-                                      <span className="text-gray-600">
-                                        Qty: {roomItem.quantity}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
+                                    return (
+                                      <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-3 py-2 rounded">
+                                        <span className="text-gray-700">
+                                          {itemDisplayName}
+                                        </span>
+                                        <span className="text-gray-600">
+                                          Qty: {roomItem.quantity}
+                                        </span>
+                                      </div>
+                                    );
+                                  })}
                               </div>
                             </div>
                           )}
