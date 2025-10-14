@@ -87,7 +87,7 @@ export default function RoomConfigurationPage() {
     const roomSize = template.sizes[size];
     return {
       low: roomSize.totals.budget,
-      high: roomSize.totals.budget * 1.2, // Budget + 20% for upper range (no rounding)
+      high: roomSize.totals.mid, // Use mid tier for upper range instead of 20% markup
     };
   };
 

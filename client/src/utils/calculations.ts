@@ -73,7 +73,7 @@ export function calculateEstimate(
   // Set overall range
   if (budgetMode) {
     budget.rangeLow = budget.budget.total;
-    budget.rangeHigh = Math.round(budget.budget.total * 1.2); // Add 20% for upper range
+    budget.rangeHigh = budget.mid.total; // Use mid tier for upper range instead of 20% markup
   } else {
     budget.rangeLow = budget.budget.total;
     budget.rangeHigh = budget.high.total;
