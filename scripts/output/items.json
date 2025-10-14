@@ -9,8 +9,8 @@
     "highPrice": 800000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.595Z",
+    "updatedAt": "2025-10-14T00:21:57.595Z"
   },
   {
     "id": "mattress",
@@ -22,8 +22,8 @@
     "highPrice": 1200000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.595Z",
+    "updatedAt": "2025-10-14T00:21:57.595Z"
   },
   {
     "id": "mattress_protector",
@@ -35,8 +35,8 @@
     "highPrice": 20000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.595Z",
+    "updatedAt": "2025-10-14T00:21:57.595Z"
   },
   {
     "id": "sleeping_pillows",
@@ -48,8 +48,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.595Z",
+    "updatedAt": "2025-10-14T00:21:57.595Z"
   },
   {
     "id": "down_pillows",
@@ -61,8 +61,8 @@
     "highPrice": 40000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "pillow_protectors",
@@ -74,8 +74,8 @@
     "highPrice": 10000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "sheets",
@@ -87,8 +87,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "decorative_bedding",
@@ -100,8 +100,8 @@
     "highPrice": 100000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "throw_pillows",
@@ -113,8 +113,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "throw_blanket_on_bed",
@@ -126,8 +126,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "bench_or_stools",
@@ -139,8 +139,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "area_rug",
@@ -152,8 +152,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "nightstands",
@@ -165,8 +165,8 @@
     "highPrice": 400000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "lamps",
@@ -178,8 +178,8 @@
     "highPrice": 80000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "nightstand_accessories",
@@ -191,8 +191,8 @@
     "highPrice": 40000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "curtain_set",
@@ -204,8 +204,8 @@
     "highPrice": 40000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.373Z",
-    "updatedAt": "2025-10-14T00:10:08.373Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "curtain_rod",
@@ -217,8 +217,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "wall_art",
@@ -230,8 +230,8 @@
     "highPrice": 200000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "mirror",
@@ -243,8 +243,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "tv",
@@ -256,8 +256,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "tv_mount",
@@ -269,8 +269,8 @@
     "highPrice": 50000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "chair",
@@ -282,8 +282,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "chair_throw_pillow",
@@ -295,8 +295,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "chair_throw_blanket",
@@ -308,8 +308,8 @@
     "highPrice": 80000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "side_table",
@@ -321,8 +321,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "greenery",
@@ -334,8 +334,8 @@
     "highPrice": 80000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "floor_lamp",
@@ -347,8 +347,8 @@
     "highPrice": 200000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "dresser",
@@ -360,8 +360,8 @@
     "highPrice": 600000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "dresser_accessories",
@@ -373,8 +373,8 @@
     "highPrice": 40000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "desk",
@@ -386,8 +386,8 @@
     "highPrice": 500000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "desk_chair",
@@ -399,8 +399,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "desk_accessories",
@@ -412,8 +412,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "bookshelf",
@@ -425,8 +425,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "bunk_bed",
@@ -438,8 +438,8 @@
     "highPrice": 600000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "bunk_bed_mattress",
@@ -451,8 +451,8 @@
     "highPrice": 400000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "bean_bag",
@@ -464,8 +464,8 @@
     "highPrice": 100000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "game_table",
@@ -477,8 +477,8 @@
     "highPrice": 800000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "games",
@@ -490,8 +490,8 @@
     "highPrice": 30000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "bar_stool",
@@ -503,8 +503,8 @@
     "highPrice": 400000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "island_centerpiece",
@@ -516,8 +516,8 @@
     "highPrice": 80000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "counter_accessories",
@@ -529,8 +529,8 @@
     "highPrice": 50000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "kitchen_towels",
@@ -542,8 +542,8 @@
     "highPrice": 8000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "open_shelving_decor",
@@ -555,8 +555,8 @@
     "highPrice": 50000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "top_of_cabinetry_decor",
@@ -568,8 +568,8 @@
     "highPrice": 50000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "kitchen_runner_rug",
@@ -581,8 +581,8 @@
     "highPrice": 100000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "dining_table",
@@ -594,8 +594,8 @@
     "highPrice": 1000000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "dining_chair",
@@ -607,8 +607,8 @@
     "highPrice": 400000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "table_centerpiece",
@@ -620,8 +620,8 @@
     "highPrice": 80000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "buffet_or_sideboard",
@@ -633,8 +633,8 @@
     "highPrice": 800000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "display_cabinet",
@@ -646,8 +646,8 @@
     "highPrice": 1000000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "sofa_sectional",
@@ -659,8 +659,8 @@
     "highPrice": 1500000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "coffee_table",
@@ -672,8 +672,8 @@
     "highPrice": 600000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "side_table",
@@ -685,8 +685,8 @@
     "highPrice": 300000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "tv_console",
@@ -698,8 +698,8 @@
     "highPrice": 800000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "mirror",
@@ -711,8 +711,8 @@
     "highPrice": 50000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "ottoman_or_pouf",
@@ -724,8 +724,8 @@
     "highPrice": 20000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.596Z",
+    "updatedAt": "2025-10-14T00:21:57.596Z"
   },
   {
     "id": "large_game_table",
@@ -737,7 +737,7 @@
     "highPrice": 1000000,
     "unit": "each",
     "notes": "",
-    "createdAt": "2025-10-14T00:10:08.374Z",
-    "updatedAt": "2025-10-14T00:10:08.374Z"
+    "createdAt": "2025-10-14T00:21:57.597Z",
+    "updatedAt": "2025-10-14T00:21:57.597Z"
   }
 ]

@@ -11,8 +11,8 @@ export default function PropertyInputPage() {
   
   const { register, handleSubmit, watch, formState: { errors } } = useForm<PropertySpecs>({
     defaultValues: propertySpecs || {
-      squareFootage: 2500,
-      guestCapacity: 8,
+      squareFootage: 3000,
+      guestCapacity: 12,
       notes: '',
     },
   });
@@ -52,8 +52,8 @@ export default function PropertyInputPage() {
                   type="number"
                   {...register('squareFootage', { 
                     required: 'Square footage is required',
-                    min: { value: 500, message: 'Minimum 500 sqft' },
-                    max: { value: 10000, message: 'Maximum 10,000 sqft' }
+                    min: { value: 1500, message: 'Minimum 1,500 sqft' },
+                    max: { value: 5000, message: 'Maximum 5,000 sqft' }
                   })}
                   className="input-field flex-1"
                 />
@@ -61,16 +61,16 @@ export default function PropertyInputPage() {
               </div>
               <input
                 type="range"
-                min="500"
-                max="10000"
+                min="1500"
+                max="5000"
                 step="100"
                 value={squareFootage}
                 {...register('squareFootage')}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-1">
-                <span>500 sqft</span>
-                <span>10,000 sqft</span>
+                <span>1,500 sqft</span>
+                <span>5,000 sqft</span>
               </div>
               {errors.squareFootage && (
                 <p className="text-red-600 text-sm mt-2">{errors.squareFootage.message}</p>
@@ -87,7 +87,7 @@ export default function PropertyInputPage() {
                   type="number"
                   {...register('guestCapacity', { 
                     required: 'Guest capacity is required',
-                    min: { value: 2, message: 'Minimum 2 guests' },
+                    min: { value: 8, message: 'Minimum 8 guests' },
                     max: { value: 20, message: 'Maximum 20 guests' }
                   })}
                   className="input-field flex-1"
@@ -96,7 +96,7 @@ export default function PropertyInputPage() {
               </div>
               <input
                 type="range"
-                min="2"
+                min="8"
                 max="20"
                 step="1"
                 value={guestCapacity}
@@ -104,7 +104,7 @@ export default function PropertyInputPage() {
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-600"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-1">
-                <span>2 guests</span>
+                <span>8 guests</span>
                 <span>20 guests</span>
               </div>
               {errors.guestCapacity && (

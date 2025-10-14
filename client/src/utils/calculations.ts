@@ -133,27 +133,25 @@ export function suggestRoomConfiguration(
   // Always include basics
   suggestions.push({
     roomType: 'living_room',
-    roomSize: squareFootage > 3000 ? 'large' : squareFootage > 1500 ? 'medium' : 'small',
+    roomSize: squareFootage > 3500 ? 'large' : squareFootage > 2000 ? 'medium' : 'small',
     quantity: 1,
     displayName: 'Living Room',
   });
 
   suggestions.push({
     roomType: 'kitchen',
-    roomSize: squareFootage > 3000 ? 'large' : squareFootage > 1500 ? 'medium' : 'small',
+    roomSize: squareFootage > 3500 ? 'large' : squareFootage > 2000 ? 'medium' : 'small',
     quantity: 1,
     displayName: 'Kitchen',
   });
 
-  // Dining based on capacity
-  if (guestCapacity >= 6) {
-    suggestions.push({
-      roomType: 'dining_room',
-      roomSize: guestCapacity > 12 ? 'large' : guestCapacity > 8 ? 'medium' : 'small',
-      quantity: 1,
-      displayName: 'Dining Room',
-    });
-  }
+  // Dining based on capacity (now that minimum is 8, always include dining)
+  suggestions.push({
+    roomType: 'dining_room',
+    roomSize: guestCapacity > 14 ? 'large' : guestCapacity > 10 ? 'medium' : 'small',
+    quantity: 1,
+    displayName: 'Dining Room',
+  });
 
   // Bedrooms based on capacity
   const bedroomCount = Math.ceil(guestCapacity / 2);
@@ -166,11 +164,11 @@ export function suggestRoomConfiguration(
     });
   }
 
-  // Double bedroom for larger properties
-  if (guestCapacity > 6) {
+  // Double bedroom for larger properties (now that minimum is 8, always include for larger groups)
+  if (guestCapacity >= 10) {
     suggestions.push({
       roomType: 'double_bedroom',
-      roomSize: squareFootage > 2500 ? 'large' : 'medium',
+      roomSize: squareFootage > 3000 ? 'large' : 'medium',
       quantity: 1,
       displayName: 'Double Bedroom',
     });
@@ -187,7 +185,7 @@ export function suggestRoomConfiguration(
   }
 
   // Rec room for larger properties
-  if (squareFootage > 2500) {
+  if (squareFootage > 3000) {
     suggestions.push({
       roomType: 'rec_room',
       roomSize: 'medium',

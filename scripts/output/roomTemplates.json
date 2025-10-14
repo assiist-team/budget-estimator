@@ -242,8 +242,8 @@
         }
       }
     },
-    "createdAt": "2025-10-14T00:10:08.376Z",
-    "updatedAt": "2025-10-14T00:10:08.376Z"
+    "createdAt": "2025-10-14T00:21:57.598Z",
+    "updatedAt": "2025-10-14T00:21:57.598Z"
   },
   {
     "id": "kitchen",
@@ -360,8 +360,8 @@
         }
       }
     },
-    "createdAt": "2025-10-14T00:10:08.377Z",
-    "updatedAt": "2025-10-14T00:10:08.377Z"
+    "createdAt": "2025-10-14T00:21:57.598Z",
+    "updatedAt": "2025-10-14T00:21:57.598Z"
   },
   {
     "id": "dining_room",
@@ -518,8 +518,8 @@
         }
       }
     },
-    "createdAt": "2025-10-14T00:10:08.377Z",
-    "updatedAt": "2025-10-14T00:10:08.377Z"
+    "createdAt": "2025-10-14T00:21:57.599Z",
+    "updatedAt": "2025-10-14T00:21:57.599Z"
   },
   {
     "id": "single_bedroom",
@@ -534,7 +534,7 @@
         "displayName": "Small Single Bedroom",
         "items": [
           {
-            "itemId": "bed_frame",
+            "itemId": "king_bed_frame",
             "quantity": 1
           },
           {
@@ -629,7 +629,7 @@
         "displayName": "Medium Single Bedroom",
         "items": [
           {
-            "itemId": "bed_frame",
+            "itemId": "king_bed_frame",
             "quantity": 1
           },
           {
@@ -717,11 +717,11 @@
             "quantity": 1
           },
           {
-            "itemId": "throw_pillows",
+            "itemId": "chair_throw_pillow",
             "quantity": 1
           },
           {
-            "itemId": "throw_blanket",
+            "itemId": "throw_blanket_on_bed",
             "quantity": 1
           },
           {
@@ -748,7 +748,7 @@
         "displayName": "Large Single Bedroom",
         "items": [
           {
-            "itemId": "bed_frame",
+            "itemId": "king_bed_frame",
             "quantity": 1
           },
           {
@@ -836,11 +836,11 @@
             "quantity": 2
           },
           {
-            "itemId": "throw_pillows",
+            "itemId": "chair_throw_pillow",
             "quantity": 2
           },
           {
-            "itemId": "throw_blanket",
+            "itemId": "throw_blanket_on_bed",
             "quantity": 2
           },
           {
@@ -872,8 +872,8 @@
         }
       }
     },
-    "createdAt": "2025-10-14T00:10:08.378Z",
-    "updatedAt": "2025-10-14T00:10:08.378Z"
+    "createdAt": "2025-10-14T00:21:57.599Z",
+    "updatedAt": "2025-10-14T00:21:57.599Z"
   },
   {
     "id": "double_bedroom",
@@ -888,7 +888,7 @@
         "displayName": "Small Double Bedroom",
         "items": [
           {
-            "itemId": "bed_frame",
+            "itemId": "king_bed_frame",
             "quantity": 2
           },
           {
@@ -983,7 +983,7 @@
         "displayName": "Medium Double Bedroom",
         "items": [
           {
-            "itemId": "bed_frame",
+            "itemId": "king_bed_frame",
             "quantity": 2
           },
           {
@@ -1098,7 +1098,7 @@
         "displayName": "Large Double Bedroom",
         "items": [
           {
-            "itemId": "bed_frame",
+            "itemId": "king_bed_frame",
             "quantity": 2
           },
           {
@@ -1210,11 +1210,11 @@
             "quantity": 2
           },
           {
-            "itemId": "throw_pillows",
+            "itemId": "chair_throw_pillow",
             "quantity": 2
           },
           {
-            "itemId": "throw_blanket",
+            "itemId": "throw_blanket_on_bed",
             "quantity": 2
           },
           {
@@ -1238,8 +1238,8 @@
         }
       }
     },
-    "createdAt": "2025-10-14T00:10:08.378Z",
-    "updatedAt": "2025-10-14T00:10:08.378Z"
+    "createdAt": "2025-10-14T00:21:57.599Z",
+    "updatedAt": "2025-10-14T00:21:57.599Z"
   },
   {
     "id": "bunk_room",
@@ -1580,8 +1580,8 @@
         }
       }
     },
-    "createdAt": "2025-10-14T00:10:08.378Z",
-    "updatedAt": "2025-10-14T00:10:08.378Z"
+    "createdAt": "2025-10-14T00:21:57.599Z",
+    "updatedAt": "2025-10-14T00:21:57.599Z"
   },
   {
     "id": "rec_room",
@@ -1850,7 +1850,7 @@
         }
       }
     },
-    "createdAt": "2025-10-14T00:10:08.379Z",
-    "updatedAt": "2025-10-14T00:10:08.379Z"
+    "createdAt": "2025-10-14T00:21:57.599Z",
+    "updatedAt": "2025-10-14T00:21:57.599Z"
   }
 ]

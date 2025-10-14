@@ -56,10 +56,11 @@ function normalizeItemName(itemName) {
   // Define mapping for items that have different names in CSV vs system
   // Only include mappings that are exact matches or explicitly confirmed
   const nameMappings = {
-    // Specific mappings based on user feedback
-    'chair throw pillow': 'throw_pillows',
-    'chair throw blanket': 'throw_blanket',
-    'tv mount + install': 'tv_mount',
+  // Specific mappings based on user feedback
+  'chair throw pillow': 'chair_throw_pillow',
+  'chair throw blanket': 'throw_blanket_on_bed',
+  'throw blanket on bed': 'throw_blanket_on_bed',
+  'tv mount + install': 'tv_mount',
 
     // Exact matches from existing system
     'sofa/sectional': 'sofa_sectional',
@@ -108,8 +109,9 @@ function normalizeItemName(itemName) {
     'nightstand accessories': 'nightstand_accessories',
     'dresser accessories': 'dresser_accessories',
 
-    // Mappings for previously unmapped items
-    'bed frame': 'bed_frame',
+  // Mappings for previously unmapped items
+  'bed frame': 'king_bed_frame',
+  'king bed frame': 'king_bed_frame',
     'curtain set': 'curtain_set',
     'decorative bedding': 'decorative_bedding',
     'desk accessories': 'desk_accessories',
@@ -119,8 +121,7 @@ function normalizeItemName(itemName) {
     'lamps (table/floor)': 'lamps',
     'mattress protector': 'mattress_protector',
     'pillow protectors': 'pillow_protectors',
-    'shelving accessories': 'open_shelving_decor',
-    'throw blanket on bed': 'throw_blanket_on_bed'
+    'shelving accessories': 'open_shelving_decor'
   };
 
   // Check for exact matches first
