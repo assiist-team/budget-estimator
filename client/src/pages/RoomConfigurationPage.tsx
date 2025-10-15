@@ -4,7 +4,7 @@ import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
 import RoomCard from '../components/RoomCard';
-import type { SelectedRoom } from '../types';
+import type { RoomWithItems } from '../types';
 import { suggestRoomConfiguration, formatCurrency, calculateEstimate } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useAutoConfiguration, useAutoConfigRules } from '../hooks/useAutoConfiguration';
@@ -26,7 +26,7 @@ export default function RoomConfigurationPage() {
   const { roomTemplates, loading } = useRoomTemplates();
   const { computedConfiguration } = useAutoConfiguration();
   const { rules } = useAutoConfigRules();
-  const [localRooms, setLocalRooms] = useState<SelectedRoom[]>(selectedRooms);
+  const [localRooms, setLocalRooms] = useState<RoomWithItems[]>(selectedRooms as RoomWithItems[]);
 
   // Initialize with suggestions only if the configuration has not been initialized yet.
   useEffect(() => {
@@ -75,6 +75,7 @@ export default function RoomConfigurationPage() {
       // Add room with default values
       const template = roomTemplates.get(roomType);
       if (template) {
+        const roomSize = template.sizes.medium;
         setLocalRooms([
           ...localRooms,
           {
@@ -82,6 +83,7 @@ export default function RoomConfigurationPage() {
             roomSize: 'medium',
             quantity: 1,
             displayName: template.displayName,
+            items: roomSize.items,
           },
         ]);
       }
@@ -90,7 +92,16 @@ export default function RoomConfigurationPage() {
 
   const handleSizeChange = (index: number, size: 'small' | 'medium' | 'large') => {
     const newRooms = [...localRooms];
-    newRooms[index] = { ...newRooms[index], roomSize: size };
+    const currentRoom = newRooms[index];
+    const template = roomTemplates.get(currentRoom.roomType);
+    if (template) {
+      const roomSize = template.sizes[size];
+      newRooms[index] = {
+        ...currentRoom,
+        roomSize: size,
+        items: roomSize.items
+      };
+    }
     setLocalRooms(newRooms);
   };
 
@@ -114,7 +125,7 @@ export default function RoomConfigurationPage() {
   const calculateRunningTotal = () => {
     if (localRooms.length === 0) return { low: 0, high: 0 };
     
-    const budget = calculateEstimate(localRooms, roomTemplates, budgetMode);
+    const budget = calculateEstimate(localRooms, roomTemplates, undefined, budgetMode);
     return {
       low: budget.rangeLow,
       high: budget.rangeHigh,
@@ -128,7 +139,7 @@ export default function RoomConfigurationPage() {
     }
     
     // Calculate budget
-    const budget = calculateEstimate(localRooms, roomTemplates, budgetMode);
+    const budget = calculateEstimate(localRooms, roomTemplates, undefined, budgetMode);
     
     setSelectedRooms(localRooms);
     setBudget(budget);

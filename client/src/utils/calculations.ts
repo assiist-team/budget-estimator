@@ -1,5 +1,5 @@
 // Budget calculation utilities
-import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier } from '../types';
+import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier, Item } from '../types';
 import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
@@ -9,8 +9,9 @@ export { QUALITY_TIERS } from '../types';
  * Calculate estimate for all quality tiers or budget mode only
  */
 export function calculateEstimate(
-  selectedRooms: RoomWithItems[],
+  selectedRooms: (RoomWithItems | any)[], // Accept both RoomWithItems and SelectedRoom
   roomTemplates: Map<string, RoomTemplate>,
+  items?: Map<string, Item>,
   budgetMode: boolean = false
 ): Budget {
   const tiers: QualityTier[] = ['budget', 'mid', 'midHigh', 'high'];
@@ -29,7 +30,7 @@ export function calculateEstimate(
     const template = roomTemplates.get(room.roomType);
     if (!template) return;
 
-    const roomSize = template.sizes[room.roomSize];
+    const roomSize = template.sizes[room.roomSize as keyof typeof template.sizes];
     if (!roomSize) return;
 
     const roomData: RoomBreakdown = {
@@ -42,26 +43,61 @@ export function calculateEstimate(
       highAmount: 0,
     };
 
+    // Check if room has items (RoomWithItems) or not (SelectedRoom)
+    const hasItems = room.items && Array.isArray(room.items);
+
     if (budgetMode) {
       // Budget mode: calculate budget tier for lower range and mid tier for upper range
-      const budgetTotal = roomSize.totals.budget * room.quantity;
-      roomData.budgetAmount = budgetTotal;
-      budget.budget.subtotal += budgetTotal;
+      if (hasItems && items) {
+        // Calculate dynamically from current room items
+        const budgetTotal = room.items.reduce((total: number, roomItem: any) => {
+          const item = items.get(roomItem.itemId);
+          return total + (item ? item.budgetPrice * roomItem.quantity : 0);
+        }, 0) * room.quantity;
+        roomData.budgetAmount = budgetTotal;
+        budget.budget.subtotal += budgetTotal;
 
-      const midTotal = roomSize.totals.mid * room.quantity;
-      roomData.midAmount = midTotal;
-      budget.mid.subtotal += midTotal;
+        const midTotal = room.items.reduce((total: number, roomItem: any) => {
+          const item = items.get(roomItem.itemId);
+          return total + (item ? item.midPrice * roomItem.quantity : 0);
+        }, 0) * room.quantity;
+        roomData.midAmount = midTotal;
+        budget.mid.subtotal += midTotal;
+      } else {
+        // Use pre-calculated room totals for rooms without items
+        const budgetTotal = roomSize.totals.budget * room.quantity;
+        roomData.budgetAmount = budgetTotal;
+        budget.budget.subtotal += budgetTotal;
+
+        const midTotal = roomSize.totals.mid * room.quantity;
+        roomData.midAmount = midTotal;
+        budget.mid.subtotal += midTotal;
+      }
 
       // Set other tiers to 0 for display purposes
       budget.midHigh.subtotal += 0;
       budget.high.subtotal += 0;
     } else {
       // Calculate for each tier
-      tiers.forEach((tier) => {
-        const roomTotal = roomSize.totals[tier] * room.quantity;
-        roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
-        budget[tier].subtotal += roomTotal;
-      });
+      if (hasItems && items) {
+        // Calculate dynamically from current room items
+        tiers.forEach((tier) => {
+          const roomTotal = room.items.reduce((total: number, roomItem: any) => {
+            const item = items.get(roomItem.itemId);
+            const tierPrice = item ? item[`${tier}Price` as keyof typeof item] as number : 0;
+            return total + tierPrice * roomItem.quantity;
+          }, 0) * room.quantity;
+          roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
+          budget[tier].subtotal += roomTotal;
+        });
+      } else {
+        // Use pre-calculated room totals for rooms without items
+        tiers.forEach((tier) => {
+          const roomTotal = roomSize.totals[tier] * room.quantity;
+          roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
+          budget[tier].subtotal += roomTotal;
+        });
+      }
     }
 
     budget.roomBreakdown.push(roomData);

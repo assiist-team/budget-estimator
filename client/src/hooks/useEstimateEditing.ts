@@ -121,24 +121,6 @@ export function useEstimateEditing() {
     }
   }, []);
 
-  // Recalculate budget for an estimate
-  const recalculateBudget = useCallback((estimate: Estimate): Estimate => {
-    const updatedBudget = calculateEstimate(estimate.rooms, roomTemplates, estimate.budget.budgetMode);
-
-    return {
-      ...estimate,
-      budget: updatedBudget,
-      lastEditedAt: new Date(),
-      editHistory: [
-        ...(estimate.editHistory || []),
-        {
-          timestamp: new Date(),
-          action: 'room_items_modified',
-          details: { reason: 'budget_recalculated' }
-        }
-      ]
-    };
-  }, [roomTemplates]);
 
   useEffect(() => {
     loadEstimates();
@@ -150,7 +132,6 @@ export function useEstimateEditing() {
     error,
     loadEstimates,
     updateEstimate,
-    recalculateBudget,
     roomTemplates,
     items
   };
@@ -166,7 +147,7 @@ export function useEstimateEditor(estimateId?: string) {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [history, setHistory] = useState<Estimate[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const { estimates, updateEstimate, recalculateBudget, roomTemplates, items } = useEstimateEditing();
+  const { estimates, updateEstimate, roomTemplates, items } = useEstimateEditing();
 
   // Load specific estimate for editing
   useEffect(() => {
@@ -217,7 +198,7 @@ export function useEstimateEditor(estimateId?: string) {
     const updatedEstimate = {
       ...estimate,
       rooms: updatedRooms,
-      budget: calculateEstimate(updatedRooms, roomTemplates, estimate.budget.budgetMode),
+      budget: calculateEstimate(updatedRooms, roomTemplates, items, estimate.budget.budgetMode),
       lastEditedAt: new Date(),
       editHistory: [
         ...(estimate.editHistory || []),
@@ -241,7 +222,7 @@ export function useEstimateEditor(estimateId?: string) {
     const updatedEstimate = {
       ...estimate,
       rooms: updatedRooms,
-      budget: calculateEstimate(updatedRooms, roomTemplates, estimate.budget.budgetMode),
+      budget: calculateEstimate(updatedRooms, roomTemplates, items, estimate.budget.budgetMode),
       lastEditedAt: new Date(),
       editHistory: [
         ...(estimate.editHistory || []),
@@ -265,7 +246,7 @@ export function useEstimateEditor(estimateId?: string) {
     const updatedEstimate = {
       ...estimate,
       rooms: updatedRooms,
-      budget: calculateEstimate(updatedRooms, roomTemplates, estimate.budget.budgetMode),
+      budget: calculateEstimate(updatedRooms, roomTemplates, items, estimate.budget.budgetMode),
       lastEditedAt: new Date(),
       editHistory: [
         ...(estimate.editHistory || []),
@@ -334,7 +315,6 @@ export function useEstimateEditor(estimateId?: string) {
     addRoom,
     removeRoom,
     saveChanges,
-    recalculateBudget,
     undo,
     redo
   };

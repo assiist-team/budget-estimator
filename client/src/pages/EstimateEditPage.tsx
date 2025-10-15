@@ -74,14 +74,6 @@ export default function EstimateEditPage() {
               >
                 ← Back to Dashboard
               </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Edit Estimate: {estimate.id}
-                </h1>
-                <p className="text-gray-600">
-                  {estimate.clientInfo.firstName} {estimate.clientInfo.lastName} • {formatCurrency(estimate.budget.rangeLow)} - {formatCurrency(estimate.budget.rangeHigh)}
-                </p>
-              </div>
             </div>
 
             <div className="flex gap-3">
@@ -111,12 +103,6 @@ export default function EstimateEditPage() {
               </div>
 
               <button
-                onClick={() => recalculateBudget(estimate)}
-                className="btn-secondary"
-              >
-                🔄 Recalculate
-              </button>
-              <button
                 onClick={handleSave}
                 disabled={saving || !hasUnsavedChanges}
                 className="btn-primary disabled:opacity-50"
@@ -127,63 +113,46 @@ export default function EstimateEditPage() {
           </div>
         </div>
 
-        {/* Property Info Tabs */}
+        {/* Property Info - Displayed as cards instead of tabs */}
         <div className="mb-8">
-          <div className="border-b border-gray-200 mb-8">
-            <nav className="-mb-px flex space-x-8">
-              <button className="py-4 px-1 border-b-2 border-primary-500 font-medium text-sm text-primary-600">
-                📋 Client Info
-              </button>
-              <button className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
-                📐 Property Specs
-              </button>
-              <button className="py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700">
-                💰 Budget
-              </button>
-            </nav>
-          </div>
-
-          {/* Client Info Tab */}
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Client Information</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <p className="text-gray-900">{estimate.clientInfo.firstName} {estimate.clientInfo.lastName}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <p className="text-gray-900">{estimate.clientInfo.email}</p>
-                  </div>
-                  {estimate.clientInfo.phone && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Phone</label>
-                      <p className="text-gray-900">{estimate.clientInfo.phone}</p>
-                    </div>
-                  )}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Client Information</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <p className="text-gray-900">{estimate.clientInfo.firstName} {estimate.clientInfo.lastName}</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <p className="text-gray-900">{estimate.clientInfo.email}</p>
+                </div>
+                {estimate.clientInfo.phone && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Phone</label>
+                    <p className="text-gray-900">{estimate.clientInfo.phone}</p>
+                  </div>
+                )}
               </div>
+            </div>
 
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Property Specifications</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Square Footage</label>
-                    <p className="text-gray-900">{estimate.propertySpecs.squareFootage.toLocaleString()} sqft</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Guest Capacity</label>
-                    <p className="text-gray-900">{estimate.propertySpecs.guestCapacity} guests</p>
-                  </div>
-                  {estimate.propertySpecs.notes && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Notes</label>
-                      <p className="text-gray-900">{estimate.propertySpecs.notes}</p>
-                    </div>
-                  )}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Property Specifications</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Square Footage</label>
+                  <p className="text-gray-900">{estimate.propertySpecs.squareFootage.toLocaleString()} sqft</p>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Guest Capacity</label>
+                  <p className="text-gray-900">{estimate.propertySpecs.guestCapacity} guests</p>
+                </div>
+                {estimate.propertySpecs.notes && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Notes</label>
+                    <p className="text-gray-900">{estimate.propertySpecs.notes}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -213,6 +182,10 @@ export default function EstimateEditPage() {
                     roomTemplates={roomTemplates}
                     onUpdate={(updatedRoom) => updateRoom(roomIndex, updatedRoom)}
                     onRemove={() => removeRoom(roomIndex)}
+                    onQuantityChange={(newQuantity) => {
+                      const updatedRoom = { ...room, quantity: newQuantity };
+                      updateRoom(roomIndex, updatedRoom);
+                    }}
                   />
                 ))}
 
@@ -252,9 +225,10 @@ interface RoomEditorProps {
   roomTemplates: Map<string, RoomTemplate>;
   onUpdate: (room: RoomWithItems) => void;
   onRemove: () => void;
+  onQuantityChange: (newQuantity: number) => void;
 }
 
-function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove }: RoomEditorProps) {
+function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const template = roomTemplates.get(room.roomType);
 
@@ -274,20 +248,35 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove }: Room
                 {room.displayName || room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </h3>
               <p className="text-sm text-gray-500">
-                {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)} × {room.quantity}
+                {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button className="text-sm text-primary-600 hover:text-primary-800 p-1">
-              ✏️ Edit
-            </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onQuantityChange(Math.max(1, room.quantity - 1))}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                −
+              </button>
+              <span className="text-sm font-medium text-gray-900 w-8 text-center">
+                {room.quantity}
+              </span>
+              <button
+                onClick={() => onQuantityChange(room.quantity + 1)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                +
+              </button>
+            </div>
+
             <button
               onClick={onRemove}
               className="text-sm text-red-600 hover:text-red-800 p-1"
             >
-              🗑️ Remove
+              ✕
             </button>
           </div>
         </div>
@@ -311,6 +300,11 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove }: Room
                   const updatedItems = room.items.filter((_, i) => i !== itemIndex);
                   onUpdate({ ...room, items: updatedItems });
                 }}
+                onQuantityChange={(newQuantity) => {
+                  const updatedItems = [...room.items];
+                  updatedItems[itemIndex] = { ...roomItem, quantity: newQuantity };
+                  onUpdate({ ...room, items: updatedItems });
+                }}
               />
             ))}
 
@@ -331,9 +325,10 @@ interface ItemRowProps {
   itemIndex: number;
   onUpdate: (item: any) => void;
   onRemove: () => void;
+  onQuantityChange: (newQuantity: number) => void;
 }
 
-function ItemRow({ roomItem, onUpdate, onRemove }: ItemRowProps) {
+function ItemRow({ roomItem, onUpdate, onRemove, onQuantityChange }: ItemRowProps) {
   return (
     <div className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
       <div className="flex-1">
@@ -344,16 +339,22 @@ function ItemRow({ roomItem, onUpdate, onRemove }: ItemRowProps) {
 
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <button className="text-sm text-gray-500 hover:text-gray-700">−</button>
+          <button
+            onClick={() => onQuantityChange(Math.max(1, roomItem.quantity - 1))}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            −
+          </button>
           <span className="text-sm font-medium text-gray-900 w-8 text-center">
             {roomItem.quantity}
           </span>
-          <button className="text-sm text-gray-500 hover:text-gray-700">+</button>
+          <button
+            onClick={() => onQuantityChange(roomItem.quantity + 1)}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            +
+          </button>
         </div>
-
-        <button className="text-sm text-primary-600 hover:text-primary-800 p-1">
-          ✏️
-        </button>
 
         <button
           onClick={onRemove}
