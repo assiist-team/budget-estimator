@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import Header from '../components/Header';
-import { UndoIcon, RedoIcon } from '../components/Icons';
+import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
 import type { RoomWithItems, RoomTemplate } from '../types';
 import { formatCurrency } from '../utils/calculations';
 
@@ -13,6 +13,8 @@ export default function EstimateEditPage() {
   const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, addRoom, removeRoom, saveChanges, recalculateBudget, undo, redo } = useEstimateEditor(estimateId);
   const { roomTemplates } = useRoomTemplates();
   const [saving, setSaving] = useState(false);
+  const [isClientInfoExpanded, setIsClientInfoExpanded] = useState(false);
+  const [isPropertySpecsExpanded, setIsPropertySpecsExpanded] = useState(false);
 
   // Redirect if no estimate loaded
   useEffect(() => {
@@ -65,15 +67,15 @@ export default function EstimateEditPage() {
       <Header currentStep={0} totalSteps={0} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
+        {/* Sticky Controls Container */}
+        <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/admin')}
                 className="btn-secondary"
               >
-                ← Back to Dashboard
+                ← Back
               </button>
             </div>
 
@@ -114,59 +116,88 @@ export default function EstimateEditPage() {
           </div>
         </div>
 
+        {/* Sticky Budget Summary */}
+        <div className="sticky top-16 z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-4 sm:p-6">
+          <div className="text-center">
+            <p className="text-base sm:text-lg font-medium mb-2 sm:mb-3 opacity-90">
+              FURNISHINGS ESTIMATE TOTAL
+            </p>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 leading-tight">
+              {formatCurrency(estimate.budget.rangeLow)} — {formatCurrency(estimate.budget.rangeHigh)}
+            </div>
+            <p className="text-xs sm:text-sm opacity-75">
+              {estimate.rooms.length} room{estimate.rooms.length !== 1 ? 's' : ''} • {estimate.rooms.reduce((total, room) => total + room.quantity, 0)} items
+            </p>
+          </div>
+        </div>
+
         {/* Property Info - Displayed as cards instead of tabs */}
         <div className="mb-8">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Client Information</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <p className="text-gray-900">{estimate.clientInfo.firstName} {estimate.clientInfo.lastName}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-gray-900">{estimate.clientInfo.email}</p>
-                </div>
-                {estimate.clientInfo.phone && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
-                    <p className="text-gray-900">{estimate.clientInfo.phone}</p>
-                  </div>
-                )}
+              <div className={`flex items-center gap-3 ${isClientInfoExpanded ? 'mb-4' : 'mb-0'}`}>
+                <button
+                  onClick={() => setIsClientInfoExpanded(!isClientInfoExpanded)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  {isClientInfoExpanded ? '▼' : '▶'}
+                </button>
+                <h3 className="text-lg font-medium text-gray-900">Client Information</h3>
               </div>
+              {isClientInfoExpanded && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Name</label>
+                    <p className="text-gray-900">{estimate.clientInfo.firstName} {estimate.clientInfo.lastName}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <p className="text-gray-900">{estimate.clientInfo.email}</p>
+                  </div>
+                  {estimate.clientInfo.phone && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Phone</label>
+                      <p className="text-gray-900">{estimate.clientInfo.phone}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Property Specifications</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Square Footage</label>
-                  <p className="text-gray-900">{estimate.propertySpecs.squareFootage.toLocaleString()} sqft</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Guest Capacity</label>
-                  <p className="text-gray-900">{estimate.propertySpecs.guestCapacity} guests</p>
-                </div>
-                {estimate.propertySpecs.notes && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Notes</label>
-                    <p className="text-gray-900">{estimate.propertySpecs.notes}</p>
-                  </div>
-                )}
+              <div className={`flex items-center gap-3 ${isPropertySpecsExpanded ? 'mb-4' : 'mb-0'}`}>
+                <button
+                  onClick={() => setIsPropertySpecsExpanded(!isPropertySpecsExpanded)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  {isPropertySpecsExpanded ? '▼' : '▶'}
+                </button>
+                <h3 className="text-lg font-medium text-gray-900">Property Specifications</h3>
               </div>
+              {isPropertySpecsExpanded && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Square Footage</label>
+                    <p className="text-gray-900">{estimate.propertySpecs.squareFootage.toLocaleString()} sqft</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Guest Capacity</label>
+                    <p className="text-gray-900">{estimate.propertySpecs.guestCapacity} guests</p>
+                  </div>
+                  {estimate.propertySpecs.notes && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Notes</label>
+                      <p className="text-gray-900">{estimate.propertySpecs.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Rooms & Items Editing Area */}
         <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
-              📝 Rooms & Items
-            </h2>
-          </div>
-
           <div className="p-6">
             {estimate.rooms.length === 0 ? (
               <div className="text-center py-12">
@@ -197,21 +228,6 @@ export default function EstimateEditPage() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Budget Summary */}
-        <div className="mt-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6">
-          <div className="text-center">
-            <p className="text-lg font-medium mb-3 opacity-90">
-              CURRENT ESTIMATE TOTAL
-            </p>
-            <div className="text-4xl font-bold mb-2">
-              {formatCurrency(estimate.budget.rangeLow)} — {formatCurrency(estimate.budget.rangeHigh)}
-            </div>
-            <p className="text-sm opacity-75">
-              {estimate.rooms.length} room{estimate.rooms.length !== 1 ? 's' : ''} • {estimate.rooms.reduce((total, room) => total + room.quantity, 0)} total items
-            </p>
           </div>
         </div>
       </main>
@@ -254,7 +270,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuan
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onQuantityChange(Math.max(1, room.quantity - 1))}
@@ -277,7 +293,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuan
               onClick={onRemove}
               className="text-sm text-red-600 hover:text-red-800 p-1"
             >
-              🗑️
+              <TrashIcon />
             </button>
           </div>
         </div>
@@ -338,7 +354,7 @@ function ItemRow({ roomItem, onUpdate, onRemove, onQuantityChange }: ItemRowProp
         </span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-6">
         <div className="flex items-center gap-2">
           <button
             onClick={() => onQuantityChange(Math.max(1, roomItem.quantity - 1))}
@@ -361,7 +377,7 @@ function ItemRow({ roomItem, onUpdate, onRemove, onQuantityChange }: ItemRowProp
           onClick={onRemove}
           className="text-sm text-red-600 hover:text-red-800 p-1"
         >
-          🗑️
+          <TrashIcon />
         </button>
       </div>
     </div>
