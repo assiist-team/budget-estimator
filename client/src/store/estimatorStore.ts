@@ -22,6 +22,9 @@ interface EstimatorState {
   // Client information
   clientInfo: ClientInfo | null;
 
+  // Flag to check if the initial configuration has been applied
+  isConfigurationInitialized: boolean;
+
   // Actions
   setCurrentStep: (step: number) => void;
   setPropertySpecs: (specs: PropertySpecs) => void;
@@ -32,6 +35,7 @@ interface EstimatorState {
   setBudget: (budget: Budget) => void;
   setBudgetMode: (mode: boolean) => void;
   setClientInfo: (info: ClientInfo) => void;
+  setConfigurationInitialized: (initialized: boolean) => void;
   reset: () => void;
 }
 
@@ -42,6 +46,7 @@ const initialState = {
   budget: null,
   budgetMode: true,
   clientInfo: null,
+  isConfigurationInitialized: false,
 };
 
 export const useEstimatorStore = create<EstimatorState>()(
@@ -51,7 +56,12 @@ export const useEstimatorStore = create<EstimatorState>()(
 
       setCurrentStep: (step) => set({ currentStep: step }),
 
-      setPropertySpecs: (specs) => set({ propertySpecs: specs }),
+      setPropertySpecs: (specs) =>
+        set({
+          propertySpecs: specs,
+          selectedRooms: [],
+          isConfigurationInitialized: false,
+        }),
 
       setSelectedRooms: (rooms) => set({ selectedRooms: rooms }),
 
@@ -78,6 +88,9 @@ export const useEstimatorStore = create<EstimatorState>()(
 
       setClientInfo: (info) => set({ clientInfo: info }),
 
+      setConfigurationInitialized: (initialized) =>
+        set({ isConfigurationInitialized: initialized }),
+
       reset: () => set(initialState),
     }),
     {
@@ -89,6 +102,7 @@ export const useEstimatorStore = create<EstimatorState>()(
         budget: state.budget,
         currentStep: state.currentStep,
         budgetMode: state.budgetMode,
+        isConfigurationInitialized: state.isConfigurationInitialized,
       }),
     }
   )

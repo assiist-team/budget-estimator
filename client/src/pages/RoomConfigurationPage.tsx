@@ -18,7 +18,9 @@ export default function RoomConfigurationPage() {
     setSelectedRooms,
     setCurrentStep,
     setBudget,
-    budgetMode
+    budgetMode,
+    isConfigurationInitialized,
+    setConfigurationInitialized,
   } = useEstimatorStore();
   
   const { roomTemplates, loading } = useRoomTemplates();
@@ -26,27 +28,35 @@ export default function RoomConfigurationPage() {
   const { rules } = useAutoConfigRules();
   const [localRooms, setLocalRooms] = useState<SelectedRoom[]>(selectedRooms);
 
-  // Initialize with suggestions if no rooms selected, or update suggestions when configuration changes
+  // Initialize with suggestions only if the configuration has not been initialized yet.
   useEffect(() => {
-    if (propertySpecs) {
+    if (
+      !isConfigurationInitialized &&
+      propertySpecs &&
+      computedConfiguration &&
+      roomTemplates.size > 0
+    ) {
       const suggestions = suggestRoomConfiguration(
-        computedConfiguration || undefined,
+        computedConfiguration,
         propertySpecs.squareFootage,
         propertySpecs.guestCapacity
       );
 
-      console.log('RoomConfigurationPage - Generated suggestions:', suggestions);
-      console.log('RoomConfigurationPage - Computed configuration:', computedConfiguration);
-      console.log('RoomConfigurationPage - Property specs:', propertySpecs);
+      // Apply the new suggestions to both local and global state.
+      setLocalRooms(suggestions);
+      setSelectedRooms(suggestions);
 
-
-      // Only update if suggestions have changed or if no rooms are selected
-      const suggestionsChanged = JSON.stringify(suggestions) !== JSON.stringify(localRooms);
-      if (suggestionsChanged || localRooms.length === 0) {
-        setLocalRooms(suggestions);
-      }
+      // Mark the configuration as initialized and reset the user modification flag.
+      setConfigurationInitialized(true);
     }
-  }, [propertySpecs, computedConfiguration, localRooms.length]);
+  }, [
+    isConfigurationInitialized,
+    propertySpecs,
+    computedConfiguration,
+    roomTemplates,
+    setSelectedRooms,
+    setConfigurationInitialized,
+  ]);
 
   // Redirect if no property specs
   useEffect(() => {

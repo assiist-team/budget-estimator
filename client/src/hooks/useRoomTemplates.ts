@@ -32,8 +32,8 @@ async function loadRoomTemplatesFromFirestore(): Promise<{ templates: Map<string
   try {
     // Load both room templates and items in parallel
     const [templatesSnapshot, itemsSnapshot] = await Promise.all([
-      getDocs(query(collection(db, 'roomTemplates'), orderBy('sortOrder'))),
-      getDocs(query(collection(db, 'items'), orderBy('name')))
+      getDocs(query(collection(db, 'roomTemplates'))),
+      getDocs(query(collection(db, 'items')))
     ]);
 
     const items = new Map<string, Item>();
