@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import Header from '../components/Header';
+import { UndoIcon, RedoIcon } from '../components/Icons';
 import type { RoomWithItems, RoomTemplate } from '../types';
 import { formatCurrency } from '../utils/calculations';
 
@@ -90,7 +91,7 @@ export default function EstimateEditPage() {
                   className="btn-secondary disabled:opacity-50"
                   title="Undo (Ctrl+Z)"
                 >
-                  ↶ Undo
+                  <UndoIcon />
                 </button>
                 <button
                   onClick={redo}
@@ -98,7 +99,7 @@ export default function EstimateEditPage() {
                   className="btn-secondary disabled:opacity-50"
                   title="Redo (Ctrl+Y)"
                 >
-                  ↷ Redo
+                  <RedoIcon />
                 </button>
               </div>
 
@@ -107,7 +108,7 @@ export default function EstimateEditPage() {
                 disabled={saving || !hasUnsavedChanges}
                 className="btn-primary disabled:opacity-50"
               >
-                {saving ? '💾 Saving...' : '💾 Save Draft'}
+                {saving ? '💾 Saving...' : 'Save'}
               </button>
             </div>
           </div>
@@ -276,7 +277,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuan
               onClick={onRemove}
               className="text-sm text-red-600 hover:text-red-800 p-1"
             >
-              ✕
+              🗑️
             </button>
           </div>
         </div>
@@ -360,7 +361,7 @@ function ItemRow({ roomItem, onUpdate, onRemove, onQuantityChange }: ItemRowProp
           onClick={onRemove}
           className="text-sm text-red-600 hover:text-red-800 p-1"
         >
-          ✕
+          🗑️
         </button>
       </div>
     </div>
