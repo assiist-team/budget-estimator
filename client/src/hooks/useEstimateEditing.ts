@@ -42,10 +42,10 @@ export function useEstimateEditing() {
 
           // Otherwise, reconstruct items from room template
           const template = roomTemplates.get(room.roomType);
-          if (template && template.sizes[room.roomSize]) {
+          if (template && room.roomSize && template.sizes[room.roomSize as keyof typeof template.sizes]) {
             return {
               ...room,
-              items: template.sizes[room.roomSize].items
+              items: template.sizes[room.roomSize as keyof typeof template.sizes].items
             };
           }
 
@@ -88,7 +88,7 @@ export function useEstimateEditing() {
       // Add edit history entry
       const editHistoryEntry: EditHistoryEntry = {
         timestamp: new Date(),
-        action: 'room_items_modified',
+        action: 'room_items_modified' as const,
         details: { updatedFields: Object.keys(updates) }
       };
 
@@ -204,7 +204,7 @@ export function useEstimateEditor(estimateId?: string) {
         ...(estimate.editHistory || []),
         {
           timestamp: new Date(),
-          action: 'room_items_modified',
+          action: 'room_items_modified' as const,
           details: { roomIndex, change: 'room_updated' }
         }
       ]
@@ -228,7 +228,7 @@ export function useEstimateEditor(estimateId?: string) {
         ...(estimate.editHistory || []),
         {
           timestamp: new Date(),
-          action: 'room_added',
+          action: 'room_added' as const,
           details: { roomType: newRoom.roomType, roomSize: newRoom.roomSize }
         }
       ]
@@ -252,7 +252,7 @@ export function useEstimateEditor(estimateId?: string) {
         ...(estimate.editHistory || []),
         {
           timestamp: new Date(),
-          action: 'room_removed',
+          action: 'room_removed' as const,
           details: { roomIndex, roomType: estimate.rooms[roomIndex]?.roomType }
         }
       ]

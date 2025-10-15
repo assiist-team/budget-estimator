@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
@@ -10,7 +10,7 @@ import { formatCurrency } from '../utils/calculations';
 export default function EstimateEditPage() {
   const navigate = useNavigate();
   const { estimateId } = useParams<{ estimateId: string }>();
-  const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, addRoom, removeRoom, saveChanges, recalculateBudget, undo, redo } = useEstimateEditor(estimateId);
+  const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, removeRoom, saveChanges, undo, redo } = useEstimateEditor(estimateId);
   const { roomTemplates } = useRoomTemplates();
   const [saving, setSaving] = useState(false);
   const [isClientInfoExpanded, setIsClientInfoExpanded] = useState(false);
@@ -247,7 +247,36 @@ interface RoomEditorProps {
 
 function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
   const template = roomTemplates.get(room.roomType);
+
+  const handleSizeChange = (newSize: 'small' | 'medium' | 'large') => {
+    // Update room size and items based on the new size template
+    const templateForNewSize = template?.sizes[newSize];
+    const updatedRoom = {
+      ...room,
+      roomSize: newSize,
+      // Update items to match the new room size template
+      items: templateForNewSize?.items || room.items
+    };
+    onUpdate(updatedRoom);
+    setIsSizeDropdownOpen(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
+        setIsSizeDropdownOpen(false);
+      }
+    };
+
+    if (isSizeDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isSizeDropdownOpen]);
 
   return (
     <div className="border border-gray-200 rounded-lg">
@@ -260,13 +289,44 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuan
             >
               {isExpanded ? '▼' : '▶'}
             </button>
-            <div>
+            <div className="flex items-center gap-3">
               <h3 className="font-medium text-gray-900">
                 {room.displayName || room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </h3>
-              <p className="text-sm text-gray-500">
-                {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)}
-              </p>
+              <div className="relative" ref={sizeDropdownRef}>
+                <button
+                  onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
+                  className="flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm font-medium text-gray-700 transition-colors"
+                >
+                  <span>{room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)}</span>
+                  <svg
+                    className={`w-3 h-3 transition-transform ${isSizeDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {isSizeDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                    <div className="py-1">
+                      {(['small', 'medium', 'large'] as const).map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => handleSizeChange(size)}
+                          className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                            room.roomSize === size ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-700'
+                          }`}
+                        >
+                          {size.charAt(0).toUpperCase() + size.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -308,16 +368,11 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuan
                 roomItem={roomItem}
                 roomIndex={roomIndex}
                 itemIndex={itemIndex}
-                onUpdate={(updatedItem) => {
-                  const updatedItems = [...room.items];
-                  updatedItems[itemIndex] = updatedItem;
-                  onUpdate({ ...room, items: updatedItems });
-                }}
                 onRemove={() => {
                   const updatedItems = room.items.filter((_, i) => i !== itemIndex);
                   onUpdate({ ...room, items: updatedItems });
                 }}
-                onQuantityChange={(newQuantity) => {
+                onQuantityChange={(newQuantity: number) => {
                   const updatedItems = [...room.items];
                   updatedItems[itemIndex] = { ...roomItem, quantity: newQuantity };
                   onUpdate({ ...room, items: updatedItems });
@@ -340,17 +395,16 @@ interface ItemRowProps {
   roomItem: any;
   roomIndex: number;
   itemIndex: number;
-  onUpdate: (item: any) => void;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
 }
 
-function ItemRow({ roomItem, onUpdate, onRemove, onQuantityChange }: ItemRowProps) {
+function ItemRow({ roomItem, onRemove, onQuantityChange }: ItemRowProps) {
   return (
     <div className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
       <div className="flex-1">
         <span className="text-gray-700">
-          {roomItem.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          {roomItem.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
         </span>
       </div>
 
