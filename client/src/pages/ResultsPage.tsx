@@ -320,7 +320,7 @@ export default function ResultsPage() {
           <div className="mt-6">
             <button
               onClick={() => navigate('/rooms')}
-              className="btn-ghost"
+              className="btn-secondary"
             >
               ← Edit Property Details
             </button>
