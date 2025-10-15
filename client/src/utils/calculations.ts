@@ -1,5 +1,5 @@
 // Budget calculation utilities
-import type { RoomTemplate, SelectedRoom, Budget, RoomBreakdown, QualityTier } from '../types';
+import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier } from '../types';
 import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
@@ -9,7 +9,7 @@ export { QUALITY_TIERS } from '../types';
  * Calculate estimate for all quality tiers or budget mode only
  */
 export function calculateEstimate(
-  selectedRooms: SelectedRoom[],
+  selectedRooms: RoomWithItems[],
   roomTemplates: Map<string, RoomTemplate>,
   budgetMode: boolean = false
 ): Budget {
@@ -132,8 +132,8 @@ export function suggestRoomConfiguration(
   computedConfig?: ComputedConfiguration,
   fallbackSquareFootage?: number,
   fallbackGuestCapacity?: number
-): SelectedRoom[] {
-  const suggestions: SelectedRoom[] = [];
+): RoomWithItems[] {
+  const suggestions: RoomWithItems[] = [];
 
   // Use computed configuration if available, otherwise fall back to basic logic
   if (computedConfig) {
@@ -144,6 +144,7 @@ export function suggestRoomConfiguration(
         roomSize: computedConfig.commonAreas.living,
         quantity: 1,
         displayName: 'Living Room',
+        items: []
       });
     }
 
@@ -154,6 +155,7 @@ export function suggestRoomConfiguration(
         roomSize: computedConfig.commonAreas.kitchen,
         quantity: 1,
         displayName: 'Kitchen',
+        items: []
       });
     }
 
@@ -164,6 +166,7 @@ export function suggestRoomConfiguration(
         roomSize: computedConfig.commonAreas.dining,
         quantity: 1,
         displayName: 'Dining Room',
+        items: []
       });
     }
 
@@ -174,6 +177,7 @@ export function suggestRoomConfiguration(
         roomSize: 'medium', // Default size, could be made configurable
         quantity: computedConfig.bedrooms.single,
         displayName: 'Single Bedroom',
+        items: []
       });
     }
 
@@ -183,6 +187,7 @@ export function suggestRoomConfiguration(
         roomSize: 'medium', // Default size, could be made configurable
         quantity: computedConfig.bedrooms.double,
         displayName: 'Double Bedroom',
+        items: []
       });
     }
 
@@ -193,6 +198,7 @@ export function suggestRoomConfiguration(
                  computedConfig.bedrooms.bunk === 'medium' ? 'medium' : 'large',
         quantity: 1,
         displayName: 'Bunk Room',
+        items: []
       });
     }
 
@@ -203,6 +209,7 @@ export function suggestRoomConfiguration(
         roomSize: computedConfig.commonAreas.recRoom,
         quantity: 1,
         displayName: 'Rec Room',
+        items: []
       });
     }
   } else if (fallbackSquareFootage && fallbackGuestCapacity) {
@@ -212,6 +219,7 @@ export function suggestRoomConfiguration(
       roomSize: fallbackSquareFootage > 3500 ? 'large' : fallbackSquareFootage > 2000 ? 'medium' : 'small',
       quantity: 1,
       displayName: 'Living Room',
+      items: []
     });
 
     suggestions.push({
@@ -219,6 +227,7 @@ export function suggestRoomConfiguration(
       roomSize: fallbackSquareFootage > 3500 ? 'large' : fallbackSquareFootage > 2000 ? 'medium' : 'small',
       quantity: 1,
       displayName: 'Kitchen',
+      items: []
     });
 
     suggestions.push({
@@ -226,6 +235,7 @@ export function suggestRoomConfiguration(
       roomSize: fallbackGuestCapacity > 14 ? 'large' : fallbackGuestCapacity > 10 ? 'medium' : 'small',
       quantity: 1,
       displayName: 'Dining Room',
+      items: []
     });
 
     // Bedrooms based on capacity
@@ -236,6 +246,7 @@ export function suggestRoomConfiguration(
         roomSize: 'medium',
         quantity: Math.min(bedroomCount, 4),
         displayName: 'Single Bedroom',
+        items: []
       });
     }
 
@@ -245,6 +256,7 @@ export function suggestRoomConfiguration(
         roomSize: fallbackSquareFootage > 3000 ? 'large' : 'medium',
         quantity: 1,
         displayName: 'Double Bedroom',
+        items: []
       });
     }
 
@@ -254,6 +266,7 @@ export function suggestRoomConfiguration(
         roomSize: 'medium',
         quantity: 1,
         displayName: 'Bunk Room',
+        items: []
       });
     }
 
@@ -263,6 +276,7 @@ export function suggestRoomConfiguration(
         roomSize: 'medium',
         quantity: 1,
         displayName: 'Rec Room',
+        items: []
       });
     }
   }

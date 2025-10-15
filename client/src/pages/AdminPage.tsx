@@ -530,6 +530,29 @@ export default function AdminPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Edit and Delete buttons */}
+                      <div className="flex items-start gap-2">
+                        <Link
+                          to={`/admin/edit/${estimate.id}`}
+                          className="text-sm text-primary-600 hover:text-primary-800 p-2"
+                          title="Edit Estimate"
+                        >
+                          <EditIcon />
+                        </Link>
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this estimate?')) {
+                              // TODO: Implement delete functionality
+                              console.log('Delete estimate:', estimate.id);
+                            }
+                          }}
+                          className="text-sm text-red-600 hover:text-red-800 p-2"
+                          title="Delete Estimate"
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

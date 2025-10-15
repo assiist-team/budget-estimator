@@ -1,7 +1,7 @@
 // Zustand store for estimator state management
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { PropertySpecs, SelectedRoom, Budget, ClientInfo } from '../types';
+import type { PropertySpecs, SelectedRoom, RoomWithItems, Budget, ClientInfo } from '../types';
 
 interface EstimatorState {
   // Current step in the flow
@@ -10,8 +10,8 @@ interface EstimatorState {
   // Property specifications
   propertySpecs: PropertySpecs | null;
 
-  // Selected rooms
-  selectedRooms: SelectedRoom[];
+  // Selected rooms with items
+  selectedRooms: RoomWithItems[];
 
   // Calculated budget
   budget: Budget | null;
@@ -28,9 +28,9 @@ interface EstimatorState {
   // Actions
   setCurrentStep: (step: number) => void;
   setPropertySpecs: (specs: PropertySpecs) => void;
-  setSelectedRooms: (rooms: SelectedRoom[]) => void;
-  updateRoom: (index: number, room: SelectedRoom) => void;
-  addRoom: (room: SelectedRoom) => void;
+  setSelectedRooms: (rooms: RoomWithItems[]) => void;
+  updateRoom: (index: number, room: RoomWithItems) => void;
+  addRoom: (room: RoomWithItems) => void;
   removeRoom: (index: number) => void;
   setBudget: (budget: Budget) => void;
   setBudgetMode: (mode: boolean) => void;

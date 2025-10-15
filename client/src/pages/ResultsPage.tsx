@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
-import type { ClientInfo, RoomItem } from '../types';
+import type { ClientInfo, RoomItem, RoomWithItems } from '../types';
 import { formatCurrency, generateEstimateId } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
+import { syncToHighLevel } from '../utils/highLevelSync';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
@@ -50,12 +51,27 @@ export default function ResultsPage() {
     setClientInfo(data);
 
     try {
-      // Save estimate to Firestore
+      // Convert selectedRooms to RoomWithItems with complete item mappings
+      const roomsWithItems: RoomWithItems[] = selectedRooms.map(room => {
+        const template = roomTemplates.get(room.roomType);
+        if (template && template.sizes[room.roomSize]) {
+          return {
+            ...room,
+            items: template.sizes[room.roomSize].items
+          };
+        }
+        return {
+          ...room,
+          items: []
+        };
+      });
+
+      // Save estimate to Firestore with complete item mappings
       const estimateData = {
         id: generateEstimateId(),
         clientInfo: data,
         propertySpecs,
-        rooms: selectedRooms,
+        rooms: roomsWithItems,
         budget,
         status: 'submitted',
         source: 'direct',
@@ -66,10 +82,18 @@ export default function ResultsPage() {
         submittedAt: serverTimestamp(),
       };
 
-      await addDoc(collection(db, 'estimates'), estimateData);
+      const docRef = await addDoc(collection(db, 'estimates'), estimateData);
+      const estimateId = docRef.id;
 
-      // TODO: Send email with PDF
-      // For now, just show success message
+      // Sync to High Level CRM
+      const syncSuccess = await syncToHighLevel(estimateData as any, estimateId);
+
+      // Update sync status in Firestore
+      await updateDoc(docRef, {
+        syncedToHighLevel: syncSuccess,
+        syncedAt: serverTimestamp()
+      });
+
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting estimate:', error);

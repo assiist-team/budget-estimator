@@ -56,6 +56,10 @@ export interface SelectedRoom {
   displayName: string;
 }
 
+export interface RoomWithItems extends SelectedRoom {
+  items: RoomItem[];
+}
+
 export interface PropertySpecs {
   squareFootage: number;
   guestCapacity: number;
@@ -101,7 +105,7 @@ export interface Estimate {
   id: string;
   clientInfo: ClientInfo;
   propertySpecs: PropertySpecs;
-  rooms: SelectedRoom[];
+  rooms: RoomWithItems[];
   budget: Budget;
   status: 'draft' | 'submitted' | 'viewed' | 'contacted' | 'closed';
   source: string;
@@ -121,6 +125,16 @@ export interface Estimate {
   adminNotes?: string;
   assignedTo?: string;
   followUpDate?: Date;
+  // New fields for editing support
+  lastEditedAt?: Date;
+  lastEditedBy?: string;
+  editHistory?: EditHistoryEntry[];
+}
+
+export interface EditHistoryEntry {
+  timestamp: Date;
+  action: 'room_items_modified' | 'room_added' | 'room_removed' | 'room_quantity_changed' | 'room_size_changed';
+  details: Record<string, any>;
 }
 
 export type QualityTier = 'budget' | 'mid' | 'midHigh' | 'high';
