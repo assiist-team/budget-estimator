@@ -210,7 +210,7 @@ export default function ResultsPage() {
                             </div>
                             <div className="text-right">
                               <div className="font-medium text-gray-900">
-                                {formatCurrency(room.budgetAmount)} — {formatCurrency(Math.round(room.budgetAmount * 1.2))}
+                                {formatCurrency(room.budgetAmount)} — {formatCurrency(room.midAmount)}
                               </div>
                             </div>
                           </div>
