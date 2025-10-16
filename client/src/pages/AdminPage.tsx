@@ -360,6 +360,27 @@ export default function AdminPage() {
     }
   };
 
+  // Function to delete an estimate
+  const deleteEstimate = async (estimateId: string) => {
+    if (!confirm('Are you sure you want to delete this estimate? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const estimateRef = doc(db, 'estimates', estimateId);
+      await deleteDoc(estimateRef);
+
+      // Update local state
+      setEstimates(prev => prev.filter(estimate => estimate.id !== estimateId));
+
+      // Show success message
+      alert('Estimate deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting estimate:', error);
+      alert('Failed to delete estimate. Please try again.');
+    }
+  };
+
   // Function to update a bedroom rule
   const updateBedroomRule = async (ruleId: string, updates: Partial<BedroomMixRule>) => {
     if (!autoConfigRules) return;
@@ -582,12 +603,7 @@ export default function AdminPage() {
                           <EditIcon />
                         </Link>
                         <button
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this estimate?')) {
-                              // TODO: Implement delete functionality
-                              console.log('Delete estimate:', estimate.id);
-                            }
-                          }}
+                          onClick={() => deleteEstimate(estimate.id)}
                           className="text-sm text-red-600 hover:text-red-800 p-2"
                           title="Delete Estimate"
                         >

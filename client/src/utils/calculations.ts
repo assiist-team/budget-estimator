@@ -43,7 +43,8 @@ export function calculateEstimate(
     };
 
     // Check if room has items (RoomWithItems) or not (SelectedRoom)
-    const hasItems = room.items && Array.isArray(room.items);
+    // Ensure items is a non-empty array before using dynamic item-based calculations
+    const hasItems = Array.isArray(room.items) && room.items.length > 0;
 
     // Calculate all tiers for room breakdown
     if (hasItems && items) {
