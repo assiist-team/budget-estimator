@@ -211,21 +211,63 @@ export function computeAutoConfiguration(
     };
   }
 
-  // No rule matched: fall back to a bedroom-only generator that respects
-  // user preferences: prefer singles (at least 2 when possible), at most 1 bunk,
-  // doubles only for large homes. The fallback MUST NOT generate common areas.
+  // No rule matched: use both bedroom fallback and common-area fallback
+  // to produce a combined configuration instead of suppressing common areas entirely
   const fallbackBedrooms = generateBedroomFallback(squareFootage, guestCount, rules);
+  const fallbackCommonAreas = generateCommonAreaFallback(squareFootage, guestCount, rules);
 
   return {
     bedrooms: fallbackBedrooms,
-    // Explicitly set common areas to 'none' when using the fallback so the
-    // fallback does not attempt to compute or alter common areas.
-    commonAreas: {
-      kitchen: 'none',
-      dining: 'none',
-      living: 'none',
-      recRoom: 'none'
+    commonAreas: fallbackCommonAreas
+  };
+}
+
+/**
+ * Generate a common area configuration using fallback logic when bedroom rules fail.
+ * Behavior: Use the same heuristics as deriveCommonAreas, but ensure it can return
+ * reasonable defaults even when bedroom rules fail.
+ * - Determine presence solely from the area's presence settings defined in admin rules
+ * - Determine size by matching rules.commonAreas.<area>.size.thresholds against square footage only
+ * - Fall back to size.default when no thresholds match
+ */
+export function generateCommonAreaFallback(
+  squareFootage: number,
+  _guestCount: number,
+  rules: AutoConfigRules
+): ComputedConfiguration['commonAreas'] {
+  const computeSpace = (
+    presence: { present_if_sqft_gte?: number },
+    size: { thresholds: Array<{ min_sqft?: number; max_sqft?: number; size: CommonSize }>; default: CommonSize }
+  ): CommonSize => {
+    // Presence: only sqft-based checks (guest-based presence removed)
+    const present = presence.present_if_sqft_gte !== undefined && squareFootage >= presence.present_if_sqft_gte;
+
+    if (!present) return size.default;
+
+    // Size: Simple first-match logic - iterate through thresholds and return first match
+    // Thresholds are matched only by sqft ranges (guest-based thresholds removed)
+    for (const threshold of size.thresholds) {
+      const minOk = (threshold.min_sqft === undefined || squareFootage >= threshold.min_sqft);
+      const maxOk = (threshold.max_sqft === undefined || squareFootage <= threshold.max_sqft);
+
+      if (minOk && maxOk) {
+        return threshold.size;
+      }
     }
+
+    return size.default;
+  };
+
+  const kitchen = computeSpace(rules.commonAreas.kitchen.presence, rules.commonAreas.kitchen.size);
+  const dining = computeSpace(rules.commonAreas.dining.presence, rules.commonAreas.dining.size);
+  const living = computeSpace(rules.commonAreas.living.presence, rules.commonAreas.living.size);
+  const recRoom = computeSpace(rules.commonAreas.recRoom.presence, rules.commonAreas.recRoom.size);
+
+  return {
+    kitchen,
+    dining,
+    living,
+    recRoom
   };
 }
 
