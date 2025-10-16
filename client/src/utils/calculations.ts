@@ -6,13 +6,12 @@ import type { ComputedConfiguration } from '../types/config';
 export { QUALITY_TIERS } from '../types';
 
 /**
- * Calculate estimate for all quality tiers or budget mode only
+ * Calculate estimate for all quality tiers (budget to mid range)
  */
 export function calculateEstimate(
   selectedRooms: (RoomWithItems | any)[], // Accept both RoomWithItems and SelectedRoom
   roomTemplates: Map<string, RoomTemplate>,
-  items?: Map<string, Item>,
-  budgetMode: boolean = false
+  items?: Map<string, Item>
 ): Budget {
   const tiers: QualityTier[] = ['budget', 'mid', 'midHigh', 'high'];
   
@@ -46,41 +45,9 @@ export function calculateEstimate(
     // Check if room has items (RoomWithItems) or not (SelectedRoom)
     const hasItems = room.items && Array.isArray(room.items);
 
-    if (budgetMode) {
-      // Budget mode: calculate budget tier for lower range and mid tier for upper range
-      if (hasItems && items) {
-        // Calculate dynamically from current room items
-        const budgetTotal = room.items.reduce((total: number, roomItem: any) => {
-          const item = items.get(roomItem.itemId);
-          return total + (item ? item.budgetPrice * roomItem.quantity : 0);
-        }, 0) * room.quantity;
-        roomData.budgetAmount = budgetTotal;
-        budget.budget.subtotal += budgetTotal;
-
-        const midTotal = room.items.reduce((total: number, roomItem: any) => {
-          const item = items.get(roomItem.itemId);
-          return total + (item ? item.midPrice * roomItem.quantity : 0);
-        }, 0) * room.quantity;
-        roomData.midAmount = midTotal;
-        budget.mid.subtotal += midTotal;
-      } else {
-        // Use pre-calculated room totals for rooms without items
-        const budgetTotal = roomSize.totals.budget * room.quantity;
-        roomData.budgetAmount = budgetTotal;
-        budget.budget.subtotal += budgetTotal;
-
-        const midTotal = roomSize.totals.mid * room.quantity;
-        roomData.midAmount = midTotal;
-        budget.mid.subtotal += midTotal;
-      }
-
-      // Set other tiers to 0 for display purposes
-      budget.midHigh.subtotal += 0;
-      budget.high.subtotal += 0;
-    } else {
-      // Calculate for each tier
-      if (hasItems && items) {
-        // Calculate dynamically from current room items
+    // Calculate all tiers for room breakdown
+    if (hasItems && items) {
+        // Calculate dynamically from current room items for all tiers
         tiers.forEach((tier) => {
           const roomTotal = room.items.reduce((total: number, roomItem: any) => {
             const item = items.get(roomItem.itemId);
@@ -90,14 +57,13 @@ export function calculateEstimate(
           roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
           budget[tier].subtotal += roomTotal;
         });
-      } else {
+    } else {
         // Use pre-calculated room totals for rooms without items
         tiers.forEach((tier) => {
           const roomTotal = roomSize.totals[tier] * room.quantity;
           roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
           budget[tier].subtotal += roomTotal;
         });
-      }
     }
 
     budget.roomBreakdown.push(roomData);
@@ -109,16 +75,11 @@ export function calculateEstimate(
     budget[tier].total = budget[tier].subtotal + budget[tier].contingency;
   });
 
-  // Set overall range
-  if (budgetMode) {
-    budget.rangeLow = budget.budget.total;
-    budget.rangeHigh = budget.mid.total; // Use mid tier for upper range instead of 20% markup
-  } else {
-    budget.rangeLow = budget.budget.total;
-    budget.rangeHigh = budget.high.total;
-  }
+  // Set overall range (budget tier for lower range, mid tier for upper range)
+  budget.rangeLow = budget.budget.total;
+  budget.rangeHigh = budget.mid.total;
 
-  return { ...budget, budgetMode };
+  return budget;
 }
 
 /**
@@ -320,12 +281,4 @@ export function suggestRoomConfiguration(
   return suggestions;
 }
 
-/**
- * Generate a unique estimate ID
- */
-export function generateEstimateId(): string {
-  const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
-  const random = Math.random().toString(36).substring(2, 8);
-  return `est_${date}_${random}`;
-}
 

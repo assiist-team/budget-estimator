@@ -4,7 +4,7 @@ import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
 import type { AutoConfigRules, BedroomMixRule } from '../types/config';
-import { formatCurrency } from '../utils/calculations';
+import { formatCurrency, calculateEstimate } from '../utils/calculations';
 import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 import { EditIcon, TrashIcon } from '../components/Icons';
 
@@ -47,6 +47,19 @@ export default function AdminPage() {
   const [roomTemplates, setRoomTemplates] = useState<RoomTemplate[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [autoConfigRules, setAutoConfigRules] = useState<AutoConfigRules | null>(null);
+
+  // Convert arrays to Maps for calculation functions
+  const roomTemplatesMap = useMemo(() => {
+    const map = new Map<string, RoomTemplate>();
+    roomTemplates.forEach(template => map.set(template.id, template));
+    return map;
+  }, [roomTemplates]);
+
+  const itemsMap = useMemo(() => {
+    const map = new Map<string, Item>();
+    items.forEach(item => map.set(item.id, item));
+    return map;
+  }, [items]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'estimates' | 'templates' | 'items' | 'autoconfig'>('estimates');
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
@@ -183,8 +196,19 @@ export default function AdminPage() {
       };
 
       console.log('Update data:', updateData);
-      await updateDoc(templateRef, updateData);
-      console.log('Firestore update successful');
+
+      try {
+        await updateDoc(templateRef, updateData);
+        console.log('Firestore update successful');
+      } catch (updateErr: any) {
+        // If the document doesn't exist, create it
+        if (updateErr?.message?.includes('No document to update')) {
+          console.log('Document does not exist, creating new document');
+          await setDoc(templateRef, updateData);
+        } else {
+          throw updateErr;
+        }
+      }
 
       // Update local state
       setRoomTemplates(prev =>
@@ -269,10 +293,24 @@ export default function AdminPage() {
 
     try {
       const itemRef = doc(db, 'items', itemId);
-      await updateDoc(itemRef, {
-        ...updates,
-        updatedAt: new Date(),
-      });
+
+      try {
+        await updateDoc(itemRef, {
+          ...updates,
+          updatedAt: new Date(),
+        });
+      } catch (updateErr: any) {
+        // If the document doesn't exist, create it
+        if (updateErr?.message?.includes('No document to update')) {
+          console.log('Document does not exist, creating new document');
+          await setDoc(itemRef, {
+            ...updates,
+            updatedAt: new Date(),
+          });
+        } else {
+          throw updateErr;
+        }
+      }
 
       // Update local state
       setItems(prev =>
@@ -513,7 +551,10 @@ export default function AdminPage() {
                             </p>
                             <p className="text-gray-600">
                               <span className="font-medium">Budget Range:</span>{' '}
-                              {formatCurrency(estimate.budget.rangeLow)} - {formatCurrency(estimate.budget.rangeHigh)}
+                              {(() => {
+                                const budget = calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap);
+                                return `${formatCurrency(budget.rangeLow)} - ${formatCurrency(budget.rangeHigh)}`;
+                              })()}
                             </p>
                             <p className="text-gray-600">
                               <span className="font-medium">Submitted:</span>{' '}

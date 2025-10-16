@@ -1,9 +1,9 @@
 // Hook for estimate editing functionality
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, doc, updateDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useRoomTemplates } from './useRoomTemplates';
-import type { Estimate, RoomWithItems, RoomTemplate, Item, EditHistoryEntry } from '../types';
+import type { Estimate, RoomWithItems, EditHistoryEntry } from '../types';
 import { calculateEstimate } from '../utils/calculations';
 
 /**
@@ -102,7 +102,18 @@ export function useEstimateEditing() {
         ]
       };
 
-      await updateDoc(estimateRef, updateData);
+      try {
+        // Try to update the document first
+        await updateDoc(estimateRef, updateData);
+      } catch (updateErr: any) {
+        // If the document doesn't exist, create it
+        if (updateErr?.message?.includes('No document to update')) {
+          console.log('Document does not exist, creating new document');
+          await setDoc(estimateRef, updateData);
+        } else {
+          throw updateErr;
+        }
+      }
 
       // Update local state
       setEstimates(prev =>
@@ -198,7 +209,7 @@ export function useEstimateEditor(estimateId?: string) {
     const updatedEstimate = {
       ...estimate,
       rooms: updatedRooms,
-      budget: calculateEstimate(updatedRooms, roomTemplates, items, estimate.budget.budgetMode),
+      budget: calculateEstimate(updatedRooms, roomTemplates, items),
       lastEditedAt: new Date(),
       editHistory: [
         ...(estimate.editHistory || []),
@@ -222,7 +233,7 @@ export function useEstimateEditor(estimateId?: string) {
     const updatedEstimate = {
       ...estimate,
       rooms: updatedRooms,
-      budget: calculateEstimate(updatedRooms, roomTemplates, items, estimate.budget.budgetMode),
+      budget: calculateEstimate(updatedRooms, roomTemplates, items),
       lastEditedAt: new Date(),
       editHistory: [
         ...(estimate.editHistory || []),
@@ -246,7 +257,7 @@ export function useEstimateEditor(estimateId?: string) {
     const updatedEstimate = {
       ...estimate,
       rooms: updatedRooms,
-      budget: calculateEstimate(updatedRooms, roomTemplates, items, estimate.budget.budgetMode),
+      budget: calculateEstimate(updatedRooms, roomTemplates, items),
       lastEditedAt: new Date(),
       editHistory: [
         ...(estimate.editHistory || []),
@@ -292,7 +303,6 @@ export function useEstimateEditor(estimateId?: string) {
 
     const success = await updateEstimate(estimate.id, {
       rooms: estimate.rooms,
-      budget: estimate.budget,
       lastEditedAt: new Date(),
       editHistory: estimate.editHistory
     });

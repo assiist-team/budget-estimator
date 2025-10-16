@@ -1,6 +1,6 @@
 // Hook to fetch room templates from Firestore database
 import { useState, useEffect } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import type { RoomTemplate, Item, RoomSize } from '../types';
 

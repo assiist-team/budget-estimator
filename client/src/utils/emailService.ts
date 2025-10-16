@@ -32,14 +32,6 @@ export async function sendEstimateEmail(
   // const sendEmailFunction = httpsCallable(functions, 'sendEstimateEmail');
   // const result = await sendEmailFunction({
   //   to: estimate.clientInfo.email,
-  //   estimateId: estimate.id,
-  //   pdfUrl: pdfUrl,
-  //   clientName: `${estimate.clientInfo.firstName} ${estimate.clientInfo.lastName}`,
-  //   budgetRange: {
-  //     low: estimate.budget.rangeLow,
-  //     high: estimate.budget.rangeHigh,
-  //   },
-  // });
   
   // 3. Cloud Function implementation (functions/src/index.ts):
   // export const sendEstimateEmail = functions.https.onCall(async (data, context) => {
@@ -78,7 +70,6 @@ export async function sendAdminNotification(estimate: Estimate): Promise<boolean
   //     <h2>New Estimate Submitted</h2>
   //     <p><strong>Client:</strong> ${estimate.clientInfo.firstName} ${estimate.clientInfo.lastName}</p>
   //     <p><strong>Email:</strong> ${estimate.clientInfo.email}</p>
-  //     <p><strong>Budget Range:</strong> ${formatCurrency(estimate.budget.rangeLow)} - ${formatCurrency(estimate.budget.rangeHigh)}</p>
   //     <p><a href="https://your-app.com/admin">View in Admin Dashboard</a></p>
   //   `,
   // };

@@ -1,19 +1,16 @@
 // PDF Generation utilities
 // TODO: Implement with jsPDF or similar library in Phase 2
 
-import type { Estimate } from '../types';
-import { formatCurrency, QUALITY_TIERS } from './calculations';
-
 /**
  * Generate PDF estimate (placeholder for Phase 2)
- * 
+ *
  * To implement:
  * 1. npm install jspdf jspdf-autotable
  * 2. Create styled PDF with company branding
  * 3. Include all quality tiers and room breakdowns
  * 4. Add charts/visualizations (optional)
  */
-export async function generateEstimatePDF(estimate: Estimate): Promise<Blob | null> {
+export async function generateEstimatePDF(estimate: any): Promise<Blob | null> {
   console.log('PDF Generation called for estimate:', estimate.id);
   
   // Placeholder implementation
@@ -38,17 +35,6 @@ export async function generateEstimatePDF(estimate: Estimate): Promise<Blob | nu
   // Add property specs
   // doc.text(`Property: ${estimate.propertySpecs.squareFootage} sqft, ${estimate.propertySpecs.guestCapacity} guests`, 20, 74);
   
-  // Add budget range summary
-  // doc.setFontSize(14);
-  // doc.text('Estimated Budget Range', 20, 90);
-  // doc.setFontSize(16);
-  // doc.text(`${formatCurrency(estimate.budget.rangeLow)} - ${formatCurrency(estimate.budget.rangeHigh)}`, 20, 100);
-  
-  // Add quality tier breakdown table
-  // const tierData = Object.keys(QUALITY_TIERS).map(tier => [
-  //   QUALITY_TIERS[tier as QualityTier].name,
-  //   formatCurrency(estimate.budget[tier as QualityTier].total)
-  // ]);
   
   // doc.autoTable({
   //   startY: 110,
@@ -86,7 +72,7 @@ export function downloadPDF(blob: Blob, filename: string): void {
 /**
  * Format estimate data for PDF (helper)
  */
-export function formatEstimateForPDF(estimate: Estimate) {
+export function formatEstimateForPDF(estimate: any) {
   return {
     client: {
       name: `${estimate.clientInfo.firstName} ${estimate.clientInfo.lastName}`,
@@ -97,20 +83,11 @@ export function formatEstimateForPDF(estimate: Estimate) {
       squareFootage: estimate.propertySpecs.squareFootage.toLocaleString(),
       guestCapacity: estimate.propertySpecs.guestCapacity,
     },
-    rooms: estimate.rooms.map(room => ({
+    rooms: estimate.rooms.map((room: any) => ({
       name: room.displayName,
       size: room.roomSize,
       quantity: room.quantity,
     })),
-    budget: {
-      rangeLow: formatCurrency(estimate.budget.rangeLow),
-      rangeHigh: formatCurrency(estimate.budget.rangeHigh),
-      tiers: Object.keys(QUALITY_TIERS).map(tier => ({
-        name: QUALITY_TIERS[tier as keyof typeof QUALITY_TIERS].name,
-        description: QUALITY_TIERS[tier as keyof typeof QUALITY_TIERS].description,
-        total: formatCurrency(estimate.budget[tier as keyof typeof QUALITY_TIERS].total),
-      })),
-    },
   };
 }
 

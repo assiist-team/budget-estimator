@@ -1,7 +1,6 @@
 // High Level CRM Integration
 // Syncs estimate submissions to High Level CRM
 
-import type { Estimate } from '../types';
 
 export async function syncToHighLevel(estimate: any, estimateId: string): Promise<boolean> {
   const token = import.meta.env.VITE_HIGHLEVEL_TOKEN;

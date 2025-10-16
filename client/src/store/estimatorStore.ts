@@ -1,7 +1,7 @@
 // Zustand store for estimator state management
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { PropertySpecs, SelectedRoom, RoomWithItems, Budget, ClientInfo } from '../types';
+import type { PropertySpecs, RoomWithItems, ClientInfo } from '../types';
 
 interface EstimatorState {
   // Current step in the flow
@@ -13,11 +13,6 @@ interface EstimatorState {
   // Selected rooms with items
   selectedRooms: RoomWithItems[];
 
-  // Calculated budget
-  budget: Budget | null;
-
-  // Budget mode toggle
-  budgetMode: boolean;
 
   // Client information
   clientInfo: ClientInfo | null;
@@ -32,8 +27,6 @@ interface EstimatorState {
   updateRoom: (index: number, room: RoomWithItems) => void;
   addRoom: (room: RoomWithItems) => void;
   removeRoom: (index: number) => void;
-  setBudget: (budget: Budget) => void;
-  setBudgetMode: (mode: boolean) => void;
   setClientInfo: (info: ClientInfo) => void;
   setConfigurationInitialized: (initialized: boolean) => void;
   reset: () => void;
@@ -43,8 +36,6 @@ const initialState = {
   currentStep: 0,
   propertySpecs: null,
   selectedRooms: [],
-  budget: null,
-  budgetMode: true,
   clientInfo: null,
   isConfigurationInitialized: false,
 };
@@ -82,9 +73,6 @@ export const useEstimatorStore = create<EstimatorState>()(
           selectedRooms: state.selectedRooms.filter((_, i) => i !== index),
         })),
 
-      setBudget: (budget) => set({ budget }),
-
-      setBudgetMode: (mode) => set({ budgetMode: mode }),
 
       setClientInfo: (info) => set({ clientInfo: info }),
 
@@ -99,9 +87,7 @@ export const useEstimatorStore = create<EstimatorState>()(
       partialize: (state) => ({
         propertySpecs: state.propertySpecs,
         selectedRooms: state.selectedRooms,
-        budget: state.budget,
         currentStep: state.currentStep,
-        budgetMode: state.budgetMode,
         isConfigurationInitialized: state.isConfigurationInitialized,
       }),
     }

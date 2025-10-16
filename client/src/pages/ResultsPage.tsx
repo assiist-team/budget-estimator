@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -7,16 +7,16 @@ import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
 import type { ClientInfo, RoomItem, RoomWithItems } from '../types';
-import { formatCurrency, generateEstimateId } from '../utils/calculations';
+import { formatCurrency } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { syncToHighLevel } from '../utils/highLevelSync';
+import { calculateEstimate } from '../utils/calculations';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
   const {
     propertySpecs,
     selectedRooms,
-    budget,
     setClientInfo,
     reset
   } = useEstimatorStore();
@@ -24,6 +24,25 @@ export default function ResultsPage() {
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Convert arrays to Maps for calculation functions
+  const roomTemplatesMap = useMemo(() => {
+    const map = new Map<string, any>();
+    roomTemplates.forEach(template => map.set(template.id, template));
+    return map;
+  }, [roomTemplates]);
+
+  const itemsMap = useMemo(() => {
+    const map = new Map<string, any>();
+    items.forEach(item => map.set(item.id, item));
+    return map;
+  }, [items]);
+
+  // Calculate budget dynamically
+  const budget = useMemo(() => {
+    if (selectedRooms.length === 0) return null;
+    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap);
+  }, [selectedRooms, roomTemplatesMap, itemsMap]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<ClientInfo>();
 
@@ -68,11 +87,9 @@ export default function ResultsPage() {
 
       // Save estimate to Firestore with complete item mappings
       const estimateData = {
-        id: generateEstimateId(),
         clientInfo: data,
         propertySpecs,
         rooms: roomsWithItems,
-        budget,
         status: 'submitted',
         source: 'direct',
         viewCount: 0,

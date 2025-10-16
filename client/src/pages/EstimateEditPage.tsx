@@ -1,20 +1,33 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import Header from '../components/Header';
 import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
-import type { RoomWithItems, RoomTemplate } from '../types';
-import { formatCurrency } from '../utils/calculations';
+import type { RoomWithItems, RoomTemplate, Item } from '../types';
+import { formatCurrency, calculateEstimate } from '../utils/calculations';
 
 export default function EstimateEditPage() {
   const navigate = useNavigate();
   const { estimateId } = useParams<{ estimateId: string }>();
   const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, removeRoom, saveChanges, undo, redo } = useEstimateEditor(estimateId);
-  const { roomTemplates } = useRoomTemplates();
+  const { roomTemplates, items } = useRoomTemplates();
   const [saving, setSaving] = useState(false);
   const [isClientInfoExpanded, setIsClientInfoExpanded] = useState(false);
   const [isPropertySpecsExpanded, setIsPropertySpecsExpanded] = useState(false);
+
+  // Convert arrays to Maps for calculation functions
+  const roomTemplatesMap = useMemo(() => {
+    const map = new Map<string, RoomTemplate>();
+    roomTemplates.forEach(template => map.set(template.id, template));
+    return map;
+  }, [roomTemplates]);
+
+  const itemsMap = useMemo(() => {
+    const map = new Map<string, Item>();
+    items.forEach(item => map.set(item.id, item));
+    return map;
+  }, [items]);
 
   // Redirect if no estimate loaded
   useEffect(() => {
@@ -123,7 +136,10 @@ export default function EstimateEditPage() {
               FURNISHINGS ESTIMATE TOTAL
             </p>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 leading-tight">
-              {formatCurrency(estimate.budget.rangeLow)} — {formatCurrency(estimate.budget.rangeHigh)}
+              {(() => {
+                const budget = calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap);
+                return `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
+              })()}
             </div>
             <p className="text-xs sm:text-sm opacity-75">
               {estimate.rooms.length} room{estimate.rooms.length !== 1 ? 's' : ''} • {estimate.rooms.reduce((total, room) => total + room.quantity, 0)} items

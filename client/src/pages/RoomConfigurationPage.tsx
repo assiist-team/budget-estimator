@@ -17,8 +17,6 @@ export default function RoomConfigurationPage() {
     selectedRooms,
     setSelectedRooms,
     setCurrentStep,
-    setBudget,
-    budgetMode,
     isConfigurationInitialized,
     setConfigurationInitialized,
   } = useEstimatorStore();
@@ -125,7 +123,7 @@ export default function RoomConfigurationPage() {
   const calculateRunningTotal = () => {
     if (localRooms.length === 0) return { low: 0, high: 0 };
     
-    const budget = calculateEstimate(localRooms, roomTemplates, undefined, budgetMode);
+    const budget = calculateEstimate(localRooms, roomTemplates, undefined);
     return {
       low: budget.rangeLow,
       high: budget.rangeHigh,
@@ -137,12 +135,8 @@ export default function RoomConfigurationPage() {
       alert('Please select at least one room');
       return;
     }
-    
-    // Calculate budget
-    const budget = calculateEstimate(localRooms, roomTemplates, undefined, budgetMode);
-    
+
     setSelectedRooms(localRooms);
-    setBudget(budget);
     setCurrentStep(3);
     navigate('/results');
   };

@@ -90,7 +90,6 @@ export interface Budget {
   high: TierTotal;
   rangeLow: number;
   rangeHigh: number;
-  budgetMode?: boolean;
 }
 
 export interface ClientInfo {
@@ -106,7 +105,6 @@ export interface Estimate {
   clientInfo: ClientInfo;
   propertySpecs: PropertySpecs;
   rooms: RoomWithItems[];
-  budget: Budget;
   status: 'draft' | 'submitted' | 'viewed' | 'contacted' | 'closed';
   source: string;
   viewCount: number;
