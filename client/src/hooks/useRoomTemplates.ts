@@ -7,12 +7,20 @@ import type { RoomTemplate, Item, RoomSize } from '../types';
 
 // Function to calculate room totals from items
 function calculateRoomTotals(items: Map<string, Item>, roomSize: RoomSize): RoomSize {
-  const totals = { budget: 0, mid: 0, midHigh: 0, high: 0 };
+  const baseTotals = {
+    low: roomSize.totals.low ?? 0,
+    mid: roomSize.totals.mid ?? 0,
+    midHigh: roomSize.totals.midHigh ?? 0,
+    high: roomSize.totals.high ?? 0,
+  } as Record<string, number>;
+
+  const totals = { ...baseTotals } as { low: number; mid: number; midHigh: number; high: number };
 
   roomSize.items.forEach((roomItem) => {
     const item = items.get(roomItem.itemId);
     if (item) {
-      totals.budget += item.budgetPrice * roomItem.quantity;
+      const lowPrice = item.lowPrice ?? 0;
+      totals.low += lowPrice * roomItem.quantity;
       totals.mid += item.midPrice * roomItem.quantity;
       totals.midHigh += item.midHighPrice * roomItem.quantity;
       totals.high += item.highPrice * roomItem.quantity;
@@ -44,7 +52,7 @@ async function loadRoomTemplatesFromFirestore(): Promise<{ templates: Map<string
         name: docData.name,
         category: docData.category,
         subcategory: docData.subcategory,
-        budgetPrice: docData.budgetPrice,
+        lowPrice: docData.lowPrice ?? 0,
         midPrice: docData.midPrice,
         midHighPrice: docData.midHighPrice,
         highPrice: docData.highPrice,
@@ -63,7 +71,16 @@ async function loadRoomTemplatesFromFirestore(): Promise<{ templates: Map<string
       // Calculate totals for each room size based on items
       const sizes = {} as any;
       Object.keys(docData.sizes).forEach((sizeKey) => {
-        sizes[sizeKey] = calculateRoomTotals(items, docData.sizes[sizeKey]);
+        const sizeData = docData.sizes[sizeKey];
+        sizes[sizeKey] = calculateRoomTotals(items, {
+          ...sizeData,
+          totals: {
+            low: sizeData.totals?.low ?? 0,
+            mid: sizeData.totals?.mid ?? 0,
+            midHigh: sizeData.totals?.midHigh ?? 0,
+            high: sizeData.totals?.high ?? 0,
+          }
+        });
       });
 
       templates.set(doc.id, {

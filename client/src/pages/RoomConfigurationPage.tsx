@@ -9,6 +9,7 @@ import { suggestRoomConfiguration, formatCurrency, calculateEstimate } from '../
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useAutoConfiguration, useAutoConfigRules } from '../hooks/useAutoConfiguration';
 import { calculateBedroomCapacity } from '../utils/autoConfiguration';
+import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
 
 export default function RoomConfigurationPage() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function RoomConfigurationPage() {
   } = useEstimatorStore();
   
   const { roomTemplates, loading } = useRoomTemplates();
+  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults } = useProjectDefaultsStore();
   const { computedConfiguration } = useAutoConfiguration();
   const { rules } = useAutoConfigRules();
   const [localRooms, setLocalRooms] = useState<RoomWithItems[]>(selectedRooms as RoomWithItems[]);
@@ -62,6 +64,12 @@ export default function RoomConfigurationPage() {
       navigate('/property');
     }
   }, [propertySpecs, navigate]);
+
+  useEffect(() => {
+    if (!projectDefaults) {
+      loadProjectDefaults();
+    }
+  }, [projectDefaults, loadProjectDefaults]);
 
   const handleToggleRoom = (roomType: string) => {
     const existingIndex = localRooms.findIndex(r => r.roomType === roomType);
@@ -115,18 +123,25 @@ export default function RoomConfigurationPage() {
 
     const roomSize = template.sizes[size];
     return {
-      low: roomSize.totals.budget,
-      high: roomSize.totals.mid, // Use mid tier for upper range instead of 20% markup
+      low: roomSize.totals.low,
+      mid: roomSize.totals.mid,
     };
   };
 
   const calculateRunningTotal = () => {
-    if (localRooms.length === 0) return { low: 0, high: 0 };
-    
-    const budget = calculateEstimate(localRooms, roomTemplates, undefined);
+    if (localRooms.length === 0) return { low: 0, mid: 0 };
+
+    const options = propertySpecs && projectDefaults ? { propertySpecs, projectDefaults } : undefined;
+    const budget = calculateEstimate(localRooms, roomTemplates, undefined, options);
+    if ('projectRange' in budget) {
+      return {
+        low: budget.projectRange.low,
+        mid: budget.projectRange.mid,
+      };
+    }
     return {
       low: budget.rangeLow,
-      high: budget.rangeHigh,
+      mid: budget.rangeHigh,
     };
   };
 
@@ -172,10 +187,10 @@ export default function RoomConfigurationPage() {
         
         <div className="mt-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Configure Your Rooms
+            Configure Your Project Package
           </h1>
           <p className="text-gray-600 mb-8">
-            Select the rooms you'd like to furnish and customize their sizes
+            Select the rooms you'd like to furnish and customise their sizes to build a complete project budget
           </p>
 
           {/* Common Spaces */}
@@ -251,13 +266,13 @@ export default function RoomConfigurationPage() {
             <div className="card bg-primary-50 border-2 border-primary-200">
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-700 mb-2">
-                  Estimated Budget Range
+                  Estimated Project Range
                 </p>
                 <p className="text-3xl font-bold text-primary-800">
-                  {formatCurrency(runningTotal.low)} - {formatCurrency(runningTotal.high)}
+                  {formatCurrency(runningTotal.low)} - {formatCurrency(runningTotal.mid)}
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Max capacity: {computedConfiguration && rules ? calculateBedroomCapacity(computedConfiguration.bedrooms, rules) : 0} guests
+                  {propertySpecs?.squareFootage?.toLocaleString() || 0} sqft • Max capacity: {computedConfiguration && rules ? calculateBedroomCapacity(computedConfiguration.bedrooms, rules) : 0} guests
                 </p>
               </div>
             </div>

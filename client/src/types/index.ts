@@ -5,7 +5,7 @@ export interface Item {
   name: string;
   category: string;
   subcategory?: string;
-  budgetPrice: number; // in cents
+  lowPrice: number; // in cents
   midPrice: number;
   midHighPrice: number;
   highPrice: number;
@@ -25,7 +25,7 @@ export interface RoomSize {
   displayName: string;
   items: RoomItem[];
   totals: {
-    budget: number;
+    low: number;
     mid: number;
     midHigh: number;
     high: number;
@@ -70,7 +70,7 @@ export interface RoomBreakdown {
   roomType: string;
   roomSize: string;
   quantity: number;
-  budgetAmount: number;
+  lowAmount: number;
   midAmount: number;
   midHighAmount: number;
   highAmount: number;
@@ -84,7 +84,7 @@ export interface TierTotal {
 
 export interface Budget {
   roomBreakdown: RoomBreakdown[];
-  budget: TierTotal;
+  low: TierTotal;
   mid: TierTotal;
   midHigh: TierTotal;
   high: TierTotal;
@@ -135,11 +135,11 @@ export interface EditHistoryEntry {
   details: Record<string, any>;
 }
 
-export type QualityTier = 'budget' | 'mid' | 'midHigh' | 'high';
+export type QualityTier = 'low' | 'mid' | 'midHigh' | 'high';
 
 export const QUALITY_TIERS: { [key in QualityTier]: { name: string; description: string } } = {
-  budget: {
-    name: 'Budget Quality',
+  low: {
+    name: 'Low Quality',
     description: 'Good value materials and furnishings',
   },
   mid: {
@@ -155,4 +155,38 @@ export const QUALITY_TIERS: { [key in QualityTier]: { name: string; description:
     description: 'Luxury, high-end designer furnishings',
   },
 };
+
+// Project cost defaults
+export interface ProjectCostDefaults {
+  installationCents: number;
+  fuelCents: number;
+  storageAndReceivingCents: number;
+  kitchenCents: number;
+  propertyManagementCents: number;
+  designFee: {
+    ratePerSqftCents: number;
+    description: string;
+  };
+  updatedAt: Date;
+  updatedBy: string;
+}
+
+// Extended budget with project add-ons
+export interface ProjectBudget extends Budget {
+  contingencyDisabled: boolean;
+  projectAddOns: {
+    installation: number;
+    fuel: number;
+    storageAndReceiving: number;
+    kitchen: number;
+    propertyManagement: number;
+    designFee: number;
+  };
+  projectRange: {
+    low: number;
+    mid: number;
+    midHigh: number;
+    high: number;
+  };
+}
 

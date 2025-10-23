@@ -1,10 +1,13 @@
-import type { SelectedRoom } from '../types';
-import { formatCurrencyAbbreviated } from '../utils/calculations';
+import type { RoomWithItems } from '../types';
+import { formatCurrency } from '../utils/calculations';
 
 interface RoomCardProps {
-  room: SelectedRoom;
+  room: RoomWithItems;
   isSelected: boolean;
-  priceRange: { low: number; high: number };
+  priceRange: {
+    low: number;
+    mid: number;
+  };
   onToggle: () => void;
   onSizeChange: (size: 'small' | 'medium' | 'large') => void;
   onQuantityChange: (quantity: number) => void;
@@ -35,9 +38,9 @@ export default function RoomCard({
               {room.displayName}
             </h3>
             {isSelected && (
-              <p className="text-sm text-gray-600">
-                {formatCurrencyAbbreviated(priceRange.low)} - {formatCurrencyAbbreviated(priceRange.high)}
-              </p>
+              <div className="mt-4 text-sm text-gray-600">
+                Low: {formatCurrency(priceRange.low)} — Mid: {formatCurrency(priceRange.mid)}
+              </div>
             )}
           </div>
         </div>

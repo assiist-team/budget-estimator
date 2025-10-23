@@ -16,10 +16,10 @@ export default function LandingPage() {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
-            Get Your Furnishings Budget Estimate
+            Get Your Project Budget Estimate
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Get an instant furnishings budget estimate for your vacation rental.
+            Discover a complete project budget—including furnishings, design fees, and every key service—for your vacation rental.
           </p>
           <button
             onClick={handleStartEstimate}
@@ -56,10 +56,10 @@ export default function LandingPage() {
                 2
               </div>
               <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                Select your rooms and furnishings
+                Configure your spaces
               </h3>
               <p className="text-gray-600">
-                Choose which rooms to furnish and their sizes
+                Select the rooms you need, tailor their sizes, and capture the furnishings scope
               </p>
             </div>
 
@@ -68,10 +68,10 @@ export default function LandingPage() {
                 3
               </div>
               <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                Get your furnishings budget estimate
+                Review your complete project budget
               </h3>
               <p className="text-gray-600">
-                Receive a detailed PDF with your furnishings budget estimate
+                Instantly see furnishings, design fees, and project add-ons in one shareable estimate
               </p>
             </div>
           </div>
@@ -84,7 +84,7 @@ export default function LandingPage() {
               Ready to Get Started?
             </h2>
             <p className="text-gray-600 mb-6">
-              It only takes a few minutes to get your furnishings budget estimate
+              It only takes a few minutes to get your project budget estimate
             </p>
             <button
               onClick={handleStartEstimate}

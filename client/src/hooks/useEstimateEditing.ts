@@ -3,8 +3,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useRoomTemplates } from './useRoomTemplates';
-import type { Estimate, RoomWithItems, EditHistoryEntry } from '../types';
+import type { Estimate, RoomWithItems, PropertySpecs } from '../types';
 import { calculateEstimate } from '../utils/calculations';
+import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
 
 /**
  * Hook for loading and managing estimates with complete item mappings
@@ -14,6 +15,13 @@ export function useEstimateEditing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { roomTemplates, items } = useRoomTemplates();
+  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults } = useProjectDefaultsStore();
+
+  useEffect(() => {
+    if (!projectDefaults) {
+      loadProjectDefaults();
+    }
+  }, [projectDefaults, loadProjectDefaults]);
 
   // Load estimates from Firestore
   const loadEstimates = useCallback(async () => {
@@ -131,6 +139,11 @@ export function useEstimateEditing() {
       return false;
     }
   }, []);
+
+  const computeBudget = useCallback((rooms: RoomWithItems[], specs: PropertySpecs) => {
+    const options = projectDefaults ? { propertySpecs: specs, projectDefaults } : undefined;
+    return calculateEstimate(rooms, roomTemplates, items, options);
+  }, [projectDefaults, roomTemplates, items]);
 
 
   useEffect(() => {

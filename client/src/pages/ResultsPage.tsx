@@ -11,6 +11,7 @@ import { formatCurrency } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { syncToHighLevel } from '../utils/highLevelSync';
 import { calculateEstimate } from '../utils/calculations';
+import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ export default function ResultsPage() {
   } = useEstimatorStore();
 
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
+  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults, loading: defaultsLoading } = useProjectDefaultsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -41,19 +43,26 @@ export default function ResultsPage() {
   // Calculate budget dynamically
   const budget = useMemo(() => {
     if (selectedRooms.length === 0) return null;
-    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap);
-  }, [selectedRooms, roomTemplatesMap, itemsMap]);
+    const options = projectDefaults && propertySpecs ? { propertySpecs, projectDefaults } : undefined;
+    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, options);
+  }, [selectedRooms, roomTemplatesMap, itemsMap, projectDefaults, propertySpecs]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<ClientInfo>();
 
   // Redirect if no budget calculated
+  useEffect(() => {
+    if (!projectDefaults && loadProjectDefaults) {
+      loadProjectDefaults();
+    }
+  }, [projectDefaults, loadProjectDefaults]);
+
   useEffect(() => {
     if (!budget || !selectedRooms || selectedRooms.length === 0) {
       navigate('/rooms');
     }
   }, [budget, selectedRooms, navigate]);
 
-  if (!budget || !propertySpecs || templatesLoading) {
+  if (!budget || !propertySpecs || templatesLoading || defaultsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -165,10 +174,12 @@ export default function ResultsPage() {
           <div className="bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 mb-8">
             <div className="text-center py-6">
               <p className="text-lg font-medium mb-3 opacity-90">
-                ESTIMATED FURNISHINGS BUDGET RANGE
+                ESTIMATED PROJECT BUDGET RANGE
               </p>
               <div className="text-5xl font-bold mb-2">
-                {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
+                {'projectRange' in budget
+                  ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
+                  : `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`}
               </div>
               <p className="text-sm opacity-75 mt-4">
                 {propertySpecs.squareFootage.toLocaleString()} sqft property | Max capacity: {propertySpecs.guestCapacity} guests
@@ -210,7 +221,7 @@ export default function ResultsPage() {
                             </div>
                             <div className="text-right">
                               <div className="font-medium text-gray-900">
-                                {formatCurrency(room.budgetAmount)} — {formatCurrency(room.midAmount)}
+                                {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
                               </div>
                             </div>
                           </div>
@@ -249,11 +260,45 @@ export default function ResultsPage() {
                       );
                     })}
                   </div>
-                  <div className="border-t border-gray-200 pt-3">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total Range</span>
-                      <span>{formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}</span>
+                  <div className="space-y-6 mb-4">
+                    <div className="grid gap-2">
+                      <div className="flex justify-between text-lg font-bold">
+                        <span>Furnishings Total</span>
+                        <span>{formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}</span>
+                      </div>
                     </div>
+                    {'projectAddOns' in budget && (
+                      <div className="mt-6 space-y-3 text-sm text-gray-700">
+                        <div className="flex justify-between">
+                          <span>Installation</span>
+                          <span>{formatCurrency(budget.projectAddOns.installation)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Fuel</span>
+                          <span>{formatCurrency(budget.projectAddOns.fuel)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Storage & Receiving</span>
+                          <span>{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Kitchen Setup</span>
+                          <span>{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Property Management</span>
+                          <span>{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Design Fee</span>
+                          <span>{formatCurrency(budget.projectAddOns.designFee)}</span>
+                        </div>
+                        <div className="flex justify-between text-base font-semibold border-t border-gray-200 pt-3">
+                          <span>Estimated Project Total</span>
+                          <span>{formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

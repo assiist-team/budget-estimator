@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
+import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
 import Header from '../components/Header';
 import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
 import type { RoomWithItems, RoomTemplate, Item } from '../types';
@@ -28,6 +29,14 @@ export default function EstimateEditPage() {
     items.forEach(item => map.set(item.id, item));
     return map;
   }, [items]);
+
+  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults } = useProjectDefaultsStore();
+
+  useEffect(() => {
+    if (!projectDefaults) {
+      loadProjectDefaults();
+    }
+  }, [projectDefaults, loadProjectDefaults]);
 
   // Redirect if no estimate loaded
   useEffect(() => {
@@ -74,6 +83,17 @@ export default function EstimateEditPage() {
       alert('Failed to save estimate. Please try again.');
     }
   };
+
+  const calculateBudgetRange = useCallback((rooms: RoomWithItems[]) => {
+    const options = estimate?.propertySpecs && projectDefaults
+      ? { propertySpecs: estimate.propertySpecs, projectDefaults }
+      : undefined;
+    const budget = calculateEstimate(rooms, roomTemplatesMap, itemsMap, options);
+    if ('projectRange' in budget) {
+      return `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`;
+    }
+    return `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
+  }, [roomTemplatesMap, itemsMap, estimate?.propertySpecs, projectDefaults]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,10 +156,7 @@ export default function EstimateEditPage() {
               FURNISHINGS ESTIMATE TOTAL
             </p>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 leading-tight">
-              {(() => {
-                const budget = calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap);
-                return `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
-              })()}
+              <span className="font-medium">Project Range:</span> {calculateBudgetRange(estimate.rooms)}
             </div>
             <p className="text-xs sm:text-sm opacity-75">
               {estimate.rooms.length} room{estimate.rooms.length !== 1 ? 's' : ''} • {estimate.rooms.reduce((total, room) => total + room.quantity, 0)} items

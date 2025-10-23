@@ -1,23 +1,27 @@
 // Budget calculation utilities
-import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier, Item } from '../types';
+import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, ProjectCostDefaults, ProjectBudget } from '../types';
 import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
 export { QUALITY_TIERS } from '../types';
 
 /**
- * Calculate estimate for all quality tiers (budget to mid range)
+ * Calculate estimate for all quality tiers (low to mid range)
  */
 export function calculateEstimate(
   selectedRooms: (RoomWithItems | any)[], // Accept both RoomWithItems and SelectedRoom
   roomTemplates: Map<string, RoomTemplate>,
-  items?: Map<string, Item>
-): Budget {
-  const tiers: QualityTier[] = ['budget', 'mid', 'midHigh', 'high'];
-  
+  items?: Map<string, Item>,
+  options?: {
+    propertySpecs?: PropertySpecs;
+    projectDefaults?: ProjectCostDefaults;
+  }
+): Budget | ProjectBudget {
+  const tiers: QualityTier[] = ['low', 'mid', 'midHigh', 'high'];
+
   const budget: Budget = {
     roomBreakdown: [],
-    budget: { subtotal: 0, contingency: 0, total: 0 },
+    low: { subtotal: 0, contingency: 0, total: 0 },
     mid: { subtotal: 0, contingency: 0, total: 0 },
     midHigh: { subtotal: 0, contingency: 0, total: 0 },
     high: { subtotal: 0, contingency: 0, total: 0 },
@@ -36,7 +40,7 @@ export function calculateEstimate(
       roomType: room.roomType,
       roomSize: room.roomSize,
       quantity: room.quantity,
-      budgetAmount: 0,
+      lowAmount: 0,
       midAmount: 0,
       midHighAmount: 0,
       highAmount: 0,
@@ -50,18 +54,25 @@ export function calculateEstimate(
     if (hasItems && items) {
         // Calculate dynamically from current room items for all tiers
         tiers.forEach((tier) => {
+          const tierKey = `${tier}Price` as keyof Item;
           const roomTotal = room.items.reduce((total: number, roomItem: any) => {
             const item = items.get(roomItem.itemId);
-            const tierPrice = item ? item[`${tier}Price` as keyof typeof item] as number : 0;
+            if (!item) return total;
+            const candidate = item[tierKey];
+            const tierPrice = typeof candidate === 'number' ? candidate : 0;
             return total + tierPrice * roomItem.quantity;
           }, 0) * room.quantity;
           roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
           budget[tier].subtotal += roomTotal;
         });
-    } else {
+    } else if (template) {
         // Use pre-calculated room totals for rooms without items
         tiers.forEach((tier) => {
-          const roomTotal = roomSize.totals[tier] * room.quantity;
+          const tierKey = tier;
+          const templateTotals = template.sizes[room.roomSize as keyof typeof template.sizes]?.totals as Record<string, number> | undefined;
+          const candidate = templateTotals?.[tierKey];
+          const roomTotals = typeof candidate === 'number' ? candidate : 0;
+          const roomTotal = roomTotals * room.quantity;
           roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
           budget[tier].subtotal += roomTotal;
         });
@@ -70,15 +81,47 @@ export function calculateEstimate(
     budget.roomBreakdown.push(roomData);
   });
 
-  // Calculate contingency and totals for each tier
+  // Zero out contingency for each tier (totals equal subtotals)
   tiers.forEach((tier) => {
-    budget[tier].contingency = Math.round(budget[tier].subtotal * 0.1);
-    budget[tier].total = budget[tier].subtotal + budget[tier].contingency;
+    budget[tier].contingency = 0;
+    budget[tier].total = budget[tier].subtotal;
   });
 
-  // Set overall range (budget tier for lower range, mid tier for upper range)
-  budget.rangeLow = budget.budget.total;
+  // Set overall range (low tier for lower range, mid tier for upper range)
+  budget.rangeLow = budget.low.total;
   budget.rangeHigh = budget.mid.total;
+
+  // If project defaults are provided, calculate project budget with add-ons
+  if (options?.propertySpecs && options?.projectDefaults) {
+    const { propertySpecs, projectDefaults } = options;
+
+    const projectAddOns = {
+      installation: projectDefaults.installationCents,
+      fuel: projectDefaults.fuelCents,
+      storageAndReceiving: projectDefaults.storageAndReceivingCents,
+      kitchen: projectDefaults.kitchenCents,
+      propertyManagement: projectDefaults.propertyManagementCents,
+      designFee: Math.round(propertySpecs.squareFootage * projectDefaults.designFee.ratePerSqftCents)
+    } as const;
+
+    const addOnTotal = Object.values(projectAddOns).reduce((sum, cents) => sum + cents, 0);
+
+    const projectRange = {
+      low: budget.low.total + addOnTotal,
+      mid: budget.mid.total + addOnTotal,
+      midHigh: budget.midHigh.total + addOnTotal,
+      high: budget.high.total + addOnTotal
+    } as const;
+
+    const projectBudget: ProjectBudget = {
+      ...budget,
+      contingencyDisabled: true,
+      projectAddOns,
+      projectRange
+    };
+
+    return projectBudget;
+  }
 
   return budget;
 }

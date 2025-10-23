@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
-import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
+import type { Estimate, RoomTemplate, Item, RoomItem, ProjectCostDefaults } from '../types';
 import type { AutoConfigRules, BedroomMixRule } from '../types/config';
+import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
 import { formatCurrency, calculateEstimate } from '../utils/calculations';
 import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 import { EditIcon, TrashIcon } from '../components/Icons';
@@ -61,7 +62,7 @@ export default function AdminPage() {
     return map;
   }, [items]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'estimates' | 'templates' | 'items' | 'autoconfig'>('estimates');
+  const [activeTab, setActiveTab] = useState<'estimates' | 'templates' | 'items' | 'autoconfig' | 'defaults'>('estimates');
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [showCreateItem, setShowCreateItem] = useState(false);
@@ -75,6 +76,12 @@ export default function AdminPage() {
   const [autoConfigSaving, setAutoConfigSaving] = useState(false);
   const [editingBedroomRule, setEditingBedroomRule] = useState<BedroomMixRule | null>(null);
 
+  // Project defaults state
+  const { defaults, loading: defaultsLoading, error: defaultsError, loadDefaults, saveDefaults } = useProjectDefaultsStore();
+  const [defaultsForm, setDefaultsForm] = useState<Partial<ProjectCostDefaults>>({});
+  const [defaultsSaving, setDefaultsSaving] = useState(false);
+  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults } = useProjectDefaultsStore();
+
   // Set initial room size tab when editing template opens
   useEffect(() => {
     if (editingTemplate && !activeRoomSizeTab) {
@@ -82,6 +89,23 @@ export default function AdminPage() {
       setHasUnsavedChanges(false); // Reset unsaved changes when opening a template
     }
   }, [editingTemplate, activeRoomSizeTab]);
+
+  // Load project defaults when defaults tab becomes active
+  useEffect(() => {
+    if (activeTab === 'defaults') {
+      loadDefaults();
+    }
+    if (!projectDefaults) {
+      loadProjectDefaults();
+    }
+  }, [activeTab, loadDefaults, projectDefaults, loadProjectDefaults]);
+
+  // Update form when defaults are loaded
+  useEffect(() => {
+    if (defaults) {
+      setDefaultsForm(defaults);
+    }
+  }, [defaults]);
 
 
   useEffect(() => {
@@ -116,9 +140,23 @@ export default function AdminPage() {
         console.log('Fetching room templates from Firestore...');
         templatesSnapshot.forEach((doc) => {
           const docData = doc.data();
+          const sizes = Object.keys(docData.sizes || {}).reduce((acc, key) => {
+            const sizeData = docData.sizes[key];
+            acc[key] = {
+              ...sizeData,
+              totals: {
+                low: sizeData.totals?.low ?? 0,
+                mid: sizeData.totals?.mid ?? 0,
+                midHigh: sizeData.totals?.midHigh ?? 0,
+                high: sizeData.totals?.high ?? 0,
+              }
+            };
+            return acc;
+          }, {} as RoomTemplate['sizes']);
           templatesData.push({
             id: doc.id,
             ...docData,
+            sizes,
             createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
             updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
           } as RoomTemplate);
@@ -136,6 +174,7 @@ export default function AdminPage() {
           itemsData.push({
             id: doc.id,
             ...docData,
+            lowPrice: docData.lowPrice,
             createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
             updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
           } as Item);
@@ -412,26 +451,27 @@ export default function AdminPage() {
 
 
   // Function to calculate totals for a room size
-  const calculateRoomTotals = (roomItems: RoomItem[]): { budget: number; mid: number; midHigh: number; high: number } => {
-    let budget = 0, mid = 0, midHigh = 0, high = 0;
+  const calculateRoomTotals = (roomItems: RoomItem[]): { low: number; mid: number; midHigh: number; high: number } => {
+    let low = 0, mid = 0, midHigh = 0, high = 0;
 
     roomItems.forEach(roomItem => {
       const item = items.find(i => i.id === roomItem.itemId);
       if (item) {
-        budget += item.budgetPrice * roomItem.quantity;
+        const itemLowPrice = item.lowPrice ?? 0;
+        low += itemLowPrice * roomItem.quantity;
         mid += item.midPrice * roomItem.quantity;
         midHigh += item.midHighPrice * roomItem.quantity;
         high += item.highPrice * roomItem.quantity;
       }
     });
 
-    return { budget, mid, midHigh, high };
+    return { low, mid, midHigh, high };
   };
 
   // Function to get current totals for the active room size (always calculated fresh)
-  const getCurrentRoomTotals = (): { budget: number; mid: number; midHigh: number; high: number } => {
+  const getCurrentRoomTotals = (): { low: number; mid: number; midHigh: number; high: number } => {
     if (!editingTemplate || !activeRoomSizeTab) {
-      return { budget: 0, mid: 0, midHigh: 0, high: 0 };
+      return { low: 0, mid: 0, midHigh: 0, high: 0 };
     }
 
     const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
@@ -508,6 +548,16 @@ export default function AdminPage() {
             >
               👥 Size & Capacity
             </button>
+            <button
+              onClick={() => setActiveTab('defaults')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'defaults'
+                  ? 'border-primary-500 text-primary-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              💰 Project Defaults
+            </button>
           </nav>
         </div>
 
@@ -571,10 +621,16 @@ export default function AdminPage() {
                               <span className="font-medium">Rooms:</span> {estimate.rooms.length}
                             </p>
                             <p className="text-gray-600">
-                              <span className="font-medium">Budget Range:</span>{' '}
+                              <span className="font-medium">Project Range:</span>{' '}
                               {(() => {
-                                const budget = calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap);
-                                return `${formatCurrency(budget.rangeLow)} - ${formatCurrency(budget.rangeHigh)}`;
+                                const options = estimate.propertySpecs && projectDefaults
+                                  ? { propertySpecs: estimate.propertySpecs, projectDefaults }
+                                  : undefined;
+                                const estimateBudget = calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, options);
+                                if ('projectRange' in estimateBudget) {
+                                  return `${formatCurrency(estimateBudget.projectRange.low)} - ${formatCurrency(estimateBudget.projectRange.mid)}`;
+                                }
+                                return `${formatCurrency(estimateBudget.rangeLow)} - ${formatCurrency(estimateBudget.rangeHigh)}`;
                               })()}
                             </p>
                             <p className="text-gray-600">
@@ -655,7 +711,7 @@ export default function AdminPage() {
                         <div className="text-sm text-gray-600">
                           <p>{sizeData.items.length} items</p>
                           <div className="grid grid-cols-2 gap-2 mt-1">
-                            <span>Budget: {formatCurrency(calculateRoomTotals(sizeData.items || []).budget)}</span>
+                            <span>Low: {formatCurrency(calculateRoomTotals(sizeData.items || []).low)}</span>
                             <span>Mid: {formatCurrency(calculateRoomTotals(sizeData.items || []).mid)}</span>
                             <span>Mid/High: {formatCurrency(calculateRoomTotals(sizeData.items || []).midHigh)}</span>
                             <span>High: {formatCurrency(calculateRoomTotals(sizeData.items || []).high)}</span>
@@ -753,7 +809,7 @@ export default function AdminPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="font-medium">Budget:</span> {formatCurrency(item.budgetPrice)}
+                      <span className="font-medium">Low:</span> {formatCurrency(item.lowPrice ?? 0)}
                     </div>
                     <div>
                       <span className="font-medium">Mid:</span> {formatCurrency(item.midPrice)}
@@ -1909,7 +1965,7 @@ export default function AdminPage() {
                           Budget
                         </div>
                         <div className="text-lg font-bold text-primary-500">
-                          {formatCurrency(getCurrentRoomTotals().budget)}
+                          {formatCurrency(getCurrentRoomTotals().low)}
                         </div>
                       </div>
                       <div className="text-center">
@@ -2023,9 +2079,9 @@ export default function AdminPage() {
                                   {item?.name || 'Unknown Item'}
                                 </span>
                                 <div className="text-sm text-gray-600 mt-1">
-                                  Budget: {formatCurrency(item?.budgetPrice || 0)} |
-                                  Mid: {formatCurrency(item?.midPrice || 0)} |
-                                  High: {formatCurrency(item?.highPrice || 0)}
+                                  Low: {formatCurrency(item?.lowPrice ?? 0)} |
+                                  Mid: {formatCurrency(item?.midPrice ?? 0)} |
+                                  High: {formatCurrency(item?.highPrice ?? 0)}
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
@@ -2277,7 +2333,7 @@ function ItemForm({
     name: item?.name || '',
     category: item?.category || 'Furniture',
     subcategory: item?.subcategory || '',
-    budgetPrice: item?.budgetPrice ? Math.round(item.budgetPrice / 100) : 0,
+    lowPrice: item?.lowPrice ? Math.round(item.lowPrice / 100) : 0,
     midPrice: item?.midPrice ? Math.round(item.midPrice / 100) : 0,
     midHighPrice: item?.midHighPrice ? Math.round(item.midHighPrice / 100) : 0,
     highPrice: item?.highPrice ? Math.round(item.highPrice / 100) : 0,
@@ -2291,7 +2347,7 @@ function ItemForm({
     // Convert prices to cents
     const submitData = {
       ...formData,
-      budgetPrice: Math.round(formData.budgetPrice * 100),
+      lowPrice: Math.round(formData.lowPrice * 100),
       midPrice: Math.round(formData.midPrice * 100),
       midHighPrice: Math.round(formData.midHighPrice * 100),
       highPrice: Math.round(formData.highPrice * 100),
@@ -2389,16 +2445,16 @@ function ItemForm({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">
-              Budget Quality
+              Low Quality
             </label>
             <input
               type="number"
               step="0.01"
               min="0"
-              value={formData.budgetPrice || ''}
+              value={formData.lowPrice || ''}
               onChange={(e) => {
                 const value = e.target.value;
-                setFormData(prev => ({ ...prev, budgetPrice: value === '' ? 0 : parseFloat(value) || 0 }));
+                setFormData(prev => ({ ...prev, lowPrice: value === '' ? 0 : parseFloat(value) || 0 }));
               }}
               className="w-full p-2 border border-gray-300 rounded"
               required
