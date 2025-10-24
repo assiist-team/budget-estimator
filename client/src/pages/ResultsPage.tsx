@@ -298,7 +298,7 @@ export default function ResultsPage() {
                     <div className="flex justify-between items-center py-3 border-b border-gray-200">
                       <span className="text-lg font-medium text-gray-900">Furnishings</span>
                       <span className="text-lg font-semibold text-gray-900">
-                        {formatCurrency(budget.low.total)} — {formatCurrency(budget.mid.total)}
+                        {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
                       </span>
                     </div>
 

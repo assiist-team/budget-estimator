@@ -121,9 +121,8 @@ export function calculateEstimate(
       contingencyDisabled: true,
       projectAddOns,
       projectRange,
-      // Update the base budget range to match project range for consistency
-      rangeLow: projectRange.low,
-      rangeHigh: projectRange.mid
+      // Keep original furnishings ranges intact - don't overwrite them!
+      // The base Budget.rangeLow/rangeHigh should always be furnishings-only
     };
 
     return projectBudget;
