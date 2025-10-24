@@ -1,5 +1,5 @@
 // Budget calculation utilities
-import type { RoomTemplate, RoomWithItems, SelectedRoom, RoomItem, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, BudgetDefaults, ProjectBudget } from '../types';
+import type { RoomTemplate, RoomWithItems, RoomItem, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, BudgetDefaults, ProjectBudget } from '../types';
 import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
@@ -9,7 +9,7 @@ export { QUALITY_TIERS } from '../types';
  * Calculate estimate for all quality tiers (low to mid range)
  */
 export function calculateEstimate(
-  selectedRooms: (RoomWithItems | SelectedRoom)[], // Accept both RoomWithItems and SelectedRoom
+  selectedRooms: RoomWithItems[],
   roomTemplates: Map<string, RoomTemplate>,
   items?: Map<string, Item>,
   options?: {
@@ -46,9 +46,8 @@ export function calculateEstimate(
       highAmount: 0,
     };
 
-    // Check if room has items (RoomWithItems) or not (SelectedRoom)
     // Ensure items is a non-empty array before using dynamic item-based calculations
-    const hasItems = Array.isArray(room.items) && room.items.length > 0;
+    const hasItems = room.items.length > 0;
 
     // Calculate all tiers for room breakdown
     if (hasItems && items) {
@@ -91,7 +90,6 @@ export function calculateEstimate(
   });
 
   // Set overall range (low tier for lower range, mid tier for upper range)
-  // Note: database still uses "budget" tier name but we map it to "low"
   budget.rangeLow = budget.low.total;
   budget.rangeHigh = budget.mid.total;
 
