@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
+import type { BudgetDefaults } from '../types';
 import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
-import type { Estimate, RoomTemplate, Item, RoomItem, ProjectCostDefaults } from '../types';
+import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
 import type { AutoConfigRules, BedroomMixRule } from '../types/config';
-import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
+import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import { formatCurrency, calculateEstimate } from '../utils/calculations';
 import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 import { EditIcon, TrashIcon } from '../components/Icons';
@@ -68,7 +69,7 @@ export default function AdminPage() {
   const [showCreateItem, setShowCreateItem] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [activeRoomSizeTab, setActiveRoomSizeTab] = useState<string>('');
+  const [activeRoomSizeTab, setActiveRoomSizeTab] = useState<'small' | 'medium' | 'large' | ''>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [autoConfigTab, setAutoConfigTab] = useState<'bedrooms' | 'commonareas' | 'validation'>('bedrooms');
@@ -77,10 +78,24 @@ export default function AdminPage() {
   const [editingBedroomRule, setEditingBedroomRule] = useState<BedroomMixRule | null>(null);
 
   // Project defaults state
-  const { defaults, loading: defaultsLoading, error: defaultsError, loadDefaults, saveDefaults } = useProjectDefaultsStore();
-  const [defaultsForm, setDefaultsForm] = useState<Partial<ProjectCostDefaults>>({});
-  const [defaultsSaving, setDefaultsSaving] = useState(false);
-  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults } = useProjectDefaultsStore();
+  const {
+    defaults,
+    loading: defaultsLoading,
+    loadDefaults,
+    saveDefaults,
+  } = useBudgetDefaultsStore();
+  const budgetDefaults = defaults;
+  const [localDefaults, setLocalDefaults] = useState<BudgetDefaults | null>(null);
+  const [savingBudgetDefaults, setSavingBudgetDefaults] = useState(false);
+  const [defaultsError, setDefaultsError] = useState<string | null>(null);
+  const [defaultsDirty, setDefaultsDirty] = useState(false);
+
+  useEffect(() => {
+    if (defaults && !localDefaults) {
+      setLocalDefaults(defaults);
+      setDefaultsDirty(false);
+    }
+  }, [defaults, localDefaults]);
 
   // Set initial room size tab when editing template opens
   useEffect(() => {
@@ -92,20 +107,11 @@ export default function AdminPage() {
 
   // Load project defaults when defaults tab becomes active
   useEffect(() => {
-    if (activeTab === 'defaults') {
-      loadDefaults();
+    if (activeTab === 'defaults' && !defaults && !defaultsLoading) {
+      void loadDefaults();
     }
-    if (!projectDefaults) {
-      loadProjectDefaults();
-    }
-  }, [activeTab, loadDefaults, projectDefaults, loadProjectDefaults]);
+  }, [activeTab, defaults, defaultsLoading, loadDefaults]);
 
-  // Update form when defaults are loaded
-  useEffect(() => {
-    if (defaults) {
-      setDefaultsForm(defaults);
-    }
-  }, [defaults]);
 
 
   useEffect(() => {
@@ -141,16 +147,18 @@ export default function AdminPage() {
         templatesSnapshot.forEach((doc) => {
           const docData = doc.data();
           const sizes = Object.keys(docData.sizes || {}).reduce((acc, key) => {
-            const sizeData = docData.sizes[key];
-            acc[key] = {
-              ...sizeData,
-              totals: {
-                low: sizeData.totals?.low ?? 0,
-                mid: sizeData.totals?.mid ?? 0,
-                midHigh: sizeData.totals?.midHigh ?? 0,
-                high: sizeData.totals?.high ?? 0,
-              }
-            };
+            if (key === 'small' || key === 'medium' || key === 'large') {
+              const sizeData = docData.sizes[key];
+              acc[key] = {
+                ...sizeData,
+                totals: {
+                  low: sizeData.totals?.low ?? 0,
+                  mid: sizeData.totals?.mid ?? 0,
+                  midHigh: sizeData.totals?.midHigh ?? 0,
+                  high: sizeData.totals?.high ?? 0,
+                }
+              };
+            }
             return acc;
           }, {} as RoomTemplate['sizes']);
           templatesData.push({
@@ -474,7 +482,10 @@ export default function AdminPage() {
       return { low: 0, mid: 0, midHigh: 0, high: 0 };
     }
 
-    const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+    if (!activeRoomSizeTab || !(activeRoomSizeTab in editingTemplate.sizes)) {
+      return { low: 0, mid: 0, midHigh: 0, high: 0 };
+    }
+    const sizeData = editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'];
     return calculateRoomTotals(sizeData.items || []);
   };
 
@@ -556,7 +567,7 @@ export default function AdminPage() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              💰 Project Defaults
+              💰 Budget Defaults
             </button>
           </nav>
         </div>
@@ -623,8 +634,8 @@ export default function AdminPage() {
                             <p className="text-gray-600">
                               <span className="font-medium">Project Range:</span>{' '}
                               {(() => {
-                                const options = estimate.propertySpecs && projectDefaults
-                                  ? { propertySpecs: estimate.propertySpecs, projectDefaults }
+                                const options = estimate.propertySpecs && budgetDefaults
+                                  ? { propertySpecs: estimate.propertySpecs, budgetDefaults }
                                   : undefined;
                                 const estimateBudget = calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, options);
                                 if ('projectRange' in estimateBudget) {
@@ -1866,6 +1877,120 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {activeTab === 'defaults' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                Budget Defaults
+              </h2>
+              <p className="text-gray-600">
+                Configure default costs for project add-ons and fees
+              </p>
+            </div>
+
+            {defaultsLoading ? (
+              <div className="card text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading budget defaults...</p>
+              </div>
+            ) : localDefaults ? (
+              <div className="card">
+                <div className="space-y-6">
+                  <div className="grid gap-6">
+                    {[
+                      { key: 'installationCents', label: 'Installation', prefix: '$' },
+                      { key: 'kitchenCents', label: 'Kitchen Setup', prefix: '$' },
+                      { key: 'fuelCents', label: 'Fuel', prefix: '$' },
+                      { key: 'propertyManagementCents', label: 'Property Management', prefix: '$' },
+                      { key: 'storageAndReceivingCents', label: 'Storage & Receiving', prefix: '$' },
+                      { key: 'designFeeRatePerSqftCents', label: 'Design Fee', prefix: '$/sqft' },
+                    ].map(({ key, label, prefix }) => (
+                      <div key={key as string}>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                        <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500">
+                          <span className="pl-3 pr-2 text-gray-500 whitespace-nowrap">
+                            {prefix}
+                          </span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={
+                              key === 'designFeeRatePerSqftCents'
+                                ? ((localDefaults.designFeeRatePerSqftCents ?? 0) / 100).toFixed(2)
+                                : ((localDefaults[key as keyof BudgetDefaults] as number) / 100).toFixed(2)
+                            }
+                            onChange={(e) => {
+                              const rawValue = parseFloat(e.target.value);
+                              const centsValue = isNaN(rawValue) ? 0 : Math.round(rawValue * 100);
+                              setLocalDefaults((prev) => prev ? {
+                                ...prev,
+                                [key]: centsValue,
+                              } as BudgetDefaults : prev);
+                              setDefaultsDirty(true);
+                            }}
+                            className="flex-1 bg-transparent border-0 focus:outline-none focus:ring-0 py-2 pr-3"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {defaultsError && (
+                    <div className="text-sm text-red-600">{defaultsError}</div>
+                  )}
+
+                  <div className="flex justify-end gap-3">
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        setLocalDefaults(defaults);
+                        setDefaultsDirty(false);
+                        setDefaultsError(null);
+                      }}
+                      disabled={!defaultsDirty}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="btn-primary"
+                      onClick={async () => {
+                        if (!localDefaults) return;
+                        setDefaultsError(null);
+                        setSavingBudgetDefaults(true);
+                        try {
+                          await saveDefaults(localDefaults);
+                          setDefaultsDirty(false);
+                        } catch (error) {
+                          console.error('Failed to save budget defaults:', error);
+                          setDefaultsError('Failed to save changes. Please try again.');
+                        } finally {
+                          setSavingBudgetDefaults(false);
+                        }
+                      }}
+                      disabled={!defaultsDirty || savingBudgetDefaults}
+                    >
+                      {savingBudgetDefaults ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="card text-center py-12">
+                <p className="text-gray-600 text-lg">
+                  No budget defaults available
+                </p>
+                <button
+                  onClick={() => loadDefaults()}
+                  className="btn-primary mt-4"
+                >
+                  Load Defaults
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* Edit Template Modal */}
@@ -1938,7 +2063,7 @@ export default function AdminPage() {
                 {/* Room Size Tabs */}
                 <div className="border-b border-gray-200 mb-1">
                   <nav className="-mb-px flex space-x-8 overflow-x-auto">
-                    {['small', 'medium', 'large'].map((sizeKey) => (
+                    {(['small', 'medium', 'large'] as const).map((sizeKey) => (
                       <button
                         key={sizeKey}
                         onClick={() => setActiveRoomSizeTab(sizeKey)}
@@ -1956,7 +2081,7 @@ export default function AdminPage() {
               </div>
 
               {/* Budget Container - also sticky */}
-              {activeRoomSizeTab && editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes] && (
+              {activeRoomSizeTab && activeRoomSizeTab in editingTemplate.sizes && (
                 <div className="px-6 pb-6">
                   <div className="p-3 bg-gray-50 rounded-lg border">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -2002,7 +2127,7 @@ export default function AdminPage() {
             <div className="flex-1 overflow-y-auto">
               <div className="pt-2 px-6 pb-6">
                 {/* Add new item - moved above items list and made sticky */}
-                {activeRoomSizeTab && editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes] && (
+                {activeRoomSizeTab && activeRoomSizeTab in editingTemplate.sizes && (
                   <div className="sticky top-0 z-10 bg-white border-b border-gray-200 pb-1 mb-4">
                     <div className="rounded p-3">
                       <select
@@ -2010,7 +2135,7 @@ export default function AdminPage() {
                         onChange={(e) => {
                           if (e.target.value) {
                             const newItemId = e.target.value;
-                            const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                            const sizeData = editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'];
                             console.log('Adding item to room:', { newItemId, sizeKey: activeRoomSizeTab, editingTemplateId: editingTemplate.id });
 
                             const newItems = [...sizeData.items, { itemId: newItemId, quantity: 1 }];
@@ -2041,7 +2166,7 @@ export default function AdminPage() {
                       >
                         <option value="">+ Add Item</option>
                         {items
-                          .filter(item => !editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].items.some((roomItem: RoomItem) => roomItem.itemId === item.id))
+                          .filter(item => !editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'].items.some((roomItem: RoomItem) => roomItem.itemId === item.id))
                           .sort((a, b) => a.name.localeCompare(b.name))
                           .map(item => (
                             <option key={item.id} value={item.id}>
@@ -2054,7 +2179,7 @@ export default function AdminPage() {
                 )}
 
                 {/* Tab Content */}
-                {activeRoomSizeTab && editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes] && (
+                {activeRoomSizeTab && activeRoomSizeTab in editingTemplate.sizes && (
                   <div className="space-y-6">
                     <div className="border rounded-lg p-4">
                       <h3 className="font-medium text-gray-900 mb-4 capitalize">
@@ -2062,7 +2187,7 @@ export default function AdminPage() {
                       </h3>
 
                       <div className="space-y-3">
-                        {editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes].items
+                        {editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'].items
                           .sort((a: RoomItem, b: RoomItem) => {
                             const itemA = items.find(i => i.id === a.itemId);
                             const itemB = items.find(i => i.id === b.itemId);
@@ -2096,7 +2221,7 @@ export default function AdminPage() {
 
                                     // Handle empty input (user deleted everything or entered nothing)
                                     if (inputValue === '') {
-                                      const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                      const sizeData = editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'];
                                       const newItems = [...sizeData.items];
                                       newItems[index] = { ...roomItem, quantity: 0 };
 
@@ -2126,7 +2251,7 @@ export default function AdminPage() {
                                       return;
                                     }
 
-                                    const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                    const sizeData = editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'];
                                     const newItems = [...sizeData.items];
                                     newItems[index] = { ...roomItem, quantity: newQuantity };
 
@@ -2155,7 +2280,7 @@ export default function AdminPage() {
                                     if (inputValue === '' || inputValue === '0') {
                                       e.target.value = '0';
 
-                                      const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                      const sizeData = editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'];
                                       const newItems = [...sizeData.items];
                                       newItems[index] = { ...roomItem, quantity: 0 };
 
@@ -2195,7 +2320,7 @@ export default function AdminPage() {
                                 />
                                 <button
                                   onClick={() => {
-                                    const sizeData = editingTemplate.sizes[activeRoomSizeTab as keyof typeof editingTemplate.sizes];
+                                    const sizeData = editingTemplate.sizes[activeRoomSizeTab as 'small' | 'medium' | 'large'];
                                     const newItems = sizeData.items.filter((_: RoomItem, i: number) => i !== index);
                                     const newTotals = calculateRoomTotals(newItems);
 

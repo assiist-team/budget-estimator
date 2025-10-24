@@ -1,5 +1,5 @@
 // Budget calculation utilities
-import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, ProjectCostDefaults, ProjectBudget } from '../types';
+import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, BudgetDefaults, ProjectBudget } from '../types';
 import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
@@ -14,7 +14,7 @@ export function calculateEstimate(
   items?: Map<string, Item>,
   options?: {
     propertySpecs?: PropertySpecs;
-    projectDefaults?: ProjectCostDefaults;
+    budgetDefaults?: BudgetDefaults;
   }
 ): Budget | ProjectBudget {
   const tiers: QualityTier[] = ['low', 'mid', 'midHigh', 'high'];
@@ -91,17 +91,17 @@ export function calculateEstimate(
   budget.rangeLow = budget.low.total;
   budget.rangeHigh = budget.mid.total;
 
-  // If project defaults are provided, calculate project budget with add-ons
-  if (options?.propertySpecs && options?.projectDefaults) {
-    const { propertySpecs, projectDefaults } = options;
+  // If budget defaults are provided, calculate project budget with add-ons
+  if (options?.propertySpecs && options?.budgetDefaults) {
+    const { propertySpecs, budgetDefaults } = options;
 
     const projectAddOns = {
-      installation: projectDefaults.installationCents,
-      fuel: projectDefaults.fuelCents,
-      storageAndReceiving: projectDefaults.storageAndReceivingCents,
-      kitchen: projectDefaults.kitchenCents,
-      propertyManagement: projectDefaults.propertyManagementCents,
-      designFee: Math.round(propertySpecs.squareFootage * projectDefaults.designFee.ratePerSqftCents)
+      installation: budgetDefaults.installationCents,
+      fuel: budgetDefaults.fuelCents,
+      storageAndReceiving: budgetDefaults.storageAndReceivingCents,
+      kitchen: budgetDefaults.kitchenCents,
+      propertyManagement: budgetDefaults.propertyManagementCents,
+      designFee: Math.round(propertySpecs.squareFootage * budgetDefaults.designFeeRatePerSqftCents)
     } as const;
 
     const addOnTotal = Object.values(projectAddOns).reduce((sum, cents) => sum + cents, 0);

@@ -6,12 +6,17 @@ import { db } from '../lib/firebase';
 import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
-import type { ClientInfo, RoomItem, RoomWithItems } from '../types';
+import type { ClientInfo, RoomItem, RoomWithItems, Budget, ProjectBudget } from '../types';
+
+// Type guard to check if budget is a ProjectBudget
+function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
+  return budget !== null && 'projectRange' in budget;
+}
 import { formatCurrency } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { syncToHighLevel } from '../utils/highLevelSync';
 import { calculateEstimate } from '../utils/calculations';
-import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
+import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
@@ -23,7 +28,7 @@ export default function ResultsPage() {
   } = useEstimatorStore();
 
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
-  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults, loading: defaultsLoading } = useProjectDefaultsStore();
+  const { defaults: budgetDefaults, loadDefaults, loading: defaultsLoading } = useBudgetDefaultsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -41,20 +46,30 @@ export default function ResultsPage() {
   }, [items]);
 
   // Calculate budget dynamically
-  const budget = useMemo(() => {
-    if (selectedRooms.length === 0) return null;
-    const options = projectDefaults && propertySpecs ? { propertySpecs, projectDefaults } : undefined;
-    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, options);
-  }, [selectedRooms, roomTemplatesMap, itemsMap, projectDefaults, propertySpecs]);
+  const budget: Budget | ProjectBudget | null = useMemo(() => {
+    if (selectedRooms.length === 0) {
+      return null;
+    }
+
+    const baseBudget = calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap);
+    if (!budgetDefaults || !propertySpecs || !('projectRange' in baseBudget)) {
+      return baseBudget;
+    }
+
+    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, {
+      propertySpecs,
+      budgetDefaults,
+    });
+  }, [selectedRooms, roomTemplatesMap, itemsMap, budgetDefaults, propertySpecs]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<ClientInfo>();
 
   // Redirect if no budget calculated
   useEffect(() => {
-    if (!projectDefaults && loadProjectDefaults) {
-      loadProjectDefaults();
+    if (!budgetDefaults) {
+      void loadDefaults();
     }
-  }, [projectDefaults, loadProjectDefaults]);
+  }, [budgetDefaults, loadDefaults]);
 
   useEffect(() => {
     if (!budget || !selectedRooms || selectedRooms.length === 0) {
@@ -177,9 +192,9 @@ export default function ResultsPage() {
                 ESTIMATED PROJECT BUDGET RANGE
               </p>
               <div className="text-5xl font-bold mb-2">
-                {'projectRange' in budget
+                {isProjectBudget(budget)
                   ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
-                  : `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`}
+                  : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
               </div>
               <p className="text-sm opacity-75 mt-4">
                 {propertySpecs.squareFootage.toLocaleString()} sqft property | Max capacity: {propertySpecs.guestCapacity} guests
@@ -267,7 +282,7 @@ export default function ResultsPage() {
                         <span>{formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}</span>
                       </div>
                     </div>
-                    {'projectAddOns' in budget && (
+                    {isProjectBudget(budget) && (
                       <div className="mt-6 space-y-3 text-sm text-gray-700">
                         <div className="flex justify-between">
                           <span>Installation</span>

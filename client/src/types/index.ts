@@ -156,19 +156,14 @@ export const QUALITY_TIERS: { [key in QualityTier]: { name: string; description:
   },
 };
 
-// Project cost defaults
-export interface ProjectCostDefaults {
+// Budget defaults
+export interface BudgetDefaults {
   installationCents: number;
   fuelCents: number;
   storageAndReceivingCents: number;
   kitchenCents: number;
   propertyManagementCents: number;
-  designFee: {
-    ratePerSqftCents: number;
-    description: string;
-  };
-  updatedAt: Date;
-  updatedBy: string;
+  designFeeRatePerSqftCents: number;
 }
 
 // Extended budget with project add-ons

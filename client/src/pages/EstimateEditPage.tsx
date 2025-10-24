@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
-import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
+import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import Header from '../components/Header';
 import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
 import type { RoomWithItems, RoomTemplate, Item } from '../types';
@@ -30,13 +30,13 @@ export default function EstimateEditPage() {
     return map;
   }, [items]);
 
-  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults } = useProjectDefaultsStore();
+  const { defaults: budgetDefaults, loadDefaults } = useBudgetDefaultsStore();
 
   useEffect(() => {
-    if (!projectDefaults) {
-      loadProjectDefaults();
+    if (!budgetDefaults) {
+      void loadDefaults();
     }
-  }, [projectDefaults, loadProjectDefaults]);
+  }, [budgetDefaults, loadDefaults]);
 
   // Redirect if no estimate loaded
   useEffect(() => {
@@ -85,15 +85,15 @@ export default function EstimateEditPage() {
   };
 
   const calculateBudgetRange = useCallback((rooms: RoomWithItems[]) => {
-    const options = estimate?.propertySpecs && projectDefaults
-      ? { propertySpecs: estimate.propertySpecs, projectDefaults }
+    const options = estimate?.propertySpecs && budgetDefaults
+      ? { propertySpecs: estimate.propertySpecs, budgetDefaults }
       : undefined;
     const budget = calculateEstimate(rooms, roomTemplatesMap, itemsMap, options);
     if ('projectRange' in budget) {
       return `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`;
     }
     return `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
-  }, [roomTemplatesMap, itemsMap, estimate?.propertySpecs, projectDefaults]);
+  }, [roomTemplatesMap, itemsMap, estimate?.propertySpecs, budgetDefaults]);
 
   return (
     <div className="min-h-screen bg-gray-50">

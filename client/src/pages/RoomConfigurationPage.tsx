@@ -9,7 +9,7 @@ import { suggestRoomConfiguration, formatCurrency, calculateEstimate } from '../
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useAutoConfiguration, useAutoConfigRules } from '../hooks/useAutoConfiguration';
 import { calculateBedroomCapacity } from '../utils/autoConfiguration';
-import { useProjectDefaultsStore } from '../store/projectDefaultsStore';
+import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 
 export default function RoomConfigurationPage() {
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export default function RoomConfigurationPage() {
   } = useEstimatorStore();
   
   const { roomTemplates, loading } = useRoomTemplates();
-  const { defaults: projectDefaults, loadDefaults: loadProjectDefaults } = useProjectDefaultsStore();
+  const { defaults: budgetDefaults, loadDefaults, loading: defaultsLoading } = useBudgetDefaultsStore();
   const { computedConfiguration } = useAutoConfiguration();
   const { rules } = useAutoConfigRules();
   const [localRooms, setLocalRooms] = useState<RoomWithItems[]>(selectedRooms as RoomWithItems[]);
@@ -66,10 +66,10 @@ export default function RoomConfigurationPage() {
   }, [propertySpecs, navigate]);
 
   useEffect(() => {
-    if (!projectDefaults) {
-      loadProjectDefaults();
+    if (!budgetDefaults && !defaultsLoading) {
+      void loadDefaults();
     }
-  }, [projectDefaults, loadProjectDefaults]);
+  }, [budgetDefaults, defaultsLoading, loadDefaults]);
 
   const handleToggleRoom = (roomType: string) => {
     const existingIndex = localRooms.findIndex(r => r.roomType === roomType);
@@ -117,31 +117,47 @@ export default function RoomConfigurationPage() {
     setLocalRooms(newRooms);
   };
 
-  const getRoomPriceRange = (roomType: string, size: 'small' | 'medium' | 'large') => {
+  const getRoomPriceRange = (roomType: string, size: 'small' | 'medium' | 'large'): { low: number; mid: number } => {
     const template = roomTemplates.get(roomType);
-    if (!template) return { low: 0, high: 0 };
+    if (!template) return { low: 0, mid: 0 };
 
     const roomSize = template.sizes[size];
+    if (!roomSize) return { low: 0, mid: 0 };
+
     return {
       low: roomSize.totals.low,
       mid: roomSize.totals.mid,
     };
   };
 
-  const calculateRunningTotal = () => {
-    if (localRooms.length === 0) return { low: 0, mid: 0 };
+  const calculateRunningTotal = (): { low: number; mid: number } => {
+    if (localRooms.length === 0) {
+      return { low: 0, mid: 0 };
+    }
 
-    const options = propertySpecs && projectDefaults ? { propertySpecs, projectDefaults } : undefined;
-    const budget = calculateEstimate(localRooms, roomTemplates, undefined, options);
-    if ('projectRange' in budget) {
+    const baseBudget = calculateEstimate(localRooms, roomTemplates);
+    if (!budgetDefaults || !propertySpecs) {
       return {
-        low: budget.projectRange.low,
-        mid: budget.projectRange.mid,
+        low: baseBudget.rangeLow,
+        mid: baseBudget.rangeHigh,
       };
     }
+
+    const projectBudget = calculateEstimate(localRooms, roomTemplates, undefined, {
+      propertySpecs,
+      budgetDefaults,
+    });
+
+    if ('projectRange' in projectBudget) {
+      return {
+        low: projectBudget.projectRange.low,
+        mid: projectBudget.projectRange.mid,
+      };
+    }
+
     return {
-      low: budget.rangeLow,
-      mid: budget.rangeHigh,
+      low: projectBudget.rangeLow,
+      mid: projectBudget.rangeHigh,
     };
   };
 
@@ -209,9 +225,10 @@ export default function RoomConfigurationPage() {
                     key={template.id}
                     room={room || {
                       roomType: template.id,
-                      roomSize: 'medium',
+                      roomSize: 'medium' as const,
                       quantity: 1,
                       displayName: template.displayName,
+                      items: [],
                     }}
                     isSelected={isSelected}
                     priceRange={getRoomPriceRange(
@@ -243,9 +260,10 @@ export default function RoomConfigurationPage() {
                     key={template.id}
                     room={room || {
                       roomType: template.id,
-                      roomSize: 'medium',
+                      roomSize: 'medium' as const,
                       quantity: 1,
                       displayName: template.displayName,
+                      items: [],
                     }}
                     isSelected={isSelected}
                     priceRange={getRoomPriceRange(
