@@ -1899,42 +1899,74 @@ export default function AdminPage() {
                 <div className="space-y-6">
                   <div className="grid gap-6">
                     {[
-                      { key: 'installationCents', label: 'Installation', prefix: '$' },
-                      { key: 'kitchenCents', label: 'Kitchen Setup', prefix: '$' },
-                      { key: 'fuelCents', label: 'Fuel', prefix: '$' },
-                      { key: 'propertyManagementCents', label: 'Property Management', prefix: '$' },
-                      { key: 'storageAndReceivingCents', label: 'Storage & Receiving', prefix: '$' },
-                      { key: 'designFeeRatePerSqftCents', label: 'Design Fee', prefix: '$/sqft' },
-                    ].map(({ key, label, prefix }) => (
-                      <div key={key as string}>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                        <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500">
-                          <span className="pl-3 pr-2 text-gray-500 whitespace-nowrap">
-                            {prefix}
-                          </span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={
-                              key === 'designFeeRatePerSqftCents'
-                                ? ((localDefaults.designFeeRatePerSqftCents ?? 0) / 100).toFixed(2)
-                                : ((localDefaults[key as keyof BudgetDefaults] as number) / 100).toFixed(2)
-                            }
-                            onChange={(e) => {
-                              const rawValue = parseFloat(e.target.value);
-                              const centsValue = isNaN(rawValue) ? 0 : Math.round(rawValue * 100);
-                              setLocalDefaults((prev) => prev ? {
-                                ...prev,
-                                [key]: centsValue,
-                              } as BudgetDefaults : prev);
-                              setDefaultsDirty(true);
-                            }}
-                            className="flex-1 bg-transparent border-0 focus:outline-none focus:ring-0 py-2 pr-3"
-                          />
+                      { key: 'installationCents', label: 'Installation', prefix: '$', allowCents: false },
+                      { key: 'kitchenCents', label: 'Kitchen Setup', prefix: '$', allowCents: false },
+                      { key: 'fuelCents', label: 'Fuel', prefix: '$', allowCents: false },
+                      { key: 'propertyManagementCents', label: 'Property Management', prefix: '$', allowCents: false },
+                      { key: 'storageAndReceivingCents', label: 'Storage & Receiving', prefix: '$', allowCents: false },
+                      { key: 'designFeeRatePerSqftCents', label: 'Design Fee', prefix: '$/sqft', allowCents: true },
+                    ].map(({ key, label, prefix, allowCents }) => {
+                      const isDesignFee = key === 'designFeeRatePerSqftCents';
+                      const dollarValue = isDesignFee
+                        ? (localDefaults?.designFeeRatePerSqftCents ?? 0) / 100
+                        : (localDefaults?.[key as keyof BudgetDefaults] as number ?? 0) / 100;
+                      const displayValue = allowCents ? dollarValue.toFixed(2) : Math.floor(dollarValue);
+
+                      return (
+                        <div key={key as string}>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+                          <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500">
+                            <span className="pl-3 pr-2 text-gray-500 whitespace-nowrap">
+                              {prefix}
+                            </span>
+                            <input
+                              type="text"
+                              value={displayValue}
+                              onChange={(e) => {
+                                // Remove any non-numeric characters except decimal point
+                                let cleanValue = e.target.value.replace(/[^0-9.]/g, '');
+
+                                // Ensure only one decimal point
+                                const parts = cleanValue.split('.');
+                                if (parts.length > 2) {
+                                  cleanValue = parts[0] + '.' + parts.slice(1).join('');
+                                }
+
+                                // Limit decimal places
+                                if (parts.length === 2 && parts[1].length > (allowCents ? 2 : 0)) {
+                                  cleanValue = parts[0] + '.' + parts[1].substring(0, allowCents ? 2 : 0);
+                                }
+
+                                // Convert to cents and update
+                                const rawValue = parseFloat(cleanValue);
+                                const centsValue = isNaN(rawValue) ? 0 : Math.round(rawValue * 100);
+
+                                setLocalDefaults((prev) => prev ? {
+                                  ...prev,
+                                  [key]: centsValue,
+                                } as BudgetDefaults : prev);
+                                setDefaultsDirty(true);
+                              }}
+                              onBlur={(e) => {
+                                // Format the value on blur for consistency
+                                const rawValue = parseFloat(e.target.value);
+                                if (!isNaN(rawValue)) {
+                                  const formattedValue = allowCents ? rawValue.toFixed(2) : Math.floor(rawValue).toString();
+                                  // Update the display without triggering onChange
+                                  const input = e.target;
+                                  const cursorPosition = input.selectionStart;
+                                  input.value = formattedValue;
+                                  // Restore cursor position
+                                  input.setSelectionRange(cursorPosition, cursorPosition);
+                                }
+                              }}
+                              className="flex-1 bg-transparent border-0 focus:outline-none focus:ring-0 py-2 pr-3"
+                              placeholder={allowCents ? "0.00" : "0"}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {defaultsError && (
