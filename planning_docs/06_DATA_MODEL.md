@@ -165,7 +165,7 @@ Pre-configured room templates with item lists and quantities by room size.
       
       // Pre-calculated totals (for quick display)
       totals: {
-        budget: 828500,      // $8,285.00
+        low: 828500,         // $8,285.00
         mid: 1689000,        // $16,890.00
         midHigh: 2964000,    // $29,640.00
         high: 5884000        // $58,840.00
@@ -233,7 +233,7 @@ Pre-configured room templates with item lists and quantities by room size.
         { itemId: "tv_mount", quantity: 1 }
       ],
       totals: {
-        budget: 509500,
+        low: 509500,
         mid: 1179000,
         midHigh: 1465200,
         high: 3453600
@@ -244,7 +244,7 @@ Pre-configured room templates with item lists and quantities by room size.
       displayName: "Medium Single Bedroom",
       items: [ /* includes chair, side table, greenery, floor lamp */ ],
       totals: {
-        budget: 610000,
+        low: 610000,
         mid: 1432000,
         midHigh: 2057700,
         high: 4713600
@@ -255,7 +255,7 @@ Pre-configured room templates with item lists and quantities by room size.
       displayName: "Large Single Bedroom",
       items: [ /* includes dresser, more furniture */ ],
       totals: {
-        budget: 787500,
+        low: 787500,
         mid: 1810000,
         midHigh: 2820200,
         high: 6293600
@@ -356,19 +356,19 @@ Client estimate submissions and saved configurations.
         roomType: "living_room",
         roomSize: "large",
         quantity: 1,
-        budgetAmount: 1661500,      // $16,615
-        midAmount: 3167000,          // $31,670
-        midHighAmount: 5542000,      // $55,420
-        highAmount: 10922000         // $109,220
+        lowAmount: 1661500,         // $16,615
+        midAmount: 3167000,         // $31,670
+        midHighAmount: 5542000,     // $55,420
+        highAmount: 10922000        // $109,220
       },
       // ... more rooms
     ],
-    
+
     // Totals by tier
-    budget: {
-      subtotal: 8500000,       // $85,000.00
-      contingency: 850000,     // 10% = $8,500.00
-      total: 9350000           // $93,500.00
+    low: {
+      subtotal: 8500000,          // $85,000.00
+      contingency: 850000,        // 10% = $8,500.00
+      total: 9350000              // $93,500.00
     },
     mid: {
       subtotal: 18000000,      // $180,000.00
@@ -387,8 +387,8 @@ Client estimate submissions and saved configurations.
     },
     
     // Overall range (for quick display)
-    rangeLow: 9350000,         // Budget total
-    rangeHigh: 71500000        // High total
+    rangeLow: 9350000,         // Low total
+    rangeHigh: 19800000        // Mid total
   },
   
   // Status & Tracking
@@ -711,10 +711,10 @@ const display = formatCurrency(price);  // Display as "$1,500.00"
 ### Budget Calculation (All Tiers)
 ```javascript
 function calculateEstimate(rooms) {
-  const tiers = ['budget', 'mid', 'midHigh', 'high'];
+  const tiers = ['low', 'mid', 'midHigh', 'high'];
   const estimate = {
     roomBreakdown: [],
-    budget: { subtotal: 0, contingency: 0, total: 0 },
+    low: { subtotal: 0, contingency: 0, total: 0 },
     mid: { subtotal: 0, contingency: 0, total: 0 },
     midHigh: { subtotal: 0, contingency: 0, total: 0 },
     high: { subtotal: 0, contingency: 0, total: 0 },
@@ -728,12 +728,12 @@ function calculateEstimate(rooms) {
       roomType: room.roomType,
       roomSize: room.roomSize,
       quantity: room.quantity,
-      budgetAmount: 0,
+      lowAmount: 0,
       midAmount: 0,
       midHighAmount: 0,
       highAmount: 0
     };
-    
+
     // Calculate for each tier
     tiers.forEach(tier => {
       const roomTotal = template.totals[tier] * room.quantity;
@@ -751,15 +751,15 @@ function calculateEstimate(rooms) {
   });
   
   // Set overall range
-  estimate.rangeLow = estimate.budget.total;
-  estimate.rangeHigh = estimate.high.total;
+  estimate.rangeLow = estimate.low.total;
+  estimate.rangeHigh = estimate.mid.total;
   
   return estimate;
 }
 ```
 
 ### Display Strategy:
-- Show overall range: **$85,000 - $650,000** (Budget to High-End)
+- Show overall range: **$93,500 - $198,000** (Low to Mid-End)
 - Display all four quality tiers with individual totals
 - Allow expansion to see room-by-room breakdown for each tier
 - PDF includes all tiers and complete breakdowns
@@ -803,7 +803,7 @@ async function importItems() {
         id: slugify(row.Item),
         name: row.Item,
         category: inferCategory(row.Item),
-        budgetPrice: parseCurrency(row['Budget Price']),
+        lowPrice: parseCurrency(row['Budget Price']),
         midPrice: parseCurrency(row['Mid Price']),
         midHighPrice: parseCurrency(row['Mid/High Price']),
         highPrice: parseCurrency(row['High Price']),
@@ -929,12 +929,12 @@ function validateItem(item) {
     errors.push('Item name is required');
   }
   
-  if (item.budgetPrice <= 0) {
-    errors.push('Budget price must be greater than 0');
+  if (item.lowPrice <= 0) {
+    errors.push('Low price must be greater than 0');
   }
-  
-  if (item.midPrice < item.budgetPrice) {
-    errors.push('Mid price must be >= budget price');
+
+  if (item.midPrice < item.lowPrice) {
+    errors.push('Mid price must be >= low price');
   }
   
   if (item.midHighPrice < item.midPrice) {

@@ -7,23 +7,18 @@ import type { RoomTemplate, Item, RoomSize } from '../types';
 
 // Function to calculate room totals from items
 function calculateRoomTotals(items: Map<string, Item>, roomSize: RoomSize): RoomSize {
-  const baseTotals = {
-    low: roomSize.totals.low ?? 0,
-    mid: roomSize.totals.mid ?? 0,
-    midHigh: roomSize.totals.midHigh ?? 0,
-    high: roomSize.totals.high ?? 0,
-  } as Record<string, number>;
+  // Calculate totals from individual items (more accurate than using pre-calculated totals)
+  const totals = { low: 0, mid: 0, midHigh: 0, high: 0 };
 
-  const totals = { ...baseTotals } as { low: number; mid: number; midHigh: number; high: number };
+  const roomItems = Array.isArray(roomSize.items) ? roomSize.items : [];
 
-  roomSize.items.forEach((roomItem) => {
+  roomItems.forEach((roomItem) => {
     const item = items.get(roomItem.itemId);
     if (item) {
-      const lowPrice = item.lowPrice ?? 0;
-      totals.low += lowPrice * roomItem.quantity;
-      totals.mid += item.midPrice * roomItem.quantity;
-      totals.midHigh += item.midHighPrice * roomItem.quantity;
-      totals.high += item.highPrice * roomItem.quantity;
+      totals.low += (item.lowPrice ?? 0) * roomItem.quantity;
+      totals.mid += (item.midPrice ?? 0) * roomItem.quantity;
+      totals.midHigh += (item.midHighPrice ?? 0) * roomItem.quantity;
+      totals.high += (item.highPrice ?? 0) * roomItem.quantity;
     } else {
       console.warn(`Item ${roomItem.itemId} not found in items collection`);
     }
@@ -69,17 +64,19 @@ async function loadRoomTemplatesFromFirestore(): Promise<{ templates: Map<string
       const docData = doc.data();
 
       // Calculate totals for each room size based on items
-      const sizes = {} as any;
+      const sizes: Record<string, RoomSize> = {};
       Object.keys(docData.sizes).forEach((sizeKey) => {
         const sizeData = docData.sizes[sizeKey];
+        // Use proper tier names: low, mid, midHigh, high
+        const mappedTotals = {
+          low: sizeData.totals?.low ?? 0,
+          mid: sizeData.totals?.mid ?? 0,
+          midHigh: sizeData.totals?.midHigh ?? 0,
+          high: sizeData.totals?.high ?? 0,
+        };
         sizes[sizeKey] = calculateRoomTotals(items, {
           ...sizeData,
-          totals: {
-            low: sizeData.totals?.low ?? 0,
-            mid: sizeData.totals?.mid ?? 0,
-            midHigh: sizeData.totals?.midHigh ?? 0,
-            high: sizeData.totals?.high ?? 0,
-          }
+          totals: mappedTotals
         });
       });
 

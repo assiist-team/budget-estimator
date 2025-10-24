@@ -1,5 +1,5 @@
 // Budget calculation utilities
-import type { RoomTemplate, RoomWithItems, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, BudgetDefaults, ProjectBudget } from '../types';
+import type { RoomTemplate, RoomWithItems, SelectedRoom, RoomItem, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, BudgetDefaults, ProjectBudget } from '../types';
 import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
@@ -9,7 +9,7 @@ export { QUALITY_TIERS } from '../types';
  * Calculate estimate for all quality tiers (low to mid range)
  */
 export function calculateEstimate(
-  selectedRooms: (RoomWithItems | any)[], // Accept both RoomWithItems and SelectedRoom
+  selectedRooms: (RoomWithItems | SelectedRoom)[], // Accept both RoomWithItems and SelectedRoom
   roomTemplates: Map<string, RoomTemplate>,
   items?: Map<string, Item>,
   options?: {
@@ -55,7 +55,7 @@ export function calculateEstimate(
         // Calculate dynamically from current room items for all tiers
         tiers.forEach((tier) => {
           const tierKey = `${tier}Price` as keyof Item;
-          const roomTotal = room.items.reduce((total: number, roomItem: any) => {
+          const roomTotal = room.items.reduce((total: number, roomItem: RoomItem) => {
             const item = items.get(roomItem.itemId);
             if (!item) return total;
             const candidate = item[tierKey];
@@ -68,9 +68,12 @@ export function calculateEstimate(
     } else if (template) {
         // Use pre-calculated room totals for rooms without items
         tiers.forEach((tier) => {
-          const tierKey = tier;
           const templateTotals = template.sizes[room.roomSize as keyof typeof template.sizes]?.totals as Record<string, number> | undefined;
-          const candidate = templateTotals?.[tierKey];
+          if (!templateTotals) return;
+
+          // Use proper tier names: low, mid, midHigh, high
+          const tierKey = tier;
+          const candidate = templateTotals[tierKey];
           const roomTotals = typeof candidate === 'number' ? candidate : 0;
           const roomTotal = roomTotals * room.quantity;
           roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
@@ -88,6 +91,7 @@ export function calculateEstimate(
   });
 
   // Set overall range (low tier for lower range, mid tier for upper range)
+  // Note: database still uses "budget" tier name but we map it to "low"
   budget.rangeLow = budget.low.total;
   budget.rangeHigh = budget.mid.total;
 
