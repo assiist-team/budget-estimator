@@ -27,6 +27,12 @@ Migrates database data to use proper tier names:
 node scripts/migrate-database-tiers.js
 ```
 
+**Authentication:**
+- Requires Firebase CLI authentication
+- Must run: `firebase login` and `firebase use project-estimator-1584`
+- Uses Firebase Admin SDK with Application Default Credentials
+- Script fails with clear error messages if authentication fails
+
 ### 3. `verify-migration.js`
 Verifies that migration completed successfully:
 - No remaining "budget" tier references
@@ -40,13 +46,18 @@ node scripts/verify-migration.js
 
 ## Prerequisites
 
-1. **Firebase Service Account:** `../firebase-service-account.json`
-2. **Node.js** with Firebase Admin SDK
-3. **Firestore write permissions**
+1. **Firebase CLI Authentication:** `firebase login`
+2. **Project Setup:** `firebase use project-estimator-1584`
+3. **Node.js** with Firebase Admin SDK
+4. **Firestore write permissions** for your Firebase account
 
 ## Execution Order
 
 ```bash
+# Setup Firebase CLI authentication
+firebase login
+firebase use project-estimator-1584
+
 # 1. Backup (always run first)
 node scripts/backup-database.js
 

@@ -146,22 +146,22 @@ For each document in `/estimates` collection:
 
 ## Prerequisites
 
-### Firebase Service Account
-**Required:** `firebase-service-account.json` in project root
-```json
-{
-  "type": "service_account",
-  "project_id": "project-estimator-1584",
-  "private_key_id": "...",
-  "private_key": "...",
-  "client_email": "...",
-  "client_id": "...",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token"
-}
+### Firebase CLI Authentication
+**Required:** Firebase CLI authentication for your account
+
+**Setup:**
+```bash
+# Install Firebase CLI (if not already installed)
+npm install -g firebase-tools
+
+# Login to Firebase (this will open a browser)
+firebase login
+
+# Set the project (if not already set)
+firebase use project-estimator-1584
 ```
 
-**Get from:** Firebase Console → Project Settings → Service Accounts → Generate Private Key
+**Note:** Make sure you're logged in with an account that has Firestore admin permissions for the project.
 
 ### 1. Backup Current Data
 ```bash
@@ -192,7 +192,13 @@ node scripts/verify-migration.js
 ### Pre-Migration
 1. **Test on development database first:**
    ```bash
-   # Update firebase-service-account.json with dev credentials
+   # Login to Firebase CLI (if not already logged in)
+   firebase login
+
+   # Set the project
+   firebase use project-estimator-1584
+
+   # Run the scripts
    node scripts/backup-database.js
    node scripts/migrate-database-tiers.js
    node scripts/verify-migration.js
@@ -205,26 +211,36 @@ node scripts/verify-migration.js
 
 ### Production Migration
 1. **Schedule during low-traffic period**
-2. **Backup production data:**
+2. **Login to Firebase CLI and set project:**
+   ```bash
+   firebase login
+   firebase use project-estimator-1584
+   ```
+
+3. **Backup production data:**
    ```bash
    node scripts/backup-database.js
    ```
 
-3. **Run migration:**
+4. **Run migration:**
    ```bash
    node scripts/migrate-database-tiers.js
    ```
 
-4. **Verify migration:**
+5. **Verify migration:**
    ```bash
    node scripts/verify-migration.js
    ```
 
-5. **Deploy code changes** (remove mappings)
-6. **Monitor application** for 24 hours
+6. **Deploy code changes** (remove mappings)
+7. **Monitor application** for 24 hours
 
 ### Rollback (if needed)
 ```bash
+# Make sure you're logged in and using the correct project
+firebase login
+firebase use project-estimator-1584
+
 # Restore from backup
 firebase firestore:import ./backups/room-templates-backup-[timestamp].json --collection-ids=roomTemplates
 firebase firestore:import ./backups/estimates-backup-[timestamp].json --collection-ids=estimates
