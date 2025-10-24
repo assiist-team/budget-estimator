@@ -8,15 +8,34 @@
 
 const admin = require('firebase-admin');
 
-// Initialize Firebase Admin SDK
-const serviceAccount = require('../firebase-service-account.json');
+// Initialize Firebase Admin SDK - try multiple authentication methods
+function initializeFirebase() {
+  try {
+    // Method 1: Standard initialization (should work with CLI auth)
+    admin.initializeApp({
+      projectId: 'project-estimator-1584'
+    });
+    console.log('✅ Firebase Admin SDK initialized successfully');
+    return admin.firestore();
+  } catch (error) {
+    console.error('❌ Standard initialization failed:', error.message);
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  projectId: 'project-estimator-1584'
-});
+    try {
+      // Method 2: Try with application default credentials explicitly
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = '';
+      admin.initializeApp({
+        projectId: 'project-estimator-1584'
+      });
+      console.log('✅ Firebase Admin SDK initialized with explicit credentials');
+      return admin.firestore();
+    } catch (error2) {
+      console.error('❌ All initialization methods failed:', error2.message);
+      throw error2;
+    }
+  }
+}
 
-const db = admin.firestore();
+const db = initializeFirebase();
 
 /**
  * Verify room templates

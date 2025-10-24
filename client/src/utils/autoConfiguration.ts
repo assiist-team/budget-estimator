@@ -395,3 +395,42 @@ export function calculateBedroomCapacity(
 
   return singleCapacity + doubleCapacity + bunkCapacity;
 }
+
+/**
+ * Calculate total bedroom capacity for selected rooms
+ * Returns: maximum number of guests that can be accommodated based on selected rooms
+ */
+export function calculateSelectedRoomCapacity(
+  selectedRooms: { roomType: string; quantity: number; roomSize?: 'small' | 'medium' | 'large' }[],
+  rules: AutoConfigRules
+): number {
+  let singleBedrooms = 0;
+  let doubleBedrooms = 0;
+  let maxBunkCapacity = 0;
+
+  // Count bedroom types from selected rooms
+  selectedRooms.forEach(room => {
+    switch (room.roomType) {
+      case 'single_bedroom':
+        singleBedrooms += room.quantity;
+        break;
+      case 'double_bedroom':
+        doubleBedrooms += room.quantity;
+        break;
+      case 'bunk_room': {
+        // For bunk rooms, calculate capacity based on the selected room size
+        // Map room sizes to bunk sizes: small -> small, medium -> medium, large -> large
+        const bunkSize: BunkSize = room.roomSize as BunkSize || 'small';
+        const bunkRoomCapacity = getBunkCapacity(bunkSize, rules);
+        // Since multiple bunk rooms can be selected, we need to account for all of them
+        maxBunkCapacity += bunkRoomCapacity * room.quantity;
+        break;
+      }
+    }
+  });
+
+  const singleCapacity = singleBedrooms * 2; // Each single bedroom sleeps 2 guests
+  const doubleCapacity = doubleBedrooms * 4; // Each double bedroom sleeps 4 guests
+
+  return singleCapacity + doubleCapacity + maxBunkCapacity;
+}

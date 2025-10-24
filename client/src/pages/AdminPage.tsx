@@ -11,16 +11,16 @@ import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 import { EditIcon, TrashIcon } from '../components/Icons';
 
 // Helper function to create slug from item name
-function slugify(text: string) {
-  return text
+const createSlug = (name: string) => {
+  return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
-}
+};
 
 // Helper function to generate unique item ID from name
 async function generateItemId(itemName: string): Promise<string> {
-  const baseSlug = slugify(itemName);
+  const baseSlug = createSlug(itemName);
   let itemId = baseSlug;
   let counter = 1;
 
@@ -81,21 +81,34 @@ export default function AdminPage() {
   const {
     defaults,
     loading: defaultsLoading,
+    error: defaultsError,
     loadDefaults,
     saveDefaults,
+    setError,
   } = useBudgetDefaultsStore();
   const budgetDefaults = defaults;
   const [localDefaults, setLocalDefaults] = useState<BudgetDefaults | null>(null);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [savingBudgetDefaults, setSavingBudgetDefaults] = useState(false);
-  const [defaultsError, setDefaultsError] = useState<string | null>(null);
   const [defaultsDirty, setDefaultsDirty] = useState(false);
 
   useEffect(() => {
-    if (defaults && !localDefaults) {
+    loadDefaults();
+  }, [loadDefaults]);
+
+  useEffect(() => {
+    if (defaults) {
       setLocalDefaults(defaults);
-      setDefaultsDirty(false);
+      const newValues: Record<string, string> = {};
+      for (const key in defaults) {
+        const k = key as keyof BudgetDefaults;
+        const dollarValue = (defaults[k] ?? 0) / 100;
+        const isCentsAllowed = key === 'designFeeRatePerSqftCents';
+        newValues[k] = isCentsAllowed ? dollarValue.toFixed(2) : dollarValue.toString();
+      }
+      setInputValues(newValues);
     }
-  }, [defaults, localDefaults]);
+  }, [defaults]);
 
   // Set initial room size tab when editing template opens
   useEffect(() => {
@@ -1906,22 +1919,16 @@ export default function AdminPage() {
                       { key: 'storageAndReceivingCents', label: 'Storage & Receiving', prefix: '$', allowCents: false },
                       { key: 'designFeeRatePerSqftCents', label: 'Design Fee', prefix: '$/sqft', allowCents: true },
                     ].map(({ key, label, prefix, allowCents }) => {
-                      const isDesignFee = key === 'designFeeRatePerSqftCents';
-                      const dollarValue = isDesignFee
-                        ? (localDefaults?.designFeeRatePerSqftCents ?? 0) / 100
-                        : (localDefaults?.[key as keyof BudgetDefaults] as number ?? 0) / 100;
-                      const displayValue = allowCents ? dollarValue.toFixed(2) : Math.floor(dollarValue);
-
                       return (
                         <div key={key as string}>
                           <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
-                          <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500">
+                          <div className="flex items-center border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
                             <span className="pl-3 pr-2 text-gray-500 whitespace-nowrap">
                               {prefix}
                             </span>
                             <input
                               type="text"
-                              value={displayValue}
+                              value={inputValues[key] || ''}
                               onChange={(e) => {
                                 // Remove any non-numeric characters except decimal point
                                 let cleanValue = e.target.value.replace(/[^0-9.]/g, '');
@@ -1932,12 +1939,18 @@ export default function AdminPage() {
                                   cleanValue = parts[0] + '.' + parts.slice(1).join('');
                                 }
 
-                                // Limit decimal places
-                                if (parts.length === 2 && parts[1].length > (allowCents ? 2 : 0)) {
-                                  cleanValue = parts[0] + '.' + parts[1].substring(0, allowCents ? 2 : 0);
+                                if (!allowCents) {
+                                  cleanValue = cleanValue.split('.')[0];
+                                } else {
+                                  // Limit decimal places for fields that allow cents
+                                  if (parts.length === 2 && parts[1].length > 2) {
+                                    cleanValue = parts[0] + '.' + parts[1].substring(0, 2);
+                                  }
                                 }
 
-                                // Convert to cents and update
+                                setInputValues(prev => ({ ...prev, [key]: cleanValue }));
+
+                                // Convert to cents and update the underlying data model
                                 const rawValue = parseFloat(cleanValue);
                                 const centsValue = isNaN(rawValue) ? 0 : Math.round(rawValue * 100);
 
@@ -1952,12 +1965,7 @@ export default function AdminPage() {
                                 const rawValue = parseFloat(e.target.value);
                                 if (!isNaN(rawValue)) {
                                   const formattedValue = allowCents ? rawValue.toFixed(2) : Math.floor(rawValue).toString();
-                                  // Update the display without triggering onChange
-                                  const input = e.target;
-                                  const cursorPosition = input.selectionStart;
-                                  input.value = formattedValue;
-                                  // Restore cursor position
-                                  input.setSelectionRange(cursorPosition, cursorPosition);
+                                  setInputValues(prev => ({ ...prev, [key]: formattedValue }));
                                 }
                               }}
                               className="flex-1 bg-transparent border-0 focus:outline-none focus:ring-0 py-2 pr-3"
@@ -1977,26 +1985,35 @@ export default function AdminPage() {
                     <button
                       className="btn-secondary"
                       onClick={() => {
-                        setLocalDefaults(defaults);
+                        if (defaults) {
+                          setLocalDefaults(defaults);
+                          const newValues: Record<string, string> = {};
+                          for (const key in defaults) {
+                            const k = key as keyof BudgetDefaults;
+                            const dollarValue = (defaults[k] ?? 0) / 100;
+                            const isCentsAllowed = key === 'designFeeRatePerSqftCents';
+                            newValues[k] = isCentsAllowed ? dollarValue.toFixed(2) : dollarValue.toString();
+                          }
+                          setInputValues(newValues);
+                        }
                         setDefaultsDirty(false);
-                        setDefaultsError(null);
                       }}
-                      disabled={!defaultsDirty}
+                      disabled={!defaultsDirty || isSaving}
                     >
-                      Cancel
+                      Reset
                     </button>
                     <button
                       className="btn-primary"
                       onClick={async () => {
                         if (!localDefaults) return;
-                        setDefaultsError(null);
+                        setError(null);
                         setSavingBudgetDefaults(true);
                         try {
                           await saveDefaults(localDefaults);
                           setDefaultsDirty(false);
                         } catch (error) {
                           console.error('Failed to save budget defaults:', error);
-                          setDefaultsError('Failed to save changes. Please try again.');
+                          setError('Failed to save changes. Please try again.');
                         } finally {
                           setSavingBudgetDefaults(false);
                         }

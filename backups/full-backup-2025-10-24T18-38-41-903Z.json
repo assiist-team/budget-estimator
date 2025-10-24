@@ -1,0 +1,2630 @@
+{
+  "items": [
+    {
+      "id": "king_bed_frame",
+      "name": "King Bed Frame",
+      "category": "bedroom_furniture",
+      "lowPrice": 50000,
+      "midPrice": 150000,
+      "midHighPrice": 300000,
+      "highPrice": 800000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.595Z",
+      "updatedAt": "2025-10-14T00:21:57.595Z"
+    },
+    {
+      "id": "mattress",
+      "name": "Mattress",
+      "category": "bedroom_furniture",
+      "lowPrice": 130000,
+      "midPrice": 280000,
+      "midHighPrice": 500000,
+      "highPrice": 1200000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.595Z",
+      "updatedAt": "2025-10-14T00:21:57.595Z"
+    },
+    {
+      "id": "mattress_protector",
+      "name": "Mattress protector",
+      "category": "bedroom_furniture",
+      "lowPrice": 2000,
+      "midPrice": 6000,
+      "midHighPrice": 10000,
+      "highPrice": 20000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.595Z",
+      "updatedAt": "2025-10-14T00:21:57.595Z"
+    },
+    {
+      "id": "sleeping_pillows",
+      "name": "Sleeping Pillows",
+      "category": "textiles",
+      "lowPrice": 1500,
+      "midPrice": 4000,
+      "midHighPrice": 10000,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.595Z",
+      "updatedAt": "2025-10-14T00:21:57.595Z"
+    },
+    {
+      "id": "down_pillows",
+      "name": "Down Pillows",
+      "category": "textiles",
+      "lowPrice": 2500,
+      "midPrice": 6000,
+      "midHighPrice": 15000,
+      "highPrice": 40000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "pillow_protectors",
+      "name": "Pillow protectors",
+      "category": "textiles",
+      "lowPrice": 500,
+      "midPrice": 2500,
+      "midHighPrice": 4000,
+      "highPrice": 10000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "sheets",
+      "name": "Sheets",
+      "category": "textiles",
+      "lowPrice": 3000,
+      "midPrice": 8000,
+      "midHighPrice": 15000,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "decorative_bedding",
+      "name": "Decorative Bedding",
+      "category": "bedroom_furniture",
+      "lowPrice": 20000,
+      "midPrice": 35000,
+      "midHighPrice": 50000,
+      "highPrice": 100000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "throw_pillows",
+      "name": "Throw Pillows",
+      "category": "textiles",
+      "lowPrice": 3500,
+      "midPrice": 8000,
+      "midHighPrice": 12500,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "throw_blanket_on_bed",
+      "name": "Throw Blanket on Bed",
+      "category": "bedroom_furniture",
+      "lowPrice": 3500,
+      "midPrice": 10000,
+      "midHighPrice": 20000,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "bench_or_stools",
+      "name": "Bench or Stools",
+      "category": "accessories",
+      "lowPrice": 20000,
+      "midPrice": 80000,
+      "midHighPrice": 150000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "area_rug",
+      "name": "Area Rug",
+      "category": "textiles",
+      "lowPrice": 35000,
+      "midPrice": 80000,
+      "midHighPrice": 150000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "nightstands",
+      "name": "Nightstands",
+      "category": "bedroom_furniture",
+      "lowPrice": 35000,
+      "midPrice": 70000,
+      "midHighPrice": 150000,
+      "highPrice": 400000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "lamps",
+      "name": "Lamps",
+      "category": "lighting",
+      "lowPrice": 10000,
+      "midPrice": 20000,
+      "midHighPrice": 35000,
+      "highPrice": 80000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "nightstand_accessories",
+      "name": "Nightstand Accessories",
+      "category": "bedroom_furniture",
+      "lowPrice": 2000,
+      "midPrice": 6000,
+      "midHighPrice": 15000,
+      "highPrice": 40000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "curtain_set",
+      "name": "Curtain Set",
+      "category": "textiles",
+      "lowPrice": 6500,
+      "midPrice": 14000,
+      "midHighPrice": 20000,
+      "highPrice": 40000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "curtain_rod",
+      "name": "Curtain Rod",
+      "category": "textiles",
+      "lowPrice": 4000,
+      "midPrice": 6000,
+      "midHighPrice": 10000,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "wall_art",
+      "name": "Wall art",
+      "category": "decorative",
+      "lowPrice": 10000,
+      "midPrice": 30000,
+      "midHighPrice": 80000,
+      "highPrice": 200000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "mirror",
+      "name": "Mirror",
+      "category": "decorative",
+      "lowPrice": 20000,
+      "midPrice": 50000,
+      "midHighPrice": 100000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "tv",
+      "name": "TV",
+      "category": "electronics",
+      "lowPrice": 40000,
+      "midPrice": 70000,
+      "midHighPrice": 150000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "tv_mount",
+      "name": "TV mount",
+      "category": "electronics",
+      "lowPrice": 20000,
+      "midPrice": 30000,
+      "midHighPrice": 30000,
+      "highPrice": 50000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "chair",
+      "name": "Chair",
+      "category": "living_room_furniture",
+      "lowPrice": 35000,
+      "midPrice": 80000,
+      "midHighPrice": 150000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "chair_throw_pillow",
+      "name": "Chair Throw Pillow",
+      "category": "living_room_furniture",
+      "lowPrice": 3500,
+      "midPrice": 8000,
+      "midHighPrice": 12500,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "chair_throw_blanket",
+      "name": "Chair Throw Blanket",
+      "category": "living_room_furniture",
+      "lowPrice": 3500,
+      "midPrice": 10000,
+      "midHighPrice": 40000,
+      "highPrice": 80000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "side_table",
+      "name": "Side Table",
+      "category": "living_room_furniture",
+      "lowPrice": 15000,
+      "midPrice": 50000,
+      "midHighPrice": 150000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "greenery",
+      "name": "Greenery",
+      "category": "decorative",
+      "lowPrice": 8000,
+      "midPrice": 25000,
+      "midHighPrice": 50000,
+      "highPrice": 80000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "floor_lamp",
+      "name": "Floor Lamp",
+      "category": "lighting",
+      "lowPrice": 15000,
+      "midPrice": 30000,
+      "midHighPrice": 80000,
+      "highPrice": 200000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "dresser",
+      "name": "Dresser",
+      "category": "bedroom_furniture",
+      "lowPrice": 80000,
+      "midPrice": 150000,
+      "midHighPrice": 300000,
+      "highPrice": 600000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "dresser_accessories",
+      "name": "Dresser Accessories",
+      "category": "bedroom_furniture",
+      "lowPrice": 2500,
+      "midPrice": 8000,
+      "midHighPrice": 15000,
+      "highPrice": 40000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "desk",
+      "name": "Desk",
+      "category": "accessories",
+      "lowPrice": 30000,
+      "midPrice": 100000,
+      "midHighPrice": 250000,
+      "highPrice": 500000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "desk_chair",
+      "name": "Desk Chair",
+      "category": "living_room_furniture",
+      "lowPrice": 20000,
+      "midPrice": 60000,
+      "midHighPrice": 120000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "desk_accessories",
+      "name": "Desk Accessories",
+      "category": "accessories",
+      "lowPrice": 3000,
+      "midPrice": 6000,
+      "midHighPrice": 15000,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "bookshelf",
+      "name": "Bookshelf",
+      "category": "accessories",
+      "lowPrice": 25000,
+      "midPrice": 80000,
+      "midHighPrice": 150000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "bunk_bed",
+      "name": "Bunk Bed",
+      "category": "bedroom_furniture",
+      "lowPrice": 120000,
+      "midPrice": 250000,
+      "midHighPrice": 400000,
+      "highPrice": 600000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "bunk_bed_mattress",
+      "name": "Bunk Bed Mattress",
+      "category": "bedroom_furniture",
+      "lowPrice": 25000,
+      "midPrice": 60000,
+      "midHighPrice": 150000,
+      "highPrice": 400000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "bean_bag",
+      "name": "Bean Bag",
+      "category": "accessories",
+      "lowPrice": 15000,
+      "midPrice": 30000,
+      "midHighPrice": 60000,
+      "highPrice": 100000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "game_table",
+      "name": "Game Table",
+      "category": "accessories",
+      "lowPrice": 60000,
+      "midPrice": 150000,
+      "midHighPrice": 300000,
+      "highPrice": 800000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "games",
+      "name": "Games",
+      "category": "accessories",
+      "lowPrice": 2500,
+      "midPrice": 5000,
+      "midHighPrice": 10000,
+      "highPrice": 30000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "bar_stool",
+      "name": "Bar Stool",
+      "category": "kitchen_furniture",
+      "lowPrice": 30000,
+      "midPrice": 80000,
+      "midHighPrice": 150000,
+      "highPrice": 400000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "island_centerpiece",
+      "name": "Island Centerpiece",
+      "category": "accessories",
+      "lowPrice": 10000,
+      "midPrice": 30000,
+      "midHighPrice": 50000,
+      "highPrice": 80000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "counter_accessories",
+      "name": "Counter Accessories",
+      "category": "accessories",
+      "lowPrice": 5000,
+      "midPrice": 12500,
+      "midHighPrice": 30000,
+      "highPrice": 50000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "kitchen_towels",
+      "name": "Kitchen Towels",
+      "category": "accessories",
+      "lowPrice": 1500,
+      "midPrice": 3500,
+      "midHighPrice": 5000,
+      "highPrice": 8000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "open_shelving_decor",
+      "name": "Open Shelving Decor",
+      "category": "accessories",
+      "lowPrice": 6000,
+      "midPrice": 10000,
+      "midHighPrice": 25000,
+      "highPrice": 50000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "top_of_cabinetry_decor",
+      "name": "Top of Cabinetry Decor",
+      "category": "accessories",
+      "lowPrice": 7000,
+      "midPrice": 10000,
+      "midHighPrice": 25000,
+      "highPrice": 50000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "kitchen_runner_rug",
+      "name": "Kitchen Runner Rug",
+      "category": "textiles",
+      "lowPrice": 15000,
+      "midPrice": 30000,
+      "midHighPrice": 60000,
+      "highPrice": 100000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "dining_table",
+      "name": "Dining Table",
+      "category": "dining_furniture",
+      "lowPrice": 120000,
+      "midPrice": 250000,
+      "midHighPrice": 400000,
+      "highPrice": 1000000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "dining_chair",
+      "name": "Dining Chair",
+      "category": "living_room_furniture",
+      "lowPrice": 30000,
+      "midPrice": 60000,
+      "midHighPrice": 100000,
+      "highPrice": 400000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "table_centerpiece",
+      "name": "Table Centerpiece",
+      "category": "accessories",
+      "lowPrice": 10000,
+      "midPrice": 25000,
+      "midHighPrice": 40000,
+      "highPrice": 80000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "buffet_or_sideboard",
+      "name": "Buffet or Sideboard",
+      "category": "accessories",
+      "lowPrice": 80000,
+      "midPrice": 150000,
+      "midHighPrice": 300000,
+      "highPrice": 800000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "display_cabinet",
+      "name": "Display Cabinet",
+      "category": "accessories",
+      "lowPrice": 120000,
+      "midPrice": 250000,
+      "midHighPrice": 400000,
+      "highPrice": 1000000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "sofa_sectional",
+      "name": "Sofa/Sectional",
+      "category": "living_room_furniture",
+      "lowPrice": 200000,
+      "midPrice": 400000,
+      "midHighPrice": 800000,
+      "highPrice": 1500000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "coffee_table",
+      "name": "Coffee Table",
+      "category": "living_room_furniture",
+      "lowPrice": 80000,
+      "midPrice": 180000,
+      "midHighPrice": 300000,
+      "highPrice": 600000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "side_table",
+      "name": "Side Table",
+      "category": "living_room_furniture",
+      "lowPrice": 15000,
+      "midPrice": 50000,
+      "midHighPrice": 100000,
+      "highPrice": 300000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "tv_console",
+      "name": "TV Console",
+      "category": "electronics",
+      "lowPrice": 100000,
+      "midPrice": 250000,
+      "midHighPrice": 400000,
+      "highPrice": 800000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "mirror",
+      "name": "Mirror",
+      "category": "decorative",
+      "lowPrice": 30000,
+      "midPrice": 30000,
+      "midHighPrice": 40000,
+      "highPrice": 50000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "ottoman_or_pouf",
+      "name": "Ottoman or Pouf",
+      "category": "accessories",
+      "lowPrice": 20000,
+      "midPrice": 20000,
+      "midHighPrice": 20000,
+      "highPrice": 20000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.596Z",
+      "updatedAt": "2025-10-14T00:21:57.596Z"
+    },
+    {
+      "id": "large_game_table",
+      "name": "Large Game Table",
+      "category": "accessories",
+      "lowPrice": 150000,
+      "midPrice": 300000,
+      "midHighPrice": 800000,
+      "highPrice": 1000000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T00:21:57.597Z",
+      "updatedAt": "2025-10-14T00:21:57.597Z"
+    },
+    {
+      "id": "throw_blanket",
+      "name": "Throw Blanket",
+      "category": "textiles",
+      "lowPrice": 2500,
+      "midPrice": 8000,
+      "midHighPrice": 15000,
+      "highPrice": 25000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T18:24:17.832Z",
+      "updatedAt": "2025-10-14T18:24:17.833Z"
+    },
+    {
+      "id": "curtains",
+      "name": "Curtains",
+      "category": "textiles",
+      "lowPrice": 6500,
+      "midPrice": 14000,
+      "midHighPrice": 20000,
+      "highPrice": 40000,
+      "unit": "each",
+      "notes": "",
+      "createdAt": "2025-10-14T18:24:17.833Z",
+      "updatedAt": "2025-10-14T18:24:17.833Z"
+    }
+  ],
+  "roomTemplates": [
+    {
+      "id": "living_room",
+      "name": "Living Room",
+      "displayName": "Living Room",
+      "description": "Complete living room setup with furnishings",
+      "category": "common_spaces",
+      "icon": "🛋️",
+      "sortOrder": 1,
+      "sizes": {
+        "small": {
+          "displayName": "Small Living Room",
+          "items": [
+            {
+              "itemId": "sofa_sectional",
+              "quantity": 1
+            },
+            {
+              "itemId": "chair",
+              "quantity": 2
+            },
+            {
+              "itemId": "coffee_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 2
+            },
+            {
+              "itemId": "tv_console",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 2
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 5
+            },
+            {
+              "itemId": "throw_blanket",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 1
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 2
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 828500,
+            "mid": 1689000,
+            "midHigh": 2964000,
+            "high": 5884000
+          }
+        },
+        "medium": {
+          "displayName": "Medium Living Room",
+          "items": [
+            {
+              "itemId": "sofa_sectional",
+              "quantity": 1
+            },
+            {
+              "itemId": "chair",
+              "quantity": 3
+            },
+            {
+              "itemId": "coffee_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 4
+            },
+            {
+              "itemId": "tv_console",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 3
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "throw_blanket",
+              "quantity": 5
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 2
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 2
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 4
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 2
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "ottoman_or_pouf",
+              "quantity": 3
+            }
+          ],
+          "totals": {
+            "low": 1121500,
+            "mid": 2203000,
+            "midHigh": 3783000,
+            "high": 7588000
+          }
+        },
+        "large": {
+          "displayName": "Large Living Room",
+          "items": [
+            {
+              "itemId": "sofa_sectional",
+              "quantity": 2
+            },
+            {
+              "itemId": "chair",
+              "quantity": 4
+            },
+            {
+              "itemId": "coffee_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 4
+            },
+            {
+              "itemId": "tv_console",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 2
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 4
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 12
+            },
+            {
+              "itemId": "throw_blanket",
+              "quantity": 8
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 3
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 6
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 3
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "ottoman_or_pouf",
+              "quantity": 6
+            },
+            {
+              "itemId": "bookshelf",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 1661500,
+            "mid": 3167000,
+            "midHigh": 5542000,
+            "high": 10922000
+          }
+        }
+      },
+      "createdAt": "2025-10-14T00:21:57.598Z",
+      "updatedAt": "2025-10-14T00:21:57.598Z"
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "displayName": "Kitchen",
+      "description": "Complete kitchen setup with furnishings",
+      "category": "common_spaces",
+      "icon": "🍳",
+      "sortOrder": 2,
+      "sizes": {
+        "small": {
+          "displayName": "Small Kitchen",
+          "items": [
+            {
+              "itemId": "bar_stool",
+              "quantity": 4
+            },
+            {
+              "itemId": "island_centerpiece",
+              "quantity": 1
+            },
+            {
+              "itemId": "counter_accessories",
+              "quantity": 3
+            },
+            {
+              "itemId": "kitchen_towels",
+              "quantity": 2
+            }
+          ],
+          "totals": {
+            "low": 148000,
+            "mid": 394500,
+            "midHigh": 750000,
+            "high": 1846000
+          }
+        },
+        "medium": {
+          "displayName": "Medium Kitchen",
+          "items": [
+            {
+              "itemId": "bar_stool",
+              "quantity": 8
+            },
+            {
+              "itemId": "island_centerpiece",
+              "quantity": 1
+            },
+            {
+              "itemId": "counter_accessories",
+              "quantity": 6
+            },
+            {
+              "itemId": "kitchen_towels",
+              "quantity": 4
+            },
+            {
+              "itemId": "open_shelving_decor",
+              "quantity": 8
+            },
+            {
+              "itemId": "top_of_cabinetry_decor",
+              "quantity": 3
+            },
+            {
+              "itemId": "kitchen_runner_rug",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 370000,
+            "mid": 899000,
+            "midHigh": 1785000,
+            "high": 4262000
+          }
+        },
+        "large": {
+          "displayName": "Large Kitchen",
+          "items": [
+            {
+              "itemId": "bar_stool",
+              "quantity": 12
+            },
+            {
+              "itemId": "island_centerpiece",
+              "quantity": 1
+            },
+            {
+              "itemId": "counter_accessories",
+              "quantity": 9
+            },
+            {
+              "itemId": "kitchen_towels",
+              "quantity": 6
+            },
+            {
+              "itemId": "open_shelving_decor",
+              "quantity": 16
+            },
+            {
+              "itemId": "top_of_cabinetry_decor",
+              "quantity": 6
+            },
+            {
+              "itemId": "kitchen_runner_rug",
+              "quantity": 2
+            }
+          ],
+          "totals": {
+            "low": 592000,
+            "mid": 1403500,
+            "midHigh": 2820000,
+            "high": 6678000
+          }
+        }
+      },
+      "createdAt": "2025-10-14T00:21:57.598Z",
+      "updatedAt": "2025-10-14T00:21:57.598Z"
+    },
+    {
+      "id": "dining_room",
+      "name": "Dining Room",
+      "displayName": "Dining Room",
+      "description": "Complete dining room setup with furnishings",
+      "category": "common_spaces",
+      "icon": "🍽️",
+      "sortOrder": 3,
+      "sizes": {
+        "small": {
+          "displayName": "Small Dining Room",
+          "items": [
+            {
+              "itemId": "dining_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "dining_chair",
+              "quantity": 8
+            },
+            {
+              "itemId": "table_centerpiece",
+              "quantity": 1
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 1
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 420500,
+            "mid": 835500,
+            "midHigh": 1370500,
+            "high": 4810500
+          }
+        },
+        "medium": {
+          "displayName": "Medium Dining Room",
+          "items": [
+            {
+              "itemId": "dining_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "dining_chair",
+              "quantity": 10
+            },
+            {
+              "itemId": "table_centerpiece",
+              "quantity": 1
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 2
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 2
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 2
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "buffet_or_sideboard",
+              "quantity": 1
+            },
+            {
+              "itemId": "open_shelving_decor",
+              "quantity": 6
+            }
+          ],
+          "totals": {
+            "low": 668000,
+            "mid": 1278000,
+            "midHigh": 2113000,
+            "high": 7083000
+          }
+        },
+        "large": {
+          "displayName": "Large Dining Room",
+          "items": [
+            {
+              "itemId": "dining_table",
+              "quantity": 2
+            },
+            {
+              "itemId": "dining_chair",
+              "quantity": 20
+            },
+            {
+              "itemId": "table_centerpiece",
+              "quantity": 2
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 4
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 3
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 2
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 2
+            },
+            {
+              "itemId": "buffet_or_sideboard",
+              "quantity": 2
+            },
+            {
+              "itemId": "open_shelving_decor",
+              "quantity": 12
+            },
+            {
+              "itemId": "display_cabinet",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 1445500,
+            "mid": 2795500,
+            "midHigh": 4615500,
+            "high": 15155500
+          }
+        }
+      },
+      "createdAt": "2025-10-14T00:21:57.599Z",
+      "updatedAt": "2025-10-14T00:21:57.599Z"
+    },
+    {
+      "id": "single_bedroom",
+      "name": "Single Bedroom",
+      "displayName": "Single Bedroom",
+      "description": "Complete single bedroom setup with furnishings",
+      "category": "sleeping_spaces",
+      "icon": "🛏️",
+      "sortOrder": 4,
+      "sizes": {
+        "small": {
+          "displayName": "Small Single Bedroom",
+          "items": [
+            {
+              "itemId": "king_bed_frame",
+              "quantity": 1
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 1
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 1
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 2
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 2
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 2
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 1
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 1
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 3
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 1
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 2
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 8
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 1
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 3
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 509500,
+            "mid": 1179000,
+            "midHigh": 1465200,
+            "high": 3453600
+          }
+        },
+        "medium": {
+          "displayName": "Medium Single Bedroom",
+          "items": [
+            {
+              "itemId": "king_bed_frame",
+              "quantity": 1
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 1
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 1
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 2
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 2
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 2
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 1
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 1
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 3
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 1
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 2
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 8
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 2
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 2
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 4
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "chair",
+              "quantity": 1
+            },
+            {
+              "itemId": "chair_throw_pillow",
+              "quantity": 1
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 1
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 1
+            },
+            {
+              "itemId": "floor_lamp",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 610000,
+            "mid": 1432000,
+            "midHigh": 2057700,
+            "high": 4713600
+          }
+        },
+        "large": {
+          "displayName": "Large Single Bedroom",
+          "items": [
+            {
+              "itemId": "king_bed_frame",
+              "quantity": 1
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 1
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 1
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 2
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 2
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 2
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 1
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 1
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 3
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 1
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 2
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 8
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 3
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 5
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "chair",
+              "quantity": 2
+            },
+            {
+              "itemId": "chair_throw_pillow",
+              "quantity": 2
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 2
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 1
+            },
+            {
+              "itemId": "floor_lamp",
+              "quantity": 1
+            },
+            {
+              "itemId": "dresser",
+              "quantity": 1
+            },
+            {
+              "itemId": "dresser_accessories",
+              "quantity": 4
+            }
+          ],
+          "totals": {
+            "low": 787500,
+            "mid": 1810000,
+            "midHigh": 2820200,
+            "high": 6293600
+          }
+        }
+      },
+      "createdAt": "2025-10-14T00:21:57.599Z",
+      "updatedAt": "2025-10-14T00:21:57.599Z"
+    },
+    {
+      "id": "double_bedroom",
+      "name": "Double Bedroom",
+      "displayName": "Double Bedroom",
+      "description": "Complete double bedroom setup with furnishings",
+      "category": "sleeping_spaces",
+      "icon": "🛏️",
+      "sortOrder": 5,
+      "sizes": {
+        "small": {
+          "displayName": "Small Double Bedroom",
+          "items": [
+            {
+              "itemId": "king_bed_frame",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 2
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 4
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 4
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 4
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 2
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 2
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 6
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 2
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 2
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 1
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 4
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 1
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 4
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 724500,
+            "mid": 1632000,
+            "midHigh": 3326000,
+            "high": 7780000
+          }
+        },
+        "medium": {
+          "displayName": "Medium Double Bedroom",
+          "items": [
+            {
+              "itemId": "king_bed_frame",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 2
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 4
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 4
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 4
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 2
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 2
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 6
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 2
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 2
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 3
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 4
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 12
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 2
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 2
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 5
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_chair",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_accessories",
+              "quantity": 4
+            },
+            {
+              "itemId": "dresser",
+              "quantity": 1
+            },
+            {
+              "itemId": "dresser_accessories",
+              "quantity": 3
+            }
+          ],
+          "totals": {
+            "low": 1035500,
+            "mid": 2150000,
+            "midHigh": 4366000,
+            "high": 10100000
+          }
+        },
+        "large": {
+          "displayName": "Large Double Bedroom",
+          "items": [
+            {
+              "itemId": "king_bed_frame",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 2
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 4
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 4
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 4
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 2
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 2
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 6
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 2
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 2
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 3
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 4
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 4
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 16
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 3
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 5
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_chair",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_accessories",
+              "quantity": 4
+            },
+            {
+              "itemId": "dresser",
+              "quantity": 1
+            },
+            {
+              "itemId": "dresser_accessories",
+              "quantity": 3
+            },
+            {
+              "itemId": "bookshelf",
+              "quantity": 1
+            },
+            {
+              "itemId": "chair",
+              "quantity": 2
+            },
+            {
+              "itemId": "chair_throw_pillow",
+              "quantity": 2
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 2
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 2
+            },
+            {
+              "itemId": "floor_lamp",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 1279000,
+            "mid": 2546000,
+            "midHigh": 5126000,
+            "high": 11760000
+          }
+        }
+      },
+      "createdAt": "2025-10-14T00:21:57.599Z",
+      "updatedAt": "2025-10-14T00:21:57.599Z"
+    },
+    {
+      "id": "bunk_room",
+      "name": "Bunk Room",
+      "displayName": "Bunk Room",
+      "description": "Complete bunk room setup with furnishings",
+      "category": "sleeping_spaces",
+      "icon": "🛏️",
+      "sortOrder": 6,
+      "sizes": {
+        "small": {
+          "displayName": "Small Bunk Room",
+          "items": [
+            {
+              "itemId": "bunk_bed",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 4
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 4
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 8
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 4
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 4
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 4
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 1
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 4
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "bean_bag",
+              "quantity": 2
+            }
+          ],
+          "totals": {
+            "low": 733500,
+            "mid": 1193500,
+            "midHigh": 1670000,
+            "high": 3300000
+          }
+        },
+        "medium": {
+          "displayName": "Medium Bunk Room",
+          "items": [
+            {
+              "itemId": "bunk_bed",
+              "quantity": 2
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 4
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 4
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 8
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 4
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 4
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 4
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 2
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 1
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 1
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 4
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 2
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 2
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 4
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "bean_bag",
+              "quantity": 4
+            },
+            {
+              "itemId": "dresser",
+              "quantity": 1
+            },
+            {
+              "itemId": "dresser_accessories",
+              "quantity": 3
+            },
+            {
+              "itemId": "bookshelf",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 959500,
+            "mid": 1585000,
+            "midHigh": 2285000,
+            "high": 4490000
+          }
+        },
+        "large": {
+          "displayName": "Large Bunk Room",
+          "items": [
+            {
+              "itemId": "bunk_bed",
+              "quantity": 4
+            },
+            {
+              "itemId": "mattress",
+              "quantity": 8
+            },
+            {
+              "itemId": "mattress_protector",
+              "quantity": 8
+            },
+            {
+              "itemId": "sleeping_pillows",
+              "quantity": 16
+            },
+            {
+              "itemId": "down_pillows",
+              "quantity": 16
+            },
+            {
+              "itemId": "pillow_protectors",
+              "quantity": 16
+            },
+            {
+              "itemId": "sheets",
+              "quantity": 8
+            },
+            {
+              "itemId": "decorative_bedding",
+              "quantity": 8
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 16
+            },
+            {
+              "itemId": "throw_blanket_on_bed",
+              "quantity": 8
+            },
+            {
+              "itemId": "bench_or_stools",
+              "quantity": 2
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstands",
+              "quantity": 2
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 2
+            },
+            {
+              "itemId": "nightstand_accessories",
+              "quantity": 8
+            },
+            {
+              "itemId": "curtain_set",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 3
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 6
+            },
+            {
+              "itemId": "mirror",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "bean_bag",
+              "quantity": 6
+            },
+            {
+              "itemId": "dresser",
+              "quantity": 1
+            },
+            {
+              "itemId": "dresser_accessories",
+              "quantity": 3
+            },
+            {
+              "itemId": "bookshelf",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_chair",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_accessories",
+              "quantity": 3
+            },
+            {
+              "itemId": "game_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "games",
+              "quantity": 4
+            }
+          ],
+          "totals": {
+            "low": 1755000,
+            "mid": 3029500,
+            "midHigh": 4560000,
+            "high": 9300000
+          }
+        }
+      },
+      "createdAt": "2025-10-14T00:21:57.599Z",
+      "updatedAt": "2025-10-14T00:21:57.599Z"
+    },
+    {
+      "id": "rec_room",
+      "name": "Rec Room",
+      "displayName": "Rec Room",
+      "description": "Complete rec room setup with furnishings",
+      "category": "common_spaces",
+      "icon": "🎮",
+      "sortOrder": 7,
+      "sizes": {
+        "small": {
+          "displayName": "Small Rec Room",
+          "items": [
+            {
+              "itemId": "sofa_sectional",
+              "quantity": 1
+            },
+            {
+              "itemId": "chair",
+              "quantity": 2
+            },
+            {
+              "itemId": "coffee_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 2
+            },
+            {
+              "itemId": "tv_console",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 2
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 5
+            },
+            {
+              "itemId": "throw_blanket",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 1
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 1
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 2
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 1
+            },
+            {
+              "itemId": "large_game_table",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 978500,
+            "mid": 1200000,
+            "midHigh": 1800000,
+            "high": 2500000
+          }
+        },
+        "medium": {
+          "displayName": "Medium Rec Room",
+          "items": [
+            {
+              "itemId": "sofa_sectional",
+              "quantity": 2
+            },
+            {
+              "itemId": "chair",
+              "quantity": 2
+            },
+            {
+              "itemId": "coffee_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 4
+            },
+            {
+              "itemId": "tv_console",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv",
+              "quantity": 1
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 1
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 1
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 3
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 8
+            },
+            {
+              "itemId": "throw_blanket",
+              "quantity": 5
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 2
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 2
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 4
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 2
+            },
+            {
+              "itemId": "large_game_table",
+              "quantity": 2
+            },
+            {
+              "itemId": "desk",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_chair",
+              "quantity": 1
+            },
+            {
+              "itemId": "desk_accessories",
+              "quantity": 3
+            },
+            {
+              "itemId": "bookshelf",
+              "quantity": 1
+            }
+          ],
+          "totals": {
+            "low": 1580500,
+            "mid": 2000000,
+            "midHigh": 3000000,
+            "high": 4000000
+          }
+        },
+        "large": {
+          "displayName": "Large Rec Room",
+          "items": [
+            {
+              "itemId": "sofa_sectional",
+              "quantity": 2
+            },
+            {
+              "itemId": "chair",
+              "quantity": 4
+            },
+            {
+              "itemId": "coffee_table",
+              "quantity": 1
+            },
+            {
+              "itemId": "side_table",
+              "quantity": 4
+            },
+            {
+              "itemId": "tv_console",
+              "quantity": 2
+            },
+            {
+              "itemId": "tv",
+              "quantity": 2
+            },
+            {
+              "itemId": "tv_mount",
+              "quantity": 2
+            },
+            {
+              "itemId": "area_rug",
+              "quantity": 2
+            },
+            {
+              "itemId": "lamps",
+              "quantity": 4
+            },
+            {
+              "itemId": "throw_pillows",
+              "quantity": 12
+            },
+            {
+              "itemId": "throw_blanket",
+              "quantity": 8
+            },
+            {
+              "itemId": "curtains",
+              "quantity": 3
+            },
+            {
+              "itemId": "curtain_rod",
+              "quantity": 3
+            },
+            {
+              "itemId": "wall_art",
+              "quantity": 6
+            },
+            {
+              "itemId": "greenery",
+              "quantity": 3
+            },
+            {
+              "itemId": "large_game_table",
+              "quantity": 3
+            },
+            {
+              "itemId": "desk",
+              "quantity": 2
+            },
+            {
+              "itemId": "desk_chair",
+              "quantity": 2
+            },
+            {
+              "itemId": "desk_accessories",
+              "quantity": 6
+            },
+            {
+              "itemId": "bookshelf",
+              "quantity": 2
+            }
+          ],
+          "totals": {
+            "low": 2309500,
+            "mid": 3000000,
+            "midHigh": 4500000,
+            "high": 6000000
+          }
+        }
+      },
+      "createdAt": "2025-10-14T00:21:57.599Z",
+      "updatedAt": "2025-10-14T00:21:57.599Z"
+    }
+  ],
+  "estimates": [],
+  "priceHistory": [],
+  "adminUsers": []
+}

@@ -1,5 +1,10 @@
 {
   "dependencies": {
+    "firebase-admin": "^12.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
     "firebase": "^12.4.0",
     "lucide-react": "^0.545.0"
   }

@@ -8,7 +8,7 @@ import type { RoomWithItems } from '../types';
 import { suggestRoomConfiguration, formatCurrency, calculateEstimate } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useAutoConfiguration, useAutoConfigRules } from '../hooks/useAutoConfiguration';
-import { calculateBedroomCapacity } from '../utils/autoConfiguration';
+import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
 import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 
 export default function RoomConfigurationPage() {
@@ -290,7 +290,7 @@ export default function RoomConfigurationPage() {
                   {formatCurrency(runningTotal.low)} - {formatCurrency(runningTotal.mid)}
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  {propertySpecs?.squareFootage?.toLocaleString() || 0} sqft • Max capacity: {computedConfiguration && rules ? calculateBedroomCapacity(computedConfiguration.bedrooms, rules) : 0} guests
+                  {propertySpecs?.squareFootage?.toLocaleString() || 0} sqft • Max capacity: {rules ? calculateSelectedRoomCapacity(localRooms.map(room => ({ roomType: room.roomType, quantity: room.quantity, roomSize: room.roomSize })), rules) : 0} guests
                 </p>
               </div>
             </div>
