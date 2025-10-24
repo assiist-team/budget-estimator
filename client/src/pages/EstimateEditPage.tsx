@@ -153,7 +153,7 @@ export default function EstimateEditPage() {
         <div className="sticky top-16 z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-4 sm:p-6">
           <div className="text-center">
             <p className="text-base sm:text-lg font-medium mb-2 sm:mb-3 opacity-90">
-              FURNISHINGS ESTIMATE TOTAL
+              PROJECT BUDGET TOTAL
             </p>
             <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 leading-tight">
               <span className="font-medium">Project Range:</span> {calculateBudgetRange(estimate.rooms)}

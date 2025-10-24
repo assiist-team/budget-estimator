@@ -206,7 +206,7 @@ export default function RoomConfigurationPage() {
             Configure Your Project Package
           </h1>
           <p className="text-gray-600 mb-8">
-            Select the rooms you'd like to furnish and customise their sizes to build a complete project budget
+            Select the rooms you'd like to furnish and customise their sizes to build a complete {budgetDefaults ? 'project budget' : 'estimate'}
           </p>
 
           {/* Common Spaces */}
@@ -284,7 +284,7 @@ export default function RoomConfigurationPage() {
             <div className="card bg-primary-50 border-2 border-primary-200">
               <div className="text-center">
                 <p className="text-sm font-medium text-gray-700 mb-2">
-                  Estimated Project Range
+                  Estimated {budgetDefaults ? 'Project Budget' : 'Budget'} Range
                 </p>
                 <p className="text-3xl font-bold text-primary-800">
                   {formatCurrency(runningTotal.low)} - {formatCurrency(runningTotal.mid)}
@@ -311,7 +311,7 @@ export default function RoomConfigurationPage() {
               disabled={localRooms.length === 0}
               className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Continue to Results →
+              Continue to {budgetDefaults ? 'Project Budget' : 'Results'} →
             </button>
           </div>
         </div>

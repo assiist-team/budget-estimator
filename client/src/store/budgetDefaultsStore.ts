@@ -55,21 +55,13 @@ export const useBudgetDefaultsStore = create<BudgetDefaultsState>()(
               loading: false
             });
           } else {
-            // Create default values if document doesn't exist
-            const defaultDefaults: BudgetDefaults = {
-              installationCents: 500000, // $5,000
-              fuelCents: 200000, // $2,000
-              storageAndReceivingCents: 400000, // $4,000
-              kitchenCents: 500000, // $5,000
-              propertyManagementCents: 400000, // $4,000
-              designFeeRatePerSqftCents: 1000 // $10/sqft
-            };
-
-            set({ defaults: defaultDefaults, loading: false });
+            // No defaults available if document doesn't exist
+            set({ defaults: null, loading: false, error: 'Budget defaults not configured' });
           }
         } catch (error) {
-          console.error('Error loading budget defaults:', error);
+          console.error('Error loading budget defaults from Firestore:', error);
           set({
+            defaults: null,
             error: error instanceof Error ? error.message : 'Failed to load budget defaults',
             loading: false
           });

@@ -52,41 +52,15 @@ export function getBedroomRule(
   if (exact) {
     // Validate capacity for exact match
     if (!hasSufficientBedroomCapacity(exact, guestCount, rules)) {
-      // Find alternative rule with sufficient capacity
-      const validRules = sqftMatches.filter(r => hasSufficientBedroomCapacity(r, guestCount, rules));
-      if (validRules.length === 0) return null;
-
-      return validRules.reduce((prev, curr) => {
-        const prevDist = Math.min(
-          Math.abs(prev.min_guests - guestCount),
-          Math.abs(prev.max_guests - guestCount)
-        );
-        const currDist = Math.min(
-          Math.abs(curr.min_guests - guestCount),
-          Math.abs(curr.max_guests - guestCount)
-        );
-        return currDist < prevDist ? curr : prev;
-      });
+      return null; // Use fallback if even the exact match doesn't have sufficient capacity
     }
 
     return exact;
   }
 
-  // Find rule with minimal boundary distance to guestCount that also has sufficient capacity
-  const validRules = sqftMatches.filter(r => hasSufficientBedroomCapacity(r, guestCount, rules));
-  if (validRules.length === 0) return null;
-
-  return validRules.reduce((prev, curr) => {
-    const prevDist = Math.min(
-      Math.abs(prev.min_guests - guestCount),
-      Math.abs(prev.max_guests - guestCount)
-    );
-    const currDist = Math.min(
-      Math.abs(curr.min_guests - guestCount),
-      Math.abs(curr.max_guests - guestCount)
-    );
-    return currDist < prevDist ? curr : prev;
-  });
+  // No exact match found - use fallback algorithm instead of trying to find "closest" rules
+  // The fallback algorithm is designed to handle cases where no rules match
+  return null;
 }
 
 /**
@@ -311,10 +285,11 @@ export function generateBedroomFallback(
     }
   }
 
-  // If still remaining, allocate doubles only if heuristics allow
+  // If still remaining, allocate doubles only if heuristics allow AND remaining is significant
   const doublesAllowed = squareFootage >= DOUBLES_SQFT_THRESHOLD || guestCount >= DOUBLES_GUEST_THRESHOLD;
+  const MIN_GUESTS_FOR_DOUBLE = 4; // Don't add a double for just 1-3 remaining guests
 
-  if (remaining > 0 && doublesAllowed) {
+  if (remaining >= MIN_GUESTS_FOR_DOUBLE && doublesAllowed) {
     // Use doubles to cover as many guests as possible (4 per double)
     doubles = Math.ceil(remaining / 4);
     remaining = 0;

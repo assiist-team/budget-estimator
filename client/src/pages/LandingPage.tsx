@@ -59,7 +59,7 @@ export default function LandingPage() {
                 Configure your spaces
               </h3>
               <p className="text-gray-600">
-                Select the rooms you need, tailor their sizes, and capture the furnishings scope
+                Select the rooms you need, tailor their sizes, and capture the complete project scope
               </p>
             </div>
 
@@ -71,7 +71,7 @@ export default function LandingPage() {
                 Review your complete project budget
               </h3>
               <p className="text-gray-600">
-                Instantly see furnishings, design fees, and project add-ons in one shareable estimate
+                Instantly see complete project budgets with design fees and all service costs in one shareable estimate
               </p>
             </div>
           </div>
@@ -84,13 +84,13 @@ export default function LandingPage() {
               Ready to Get Started?
             </h2>
             <p className="text-gray-600 mb-6">
-              It only takes a few minutes to get your project budget estimate
+              It only takes a few minutes to get your complete project budget
             </p>
             <button
               onClick={handleStartEstimate}
               className="btn-primary text-lg px-6 py-3"
             >
-              Get Your Estimate →
+              Get Your Project Budget →
             </button>
           </div>
         </div>

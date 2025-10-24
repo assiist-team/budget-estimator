@@ -93,17 +93,18 @@ export function calculateEstimate(
   budget.rangeLow = budget.low.total;
   budget.rangeHigh = budget.mid.total;
 
-  // If budget defaults are provided, calculate project budget with add-ons
-  if (options?.propertySpecs && options?.budgetDefaults) {
+  // If property specs are provided, calculate project budget with add-ons
+  if (options?.propertySpecs) {
     const { propertySpecs, budgetDefaults } = options;
 
+    // Use budget defaults if available, otherwise use minimal defaults
     const projectAddOns = {
-      installation: budgetDefaults.installationCents,
-      fuel: budgetDefaults.fuelCents,
-      storageAndReceiving: budgetDefaults.storageAndReceivingCents,
-      kitchen: budgetDefaults.kitchenCents,
-      propertyManagement: budgetDefaults.propertyManagementCents,
-      designFee: Math.round(propertySpecs.squareFootage * budgetDefaults.designFeeRatePerSqftCents)
+      installation: budgetDefaults?.installationCents || 0,
+      fuel: budgetDefaults?.fuelCents || 0,
+      storageAndReceiving: budgetDefaults?.storageAndReceivingCents || 0,
+      kitchen: budgetDefaults?.kitchenCents || 0,
+      propertyManagement: budgetDefaults?.propertyManagementCents || 0,
+      designFee: Math.round(propertySpecs.squareFootage * (budgetDefaults?.designFeeRatePerSqftCents || 1000)) // Default $10/sqft design fee
     } as const;
 
     const addOnTotal = Object.values(projectAddOns).reduce((sum, cents) => sum + cents, 0);
@@ -119,7 +120,10 @@ export function calculateEstimate(
       ...budget,
       contingencyDisabled: true,
       projectAddOns,
-      projectRange
+      projectRange,
+      // Update the base budget range to match project range for consistency
+      rangeLow: projectRange.low,
+      rangeHigh: projectRange.mid
     };
 
     return projectBudget;

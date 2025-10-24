@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { collection, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
@@ -16,7 +17,7 @@ import { formatCurrency } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { syncToHighLevel } from '../utils/highLevelSync';
 import { calculateEstimate } from '../utils/calculations';
-import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
+import type { BudgetDefaults } from '../types';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
@@ -28,9 +29,12 @@ export default function ResultsPage() {
   } = useEstimatorStore();
 
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
-  const { defaults: budgetDefaults, loadDefaults, loading: defaultsLoading } = useBudgetDefaultsStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+  const [isProjectBudgetType, setIsProjectBudgetType] = useState(false);
+  const [budgetDefaults, setBudgetDefaults] = useState<BudgetDefaults | null>(null);
+  const [defaultsLoading, setDefaultsLoading] = useState(true);
 
   // Convert arrays to Maps for calculation functions
   const roomTemplatesMap = useMemo(() => {
@@ -51,25 +55,95 @@ export default function ResultsPage() {
       return null;
     }
 
-    const baseBudget = calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap);
-    if (!budgetDefaults || !propertySpecs || !('projectRange' in baseBudget)) {
-      return baseBudget;
+    // If we have property specs, create a project budget
+    if (propertySpecs) {
+      setIsProjectBudgetType(true);
+      return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, {
+        propertySpecs,
+        budgetDefaults: budgetDefaults || undefined,
+      });
     }
 
-    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, {
-      propertySpecs,
-      budgetDefaults,
-    });
-  }, [selectedRooms, roomTemplatesMap, itemsMap, budgetDefaults, propertySpecs]);
+    // Otherwise, create a regular furnishings budget
+    setIsProjectBudgetType(false);
+    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap);
+  }, [selectedRooms, roomTemplatesMap, itemsMap, propertySpecs, budgetDefaults]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<ClientInfo>();
 
-  // Redirect if no budget calculated
-  useEffect(() => {
-    if (!budgetDefaults) {
-      void loadDefaults();
+  // Function to toggle room expansion
+  const toggleRoomExpansion = (roomType: string) => {
+    setExpandedRooms(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(roomType)) {
+        newSet.delete(roomType);
+      } else {
+        newSet.add(roomType);
+      }
+      return newSet;
+    });
+  };
+
+  // Function to expand all rooms
+  const expandAllRooms = () => {
+    if (budget?.roomBreakdown) {
+      setExpandedRooms(new Set(budget.roomBreakdown.map(room => room.roomType)));
     }
-  }, [budgetDefaults, loadDefaults]);
+  };
+
+  // Function to collapse all rooms
+  const collapseAllRooms = () => {
+    setExpandedRooms(new Set());
+  };
+
+
+  // Load budget defaults from Firestore on mount
+  useEffect(() => {
+    const loadBudgetDefaults = async () => {
+      setDefaultsLoading(true);
+      try {
+        const docRef = doc(collection(db, 'config'), 'budgetDefaults');
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setBudgetDefaults({
+            installationCents: data.installationCents || 0,
+            fuelCents: data.fuelCents || 0,
+            storageAndReceivingCents: data.storageAndReceivingCents || 0,
+            kitchenCents: data.kitchenCents || 0,
+            propertyManagementCents: data.propertyManagementCents || 0,
+            designFeeRatePerSqftCents: data.designFeeRatePerSqftCents || 1000, // Default $10/sqft
+          });
+        } else {
+          // No defaults in Firestore - use minimal defaults for project budget
+          setBudgetDefaults({
+            installationCents: 0,
+            fuelCents: 0,
+            storageAndReceivingCents: 0,
+            kitchenCents: 0,
+            propertyManagementCents: 0,
+            designFeeRatePerSqftCents: 1000, // Default $10/sqft
+          });
+        }
+      } catch (error) {
+        console.error('Error loading budget defaults from Firestore:', error);
+        // Still set defaults to allow project budget to work
+        setBudgetDefaults({
+          installationCents: 0,
+          fuelCents: 0,
+          storageAndReceivingCents: 0,
+          kitchenCents: 0,
+          propertyManagementCents: 0,
+          designFeeRatePerSqftCents: 1000, // Default $10/sqft
+        });
+      } finally {
+        setDefaultsLoading(false);
+      }
+    };
+
+    void loadBudgetDefaults();
+  }, []);
 
   useEffect(() => {
     if (!budget || !selectedRooms || selectedRooms.length === 0) {
@@ -82,7 +156,7 @@ export default function ResultsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading estimate details...</p>
+          <p className="text-gray-600">Loading project budget details...</p>
         </div>
       </div>
     );
@@ -138,7 +212,7 @@ export default function ResultsPage() {
       setSubmitted(true);
     } catch (error) {
       console.error('Error submitting estimate:', error);
-      alert('There was an error submitting your estimate. Please try again.');
+      alert('There was an error submitting your project budget. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -154,10 +228,10 @@ export default function ResultsPage() {
               Success!
             </h1>
             <p className="text-xl text-gray-600 mb-6">
-              Your estimate has been sent!
+              Your {isProjectBudgetType ? 'project budget' : 'estimate'} has been sent!
             </p>
             <p className="text-gray-600 mb-8">
-              We've emailed your detailed estimate. Check your inbox in the next few minutes.
+              We've emailed your complete {isProjectBudgetType ? 'project budget' : 'furnishings estimate'} breakdown. Check your inbox in the next few minutes.
               We'll be in touch soon!
             </p>
             <div className="flex gap-4 justify-center">
@@ -168,7 +242,7 @@ export default function ResultsPage() {
                 }}
                 className="btn-primary"
               >
-                Start Another Estimate
+                Start Another {isProjectBudgetType ? 'Project Budget' : 'Estimate'}
               </button>
             </div>
           </div>
@@ -189,10 +263,10 @@ export default function ResultsPage() {
           <div className="bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 mb-8">
             <div className="text-center py-6">
               <p className="text-lg font-medium mb-3 opacity-90">
-                ESTIMATED PROJECT BUDGET RANGE
+                {isProjectBudgetType ? 'ESTIMATED PROJECT BUDGET RANGE' : 'ESTIMATED FURNISHINGS BUDGET RANGE'}
               </p>
               <div className="text-5xl font-bold mb-2">
-                {isProjectBudget(budget)
+                {isProjectBudgetType && isProjectBudget(budget)
                   ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
                   : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
               </div>
@@ -203,118 +277,182 @@ export default function ResultsPage() {
           </div>
 
 
-          {/* Budget Estimate */}
-          <div className="mb-8">
+          {/* Project Budget Breakdown */}
+          {isProjectBudget(budget) && (
+
+            <div className="mb-8">
+              <div className="card bg-gray-50 border-2 border-gray-200">
+                <div className="w-full text-left">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex-1">
+                      <div className="mb-1">
+                        <span className="text-2xl font-bold text-primary-800">
+                          Project Budget Breakdown
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Furnishings */}
+                    <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                      <span className="text-lg font-medium text-gray-900">Furnishings</span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {formatCurrency(budget.low.total)} — {formatCurrency(budget.mid.total)}
+                      </span>
+                    </div>
+
+                    {/* Project Add-ons */}
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-700">Design Fee</span>
+                      <span className="text-gray-700">
+                        {formatCurrency(budget.projectAddOns.designFee)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-700">Installation</span>
+                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.installation)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-700">Fuel</span>
+                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.fuel)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-700">Storage & Receiving</span>
+                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-700">Kitchen</span>
+                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-gray-700">Property Management</span>
+                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                    </div>
+
+                    {/* Project Total */}
+                    <div className="flex justify-between items-center py-4 border-t-2 border-gray-300 mt-4">
+                      <span className="text-xl font-bold text-gray-900">Project Total</span>
+                      <span className="text-xl font-bold text-primary-600">
+                        {formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Detailed Room Breakdown */}
+          <div id="detailed-room-breakdown" className="mb-8">
             <div className="card">
               <div className="w-full text-left">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex-1">
                     <div className="mb-1">
                       <span className="text-2xl font-bold text-primary-800">
-                        Estimated Furnishings Budget Breakdown
+                        Detailed Furnishings Budget Breakdown
                       </span>
                     </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Complete itemized breakdown by room
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={expandAllRooms}
+                      className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                    >
+                      Expand All
+                    </button>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      onClick={collapseAllRooms}
+                      className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                    >
+                      Collapse All
+                    </button>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="space-y-6 mb-4">
-                    {budget.roomBreakdown.map((room, idx) => {
-                      const template = roomTemplates.get(room.roomType);
-                      const roomSizeData = template?.sizes[room.roomSize as 'small' | 'medium' | 'large'];
+                <div className="space-y-4">
+                  {budget.roomBreakdown.map((room, idx) => {
+                    const template = roomTemplates.get(room.roomType);
+                    const roomSizeData = template?.sizes[room.roomSize as 'small' | 'medium' | 'large'];
+                    const isExpanded = expandedRooms.has(room.roomType);
+                    const roomDisplayName = room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
-                      return (
-                        <div key={idx} className="border-b border-gray-100 pb-4 last:border-b-0">
-                          <div className="flex justify-between items-start mb-3">
+                    return (
+                      <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
+                        {/* Room Header - Always Visible */}
+                        <div
+                          className="flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                          onClick={() => toggleRoomExpansion(room.roomType)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0">
+                              {isExpanded ? (
+                                <ChevronDown className="w-5 h-5 text-gray-600" />
+                              ) : (
+                                <ChevronRight className="w-5 h-5 text-gray-600" />
+                              )}
+                            </div>
                             <div>
-                              <h4 className="font-medium text-gray-900">
-                                {room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              <h4 className="font-semibold text-lg text-gray-900">
+                                {roomDisplayName}
                               </h4>
-                              <p className="text-sm text-gray-500 mt-1">
+                              <p className="text-sm text-gray-500">
                                 {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)} × {room.quantity}
                               </p>
                             </div>
-                            <div className="text-right">
-                              <div className="font-medium text-gray-900">
-                                {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
-                              </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-semibold text-lg text-gray-900">
+                              {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
                             </div>
                           </div>
+                        </div>
 
-                          {roomSizeData && roomSizeData.items.length > 0 && (
-                            <div className="ml-4 space-y-2">
-                              <h5 className="text-sm font-medium text-gray-700 mb-2">Included Items:</h5>
-                              <div className="grid gap-2">
-                                {roomSizeData.items
-                                  .sort((a: RoomItem, b: RoomItem) => {
-                                    const itemA = items.get(a.itemId);
-                                    const itemB = items.get(b.itemId);
-                                    const nameA = itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-                                    const nameB = itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-                                    return nameA.localeCompare(nameB);
-                                  })
-                                  .map((roomItem: RoomItem, itemIdx: number) => {
-                                    const item = items.get(roomItem.itemId);
-                                    const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                        {/* Room Details - Collapsible */}
+                        {isExpanded && roomSizeData && roomSizeData.items.length > 0 && (
+                          <div className="border-t border-gray-200 p-4 bg-white">
+                            <h5 className="text-sm font-medium text-gray-700 mb-3">Included Items:</h5>
+                            <div className="grid gap-2">
+                              {roomSizeData.items
+                                .sort((a: RoomItem, b: RoomItem) => {
+                                  const itemA = items.get(a.itemId);
+                                  const itemB = items.get(b.itemId);
+                                  const nameA = itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  const nameB = itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  return nameA.localeCompare(nameB);
+                                })
+                                .map((roomItem: RoomItem, itemIdx: number) => {
+                                  const item = items.get(roomItem.itemId);
+                                  const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
 
-                                    return (
-                                      <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-3 py-2 rounded">
-                                        <span className="text-gray-700">
-                                          {itemDisplayName}
-                                        </span>
-                                        <span className="text-gray-600">
-                                          Qty: {roomItem.quantity}
-                                        </span>
-                                      </div>
-                                    );
-                                  })}
-                              </div>
+                                  return (
+                                    <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-4 py-3 rounded-lg">
+                                      <span className="text-gray-700 font-medium">
+                                        {itemDisplayName}
+                                      </span>
+                                      <span className="text-gray-600">
+                                        Qty: {roomItem.quantity}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="space-y-6 mb-4">
-                    <div className="grid gap-2">
-                      <div className="flex justify-between text-lg font-bold">
-                        <span>Furnishings Total</span>
-                        <span>{formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}</span>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    {isProjectBudget(budget) && (
-                      <div className="mt-6 space-y-3 text-sm text-gray-700">
-                        <div className="flex justify-between">
-                          <span>Installation</span>
-                          <span>{formatCurrency(budget.projectAddOns.installation)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Fuel</span>
-                          <span>{formatCurrency(budget.projectAddOns.fuel)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Storage & Receiving</span>
-                          <span>{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Kitchen Setup</span>
-                          <span>{formatCurrency(budget.projectAddOns.kitchen)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Property Management</span>
-                          <span>{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Design Fee</span>
-                          <span>{formatCurrency(budget.projectAddOns.designFee)}</span>
-                        </div>
-                        <div className="flex justify-between text-base font-semibold border-t border-gray-200 pt-3">
-                          <span>Estimated Project Total</span>
-                          <span>{formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}</span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -323,10 +461,10 @@ export default function ResultsPage() {
           {/* Contact Form */}
           <div className="card bg-primary-50 border-2 border-primary-200">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              Get Your Detailed Estimate
+              Get Your Detailed {isProjectBudgetType ? 'Project Budget' : 'Estimate'}
             </h2>
             <p className="text-gray-600 mb-6">
-              Enter your contact information to receive a detailed PDF estimate via email
+              Enter your contact information to receive a complete {isProjectBudgetType ? 'project budget' : 'furnishings estimate'} breakdown via email
             </p>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -412,7 +550,7 @@ export default function ResultsPage() {
                 disabled={isSubmitting}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Submitting...' : 'Submit & Get Estimate →'}
+                {isSubmitting ? 'Submitting...' : `Submit & Get ${isProjectBudgetType ? 'Project Budget' : 'Estimate'} →`}
               </button>
             </form>
           </div>

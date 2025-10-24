@@ -20,7 +20,7 @@ function calculateRoomTotals(items: Map<string, Item>, roomSize: RoomSize): Room
       totals.midHigh += (item.midHighPrice ?? 0) * roomItem.quantity;
       totals.high += (item.highPrice ?? 0) * roomItem.quantity;
     } else {
-      console.warn(`Item ${roomItem.itemId} not found in items collection`);
+      console.warn(`Item ${roomItem.itemId} not found in items collection for room calculation`);
     }
   });
 
