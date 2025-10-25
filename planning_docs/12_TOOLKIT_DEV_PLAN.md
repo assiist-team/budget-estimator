@@ -82,6 +82,7 @@ persist(
 
 ## 6) Add Firebase Auth (minimal)
 - Initialize Auth in `client/src/lib/firebase.ts` (e.g., `getAuth(app)`).
+- Enable persistent login: set `browserLocalPersistence` (e.g., call `initializeAuthPersistence()` that wraps `setPersistence(auth, browserLocalPersistence)`).
 - Implement Sign In/Out UI (Email Link or Google is fine).
 - On first sign-in, create/update `users/{uid}` with: `email`, `displayName`, `role`, `entitlements: { tools: ['budget-estimator'] }`.
 - Wrap `/tools/*` in a `RequireAuth` component that redirects unauthenticated users to sign-in.
@@ -95,7 +96,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function isOwner() { return resource.data.ownerUid == request.auth.uid; }
-    function isAdmin() { return request.auth.token.role in ['owner','admin']; }
+    function userRole() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role; }
+    function isAdmin() { return signedIn() && (userRole() == 'owner' || userRole() == 'admin'); }
 
     match /users/{uid} {
       allow read, write: if signedIn() && uid == request.auth.uid || isAdmin();

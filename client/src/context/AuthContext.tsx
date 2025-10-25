@@ -92,11 +92,25 @@ async function ensureUserDocument(user: User): Promise<UserProfile> {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === 'true';
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (AUTH_DISABLED) {
+      setFirebaseUser(null);
+      setProfile({
+        uid: 'dev-user',
+        email: 'dev@example.com',
+        displayName: 'Dev User',
+        role: 'admin',
+        entitlements: { tools: ['budget-estimator', 'roi-estimator'] },
+      });
+      setLoading(false);
+      return () => {};
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       setFirebaseUser(user);

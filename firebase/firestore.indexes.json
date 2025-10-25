@@ -1,0 +1,15 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "projections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "toolId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
+
+

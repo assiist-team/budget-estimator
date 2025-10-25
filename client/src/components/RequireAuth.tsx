@@ -8,8 +8,13 @@ interface RequireAuthProps {
 }
 
 export default function RequireAuth({ requireAdmin = false, requiredToolId }: RequireAuthProps) {
+  const AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === 'true';
   const location = useLocation();
   const { firebaseUser, loading, isAdmin, hasToolAccess } = useAuth();
+
+  if (AUTH_DISABLED) {
+    return <Outlet />;
+  }
 
   if (loading) {
     return <RequireAuthLoading />;

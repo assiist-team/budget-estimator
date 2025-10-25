@@ -9,13 +9,15 @@ import ViewEstimatePage from './pages/ViewEstimatePage';
 import ToolsLandingPage from './pages/ToolsLandingPage';
 import RequireAuth from './components/RequireAuth';
 import SignInPage from './pages/SignInPage';
+import RoiEstimatorPage from './tools/roi-estimator/RoiEstimatorPage';
+import RoiProjectionViewPage from './tools/roi-estimator/RoiProjectionViewPage';
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen">
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<Navigate to="/tools" replace />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/tools" element={<RequireAuth />}>
             <Route index element={<ToolsLandingPage />} />
@@ -26,6 +28,10 @@ function App() {
               <Route path="results" element={<ResultsPage />} />
               <Route path="estimate/edit/:estimateId" element={<EstimateEditPage />} />
               <Route path="estimate/view/:estimateId" element={<ViewEstimatePage />} />
+            </Route>
+            <Route path="roi-estimator" element={<RequireAuth requiredToolId="roi-estimator" />}>
+              <Route index element={<RoiEstimatorPage />} />
+              <Route path="projection/view/:projectionId" element={<RoiProjectionViewPage />} />
             </Route>
           </Route>
           <Route path="/admin" element={<RequireAuth requireAdmin />}>

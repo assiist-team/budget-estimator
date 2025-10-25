@@ -22,6 +22,11 @@ service cloud.firestore {
       allow read, update, delete: if signedIn() && (isOwner() || isAdmin());
     }
 
+    match /projections/{id} {
+      allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
+      allow read, update, delete: if signedIn() && (isOwner() || isAdmin());
+    }
+
     match /config/{docId} {
       allow read: if signedIn();
       allow write: if isAdmin();
