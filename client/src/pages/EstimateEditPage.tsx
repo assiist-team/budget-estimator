@@ -5,10 +5,15 @@ import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import Header from '../components/Header';
 import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
-import type { RoomWithItems, RoomTemplate, Item } from '../types';
+import type { RoomWithItems, RoomTemplate, Item, ProjectBudget, Budget } from '../types';
 import { formatCurrency, calculateEstimate, calculateTotalRooms, calculateTotalItems } from '../utils/calculations';
 import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
 import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
+
+// Type guard to check if budget is a ProjectBudget
+function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
+  return budget !== null && 'projectRange' in budget;
+}
 
 export default function EstimateEditPage() {
   const navigate = useNavigate();
@@ -46,16 +51,26 @@ export default function EstimateEditPage() {
     }
   }, [loading, estimate, error, navigate]);
 
-  const calculateBudgetRange = useCallback((rooms: RoomWithItems[]) => {
+  const calculateBudgetBreakdown = useCallback((rooms: RoomWithItems[]) => {
     const options = estimate?.propertySpecs && budgetDefaults
       ? { propertySpecs: estimate.propertySpecs, budgetDefaults }
       : undefined;
-    const budget = calculateEstimate(rooms, roomTemplatesMap, itemsMap, options);
-    if ('projectRange' in budget) {
+    return calculateEstimate(rooms, roomTemplatesMap, itemsMap, options);
+  }, [roomTemplatesMap, itemsMap, estimate, budgetDefaults]);
+
+  // Calculate current budget breakdown
+  const currentBudget = useMemo(() => {
+    if (!estimate?.rooms) return null;
+    return calculateBudgetBreakdown(estimate.rooms);
+  }, [estimate?.rooms, calculateBudgetBreakdown]);
+
+  const calculateBudgetRange = useCallback((rooms: RoomWithItems[]) => {
+    const budget = calculateBudgetBreakdown(rooms);
+    if (isProjectBudget(budget)) {
       return `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`;
     }
     return `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
-  }, [roomTemplatesMap, itemsMap, estimate, budgetDefaults]);
+  }, [calculateBudgetBreakdown]);
 
   // Calculate room and item counts for the current estimate
   const totalRooms = useMemo(() => calculateTotalRooms(estimate?.rooms || []), [estimate?.rooms]);
@@ -117,7 +132,7 @@ export default function EstimateEditPage() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Sticky Controls Container */}
-        <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6">
+        <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
@@ -166,7 +181,7 @@ export default function EstimateEditPage() {
         </div>
 
         {/* Sticky Budget Summary */}
-        <div className="sticky top-16 z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-4 sm:p-6">
+        <div className="sticky top-[4.25rem] z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-4 sm:p-6">
           <div className="text-center">
             <p className="text-base sm:text-lg font-medium mb-2 sm:mb-3 opacity-90">
               PROJECT BUDGET TOTAL
@@ -184,9 +199,117 @@ export default function EstimateEditPage() {
           </div>
         </div>
 
+        {/* Project Budget Breakdown */}
+        {isProjectBudget(currentBudget) && (
+          <div className="mb-8">
+            <div className="bg-white rounded-lg shadow border-2 border-gray-200">
+              <div className="w-full text-left">
+                <div className="p-6">
+                  <div className="mb-6">
+                    <span className="text-2xl font-bold text-primary-800">
+                      Project Budget Breakdown
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Furnishings */}
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Furnishings</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(currentBudget.rangeLow)} — {formatCurrency(currentBudget.rangeHigh)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        All furniture, accessories, and finishing touches
+                      </p>
+                    </div>
+
+                    {/* Project Add-ons */}
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Design Fee</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(currentBudget.projectAddOns.designFee)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Comprehensive design planning, procurement, and placement services
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Installation</span>
+                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.installation)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Professional delivery, setup, and installation services
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Fuel</span>
+                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.fuel)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Transportation and fuel costs
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Storage & Receiving</span>
+                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.storageAndReceiving)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Temporary storage solutions and receiving services
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Kitchen</span>
+                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.kitchen)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Kitchen equipment including cookware, flatware, and accessories
+                      </p>
+                    </div>
+
+                    {/* Property Management */}
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Property Management</span>
+                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.propertyManagement)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Items required by property management
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Rooms & Items Editing Area */}
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
+            <div className="mb-6">
+              <div className="mb-1">
+                <span className="text-2xl font-bold text-primary-800">
+                  Edit Room Configurations
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Modify rooms, quantities, and items to customize your estimate
+              </p>
+            </div>
+
             {estimate.rooms.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-600 text-lg">No rooms in this estimate</p>
@@ -200,6 +323,7 @@ export default function EstimateEditPage() {
                     room={room}
                     roomIndex={roomIndex}
                     roomTemplates={roomTemplates}
+                    itemsMap={itemsMap}
                     onUpdate={(updatedRoom) => updateRoom(roomIndex, updatedRoom)}
                     onRemove={() => removeRoom(roomIndex)}
                     onQuantityChange={(newQuantity) => {
@@ -228,12 +352,13 @@ interface RoomEditorProps {
   room: RoomWithItems;
   roomIndex: number;
   roomTemplates: Map<string, RoomTemplate>;
+  itemsMap: Map<string, Item>;
   onUpdate: (room: RoomWithItems) => void;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
 }
 
-function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
+function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
@@ -350,12 +475,17 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuan
       {isExpanded && (
         <div className="p-4">
           <div className="space-y-3">
+            <button className="text-sm text-primary-600 hover:text-primary-800 flex items-center gap-2">
+              ➕ Add Item
+            </button>
+
             {room.items.map((roomItem, itemIndex) => (
               <ItemRow
                 key={itemIndex}
                 roomItem={roomItem}
                 roomIndex={roomIndex}
                 itemIndex={itemIndex}
+                itemsMap={itemsMap}
                 onRemove={() => {
                   const updatedItems = room.items.filter((_, i) => i !== itemIndex);
                   onUpdate({ ...room, items: updatedItems });
@@ -367,10 +497,6 @@ function RoomEditor({ room, roomIndex, roomTemplates, onUpdate, onRemove, onQuan
                 }}
               />
             ))}
-
-            <button className="text-sm text-primary-600 hover:text-primary-800 flex items-center gap-2">
-              ➕ Add Item
-            </button>
           </div>
         </div>
       )}
@@ -383,16 +509,20 @@ interface ItemRowProps {
   roomItem: any;
   roomIndex: number;
   itemIndex: number;
+  itemsMap: Map<string, Item>;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
 }
 
-function ItemRow({ roomItem, onRemove, onQuantityChange }: ItemRowProps) {
+function ItemRow({ roomItem, itemsMap, onRemove, onQuantityChange }: ItemRowProps) {
   return (
     <div className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
       <div className="flex-1">
         <span className="text-gray-700">
-          {roomItem.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+          {(() => {
+            const item = itemsMap.get(roomItem.itemId);
+            return item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+          })()}
         </span>
       </div>
 
