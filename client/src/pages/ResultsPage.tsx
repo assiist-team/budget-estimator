@@ -13,8 +13,10 @@ import type { ClientInfo, RoomItem, RoomWithItems, Budget, ProjectBudget } from 
 function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
   return budget !== null && 'projectRange' in budget;
 }
-import { formatCurrency } from '../utils/calculations';
+import { formatCurrency, calculateTotalRooms, calculateTotalItems } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
+import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
+import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
 import { syncToHighLevel } from '../utils/highLevelSync';
 import { calculateEstimate } from '../utils/calculations';
 import type { BudgetDefaults } from '../types';
@@ -29,6 +31,7 @@ export default function ResultsPage() {
   } = useEstimatorStore();
 
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
+  const { rules: autoConfigRules, loading: rulesLoading } = useAutoConfigRules();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
@@ -68,6 +71,21 @@ export default function ResultsPage() {
     setIsProjectBudgetType(false);
     return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap);
   }, [selectedRooms, roomTemplatesMap, itemsMap, propertySpecs, budgetDefaults]);
+
+  // Calculate room and item counts
+  const totalRooms = useMemo(() => calculateTotalRooms(selectedRooms), [selectedRooms]);
+  const totalItems = useMemo(() => calculateTotalItems(selectedRooms, roomTemplatesMap, itemsMap), [selectedRooms, roomTemplatesMap, itemsMap]);
+
+  // Calculate actual capacity of selected rooms
+  const actualCapacity = useMemo(() => {
+    if (!autoConfigRules || selectedRooms.length === 0) return 0;
+    const roomData = selectedRooms.map(room => ({
+      roomType: room.roomType,
+      quantity: room.quantity,
+      roomSize: room.roomSize
+    }));
+    return calculateSelectedRoomCapacity(roomData, autoConfigRules);
+  }, [selectedRooms, autoConfigRules]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<ClientInfo>();
 
@@ -151,7 +169,7 @@ export default function ResultsPage() {
     }
   }, [budget, selectedRooms, navigate]);
 
-  if (!budget || !propertySpecs || templatesLoading || defaultsLoading) {
+  if (!budget || !propertySpecs || templatesLoading || defaultsLoading || rulesLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -271,7 +289,7 @@ export default function ResultsPage() {
                   : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
               </div>
               <p className="text-sm opacity-75 mt-4">
-                {propertySpecs.squareFootage.toLocaleString()} sqft property | Max capacity: {propertySpecs.guestCapacity} guests
+                {propertySpecs.squareFootage.toLocaleString()} sq ft • {propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
               </p>
             </div>
           </div>

@@ -172,6 +172,47 @@ export function centsToDollars(cents: number): number {
 }
 
 /**
+ * Calculate total number of rooms from selected rooms
+ */
+export function calculateTotalRooms(selectedRooms: RoomWithItems[]): number {
+  return selectedRooms.reduce((total, room) => total + room.quantity, 0);
+}
+
+/**
+ * Calculate total number of items across all rooms
+ */
+export function calculateTotalItems(
+  selectedRooms: RoomWithItems[],
+  roomTemplates: Map<string, RoomTemplate>,
+  items?: Map<string, Item>
+): number {
+  return selectedRooms.reduce((total, room) => {
+    const template = roomTemplates.get(room.roomType);
+    if (!template) return total;
+
+    const roomSizeData = template.sizes[room.roomSize as keyof typeof template.sizes];
+    if (!roomSizeData) return total;
+
+    // If we have items in the room data, use those (from edit page)
+    if (room.items.length > 0) {
+      const roomItems = room.items.reduce((roomItemTotal, item) => roomItemTotal + item.quantity, 0);
+      return total + (roomItems * room.quantity);
+    }
+
+    // Otherwise, use template items (from results page)
+    if (roomSizeData.items.length > 0 && items) {
+      const roomItems = roomSizeData.items.reduce((roomItemTotal, templateItem) => {
+        const item = items.get(templateItem.itemId);
+        return roomItemTotal + (item ? templateItem.quantity : 0);
+      }, 0);
+      return total + (roomItems * room.quantity);
+    }
+
+    return total;
+  }, 0);
+}
+
+/**
  * Generate suggested room configuration based on property specs and computed configuration
  */
 export function suggestRoomConfiguration(

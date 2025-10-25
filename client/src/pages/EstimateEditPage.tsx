@@ -6,7 +6,9 @@ import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import Header from '../components/Header';
 import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
 import type { RoomWithItems, RoomTemplate, Item } from '../types';
-import { formatCurrency, calculateEstimate } from '../utils/calculations';
+import { formatCurrency, calculateEstimate, calculateTotalRooms, calculateTotalItems } from '../utils/calculations';
+import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
+import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
 
 export default function EstimateEditPage() {
   const navigate = useNavigate();
@@ -14,8 +16,6 @@ export default function EstimateEditPage() {
   const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, removeRoom, saveChanges, undo, redo } = useEstimateEditor(estimateId);
   const { roomTemplates, items } = useRoomTemplates();
   const [saving, setSaving] = useState(false);
-  const [isClientInfoExpanded, setIsClientInfoExpanded] = useState(false);
-  const [isPropertySpecsExpanded, setIsPropertySpecsExpanded] = useState(false);
 
   // Convert arrays to Maps for calculation functions
   const roomTemplatesMap = useMemo(() => {
@@ -31,6 +31,7 @@ export default function EstimateEditPage() {
   }, [items]);
 
   const { defaults: budgetDefaults, loadDefaults } = useBudgetDefaultsStore();
+  const { rules: autoConfigRules, loading: rulesLoading } = useAutoConfigRules();
 
   useEffect(() => {
     if (!budgetDefaults) {
@@ -54,9 +55,24 @@ export default function EstimateEditPage() {
       return `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`;
     }
     return `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
-  }, [roomTemplatesMap, itemsMap, estimate?.propertySpecs, budgetDefaults]);
+  }, [roomTemplatesMap, itemsMap, estimate, budgetDefaults]);
 
-  if (loading) {
+  // Calculate room and item counts for the current estimate
+  const totalRooms = useMemo(() => calculateTotalRooms(estimate?.rooms || []), [estimate?.rooms]);
+  const totalItems = useMemo(() => calculateTotalItems(estimate?.rooms || [], roomTemplatesMap, itemsMap), [estimate?.rooms, roomTemplatesMap, itemsMap]);
+
+  // Calculate actual capacity of selected rooms
+  const actualCapacity = useMemo(() => {
+    if (!autoConfigRules || !estimate?.rooms || estimate.rooms.length === 0) return 0;
+    const roomData = estimate.rooms.map(room => ({
+      roomType: room.roomType,
+      quantity: room.quantity,
+      roomSize: room.roomSize
+    }));
+    return calculateSelectedRoomCapacity(roomData, autoConfigRules);
+  }, [estimate?.rooms, autoConfigRules]);
+
+  if (loading || rulesLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -158,74 +174,13 @@ export default function EstimateEditPage() {
             <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 leading-tight">
               <span className="font-medium">Project Range:</span> {calculateBudgetRange(estimate.rooms)}
             </div>
-            <p className="text-xs sm:text-sm opacity-75">
-              {estimate.rooms.reduce((total, room) => total + room.quantity, 0)} room{estimate.rooms.reduce((total, room) => total + room.quantity, 0) !== 1 ? 's' : ''} • {estimate.rooms.reduce((total, room) => total + (room.items.reduce((roomItemTotal, item) => roomItemTotal + item.quantity, 0) * room.quantity), 0)} items
+            <p className="text-xs sm:text-sm opacity-75 mb-2">
+              {estimate.propertySpecs.squareFootage.toLocaleString()} sq ft • {estimate.propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
             </p>
-          </div>
-        </div>
-
-        {/* Property Info - Displayed as cards instead of tabs */}
-        <div className="mb-8">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className={`flex items-center gap-3 ${isClientInfoExpanded ? 'mb-4' : 'mb-0'}`}>
-                <button
-                  onClick={() => setIsClientInfoExpanded(!isClientInfoExpanded)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  {isClientInfoExpanded ? '▼' : '▶'}
-                </button>
-                <h3 className="text-lg font-medium text-gray-900">Client Information</h3>
-              </div>
-              {isClientInfoExpanded && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Name</label>
-                    <p className="text-gray-900">{estimate.clientInfo.firstName} {estimate.clientInfo.lastName}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Email</label>
-                    <p className="text-gray-900">{estimate.clientInfo.email}</p>
-                  </div>
-                  {estimate.clientInfo.phone && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Phone</label>
-                      <p className="text-gray-900">{estimate.clientInfo.phone}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className={`flex items-center gap-3 ${isPropertySpecsExpanded ? 'mb-4' : 'mb-0'}`}>
-                <button
-                  onClick={() => setIsPropertySpecsExpanded(!isPropertySpecsExpanded)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  {isPropertySpecsExpanded ? '▼' : '▶'}
-                </button>
-                <h3 className="text-lg font-medium text-gray-900">Property Specifications</h3>
-              </div>
-              {isPropertySpecsExpanded && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Square Footage</label>
-                    <p className="text-gray-900">{estimate.propertySpecs.squareFootage.toLocaleString()} sqft</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Guest Capacity</label>
-                    <p className="text-gray-900">{estimate.propertySpecs.guestCapacity} guests</p>
-                  </div>
-                  {estimate.propertySpecs.notes && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Notes</label>
-                      <p className="text-gray-900">{estimate.propertySpecs.notes}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <p className="text-xs sm:text-sm opacity-75">
+              {estimate.clientInfo.firstName} {estimate.clientInfo.lastName} • {estimate.clientInfo.email}
+              {estimate.clientInfo.phone && ` • ${estimate.clientInfo.phone}`}
+            </p>
           </div>
         </div>
 
