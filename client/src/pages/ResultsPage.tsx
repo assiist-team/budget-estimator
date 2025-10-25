@@ -295,44 +295,79 @@ export default function ResultsPage() {
 
                   <div className="space-y-4">
                     {/* Furnishings */}
-                    <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                      <span className="text-lg font-medium text-gray-900">Furnishings</span>
-                      <span className="text-lg font-semibold text-gray-900">
-                        {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
-                      </span>
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Furnishings</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        All furniture, accessories, and finishing touches
+                      </p>
                     </div>
 
                     {/* Project Add-ons */}
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-700">Design Fee</span>
-                      <span className="text-gray-700">
-                        {formatCurrency(budget.projectAddOns.designFee)}
-                      </span>
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Design Fee</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(budget.projectAddOns.designFee)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Comprehensive design planning, procurement, and placement services
+                      </p>
                     </div>
 
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-700">Installation</span>
-                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.installation)}</span>
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Installation</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.installation)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Professional delivery, setup, and installation services
+                      </p>
                     </div>
 
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-700">Fuel</span>
-                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.fuel)}</span>
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Fuel</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.fuel)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Transportation and fuel costs
+                      </p>
                     </div>
 
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-700">Storage & Receiving</span>
-                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Storage & Receiving</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Temporary storage solutions and receiving services
+                      </p>
                     </div>
 
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-700">Kitchen</span>
-                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Kitchen</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Kitchen equipment including cookware, flatware, and accessories
+                      </p>
                     </div>
 
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-700">Property Management</span>
-                      <span className="text-gray-700">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Property Management</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Items required by property management
+                      </p>
                     </div>
 
                     {/* Project Total */}
