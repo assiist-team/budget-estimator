@@ -179,7 +179,7 @@ export default function ViewEstimatePage() {
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Estimate not found</h1>
           <p className="text-gray-600">The estimate you are looking for does not exist.</p>
           <button onClick={() => navigate('/admin')} className="btn-primary mt-6">
-            Back to Admin
+            Back
           </button>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function ViewEstimatePage() {
               onClick={() => navigate('/admin')}
               className="btn-secondary"
             >
-              ← Back to Admin
+              ← Back
             </button>
             <Link to={`/estimate/edit/${estimateId}`} className="btn-primary">
               Edit
@@ -207,27 +207,26 @@ export default function ViewEstimatePage() {
           </div>
         </div>
 
-        <div className="mt-8">
-          {/* Overall Budget Range */}
-          <div className="bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 mb-8">
-            <div className="text-center py-6">
-              <p className="text-lg font-medium mb-3 opacity-90">
-                {isProjectBudgetType ? 'ESTIMATED PROJECT BUDGET' : 'ESTIMATED FURNISHINGS BUDGET RANGE'}
-              </p>
-              <div className="text-5xl font-bold mb-2">
-                {isProjectBudgetType && isProjectBudget(budget)
-                  ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
-                  : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
-              </div>
-              <p className="text-sm opacity-75 mt-4 mb-2">
-                {propertySpecs.squareFootage.toLocaleString()} sq ft • {propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
-              </p>
-              <p className="text-xs sm:text-sm opacity-75">
-                {estimate.clientInfo.firstName} {estimate.clientInfo.lastName} • {estimate.clientInfo.email}
-                {estimate.clientInfo.phone && ` • ${estimate.clientInfo.phone}`}
-              </p>
+        {/* Overall Budget Range */}
+        <div className="sticky top-[4.25rem] z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+          <div className="text-center py-6">
+            <p className="text-lg font-medium mb-3 opacity-90">
+              {isProjectBudgetType ? 'ESTIMATED PROJECT BUDGET' : 'ESTIMATED FURNISHINGS BUDGET RANGE'}
+            </p>
+            <div className="text-5xl font-bold mb-2">
+              {isProjectBudgetType && isProjectBudget(budget)
+                ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
+                : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
             </div>
+            <p className="text-sm opacity-75 mt-4 mb-2">
+              {propertySpecs.squareFootage.toLocaleString()} sq ft • {propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
+            </p>
+            <p className="text-xs sm:text-sm opacity-75">
+              {estimate.clientInfo.firstName} {estimate.clientInfo.lastName} • {estimate.clientInfo.email}
+              {estimate.clientInfo.phone && ` • ${estimate.clientInfo.phone}`}
+            </p>
           </div>
+        </div>
 
 
           {/* Project Budget Breakdown */}
@@ -445,7 +444,7 @@ export default function ViewEstimatePage() {
               </div>
             </div>
           </div>
-        </div>
+        
       </main>
     </div>
   );
