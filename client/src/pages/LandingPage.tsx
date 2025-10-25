@@ -1,11 +1,18 @@
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { firebaseUser } = useAuth();
 
   const handleStartEstimate = () => {
-    navigate('/property');
+    if (!firebaseUser) {
+      navigate('/sign-in', { state: { from: { pathname: '/tools/budget-estimator/property' } } });
+      return;
+    }
+
+    navigate('/tools/budget-estimator/property');
   };
 
   return (

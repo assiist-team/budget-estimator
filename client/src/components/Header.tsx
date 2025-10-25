@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface HeaderProps {
   showAdminLink?: boolean;
@@ -7,6 +8,8 @@ interface HeaderProps {
 }
 
 export default function Header({ showAdminLink = true, currentStep, totalSteps }: HeaderProps) {
+  const { firebaseUser, signOutUser, profile } = useAuth();
+
   return (
     <header className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -23,12 +26,29 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
                 Step {currentStep} of {totalSteps}
               </div>
             )}
-            {showAdminLink && (
+            {showAdminLink && profile && ['owner', 'admin'].includes(profile.role) && (
               <Link
-                to="/admin"
+                to="/tools"
                 className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
               >
-                Admin
+                Toolkit
+              </Link>
+            )}
+            {firebaseUser ? (
+              <button
+                onClick={() => {
+                  void signOutUser();
+                }}
+                className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
+              >
+                Sign out
+              </button>
+            ) : (
+              <Link
+                to="/sign-in"
+                className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
+              >
+                Sign in
               </Link>
             )}
           </div>

@@ -82,7 +82,7 @@ export const useEstimatorStore = create<EstimatorState>()(
       reset: () => set(initialState),
     }),
     {
-      name: 'estimator-storage',
+      name: 'estimator-storage-budget-estimator',
       // Only persist certain fields
       partialize: (state) => ({
         propertySpecs: state.propertySpecs,

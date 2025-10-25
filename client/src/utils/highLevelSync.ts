@@ -12,7 +12,7 @@ export async function syncToHighLevel(estimate: any, estimateId: string): Promis
   }
 
   try {
-    const estimateUrl = `${window.location.origin}/view-estimate/${estimateId}`;
+    const estimateUrl = `${window.location.origin}/tools/budget-estimator/estimate/view/${estimateId}`;
 
     // First, try to find existing contact by email
     const searchResponse = await fetch(

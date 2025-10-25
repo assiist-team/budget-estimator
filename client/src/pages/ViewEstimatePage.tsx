@@ -178,7 +178,7 @@ export default function ViewEstimatePage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Estimate not found</h1>
           <p className="text-gray-600">The estimate you are looking for does not exist.</p>
-          <button onClick={() => navigate('/admin')} className="btn-primary mt-6">
+          <button onClick={() => navigate('/tools/budget-estimator')} className="btn-primary mt-6">
             Back
           </button>
         </div>
@@ -196,12 +196,12 @@ export default function ViewEstimatePage() {
         <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => navigate('/admin')}
+              onClick={() => navigate('/tools/budget-estimator')}
               className="btn-secondary"
             >
               ← Back
             </button>
-            <Link to={`/estimate/edit/${estimateId}`} className="btn-primary">
+            <Link to={`/tools/budget-estimator/estimate/edit/${estimateId}`} className="btn-primary">
               Edit
             </Link>
           </div>

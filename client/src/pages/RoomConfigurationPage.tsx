@@ -61,7 +61,7 @@ export default function RoomConfigurationPage() {
   // Redirect if no property specs
   useEffect(() => {
     if (!propertySpecs) {
-      navigate('/property');
+      navigate('/tools/budget-estimator/property');
     }
   }, [propertySpecs, navigate]);
 
@@ -169,7 +169,7 @@ export default function RoomConfigurationPage() {
 
     setSelectedRooms(localRooms);
     setCurrentStep(3);
-    navigate('/results');
+    navigate('/tools/budget-estimator/results');
   };
 
   const runningTotal = calculateRunningTotal();
@@ -300,7 +300,7 @@ export default function RoomConfigurationPage() {
           <div className="flex items-center justify-between pt-6">
             <button
               type="button"
-              onClick={() => navigate('/property')}
+              onClick={() => navigate('/tools/budget-estimator/property')}
               className="btn-secondary"
             >
               ← Back

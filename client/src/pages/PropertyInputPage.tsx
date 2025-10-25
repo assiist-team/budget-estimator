@@ -30,7 +30,7 @@ export default function PropertyInputPage() {
   const onSubmit = (data: PropertySpecs) => {
     setPropertySpecs(data);
     setCurrentStep(2);
-    navigate('/rooms');
+    navigate('/tools/budget-estimator/rooms');
   };
 
   return (
@@ -155,7 +155,7 @@ export default function PropertyInputPage() {
             <div className="flex items-center justify-between pt-6">
               <button
                 type="button"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/tools/budget-estimator')}
                 className="btn-secondary"
               >
                 ← Back

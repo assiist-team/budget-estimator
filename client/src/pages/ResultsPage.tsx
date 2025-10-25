@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
@@ -165,7 +165,7 @@ export default function ResultsPage() {
 
   useEffect(() => {
     if (!budget || !selectedRooms || selectedRooms.length === 0) {
-      navigate('/rooms');
+      navigate('/tools/budget-estimator/rooms');
     }
   }, [budget, selectedRooms, navigate]);
 
@@ -215,11 +215,22 @@ export default function ResultsPage() {
         submittedAt: serverTimestamp(),
       };
 
-      const docRef = await addDoc(collection(db, 'estimates'), estimateData);
+      const docRef = await addDoc(collection(db, 'estimates'), {
+        ...estimateData,
+        toolId: 'budget-estimator',
+        ownerUid: auth.currentUser?.uid ?? null,
+      });
       const estimateId = docRef.id;
 
       // Sync to High Level CRM
-      const syncSuccess = await syncToHighLevel(estimateData as any, estimateId);
+      const syncSuccess = await syncToHighLevel(
+        {
+          ...estimateData,
+          toolId: 'budget-estimator',
+          ownerUid: auth.currentUser?.uid ?? null,
+        } as any,
+        estimateId
+      );
 
       // Update sync status in Firestore
       await updateDoc(docRef, {
@@ -256,7 +267,7 @@ export default function ResultsPage() {
               <button
                 onClick={() => {
                   reset();
-                  navigate('/');
+                  navigate('/tools/budget-estimator');
                 }}
                 className="btn-primary"
               >
@@ -611,7 +622,7 @@ export default function ResultsPage() {
           {/* Back Button */}
           <div className="mt-6">
             <button
-              onClick={() => navigate('/rooms')}
+              onClick={() => navigate('/tools/budget-estimator/rooms')}
               className="btn-secondary"
             >
               ← Edit Property Details

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { BudgetDefaults } from '../types';
-import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, getDoc, setDoc, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
 import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
@@ -133,6 +133,7 @@ export default function AdminPage() {
         // Fetch estimates
         const estimatesQuery = query(
           collection(db, 'estimates'),
+          where('toolId', '==', 'budget-estimator'),
           orderBy('createdAt', 'desc'),
           limit(50)
         );
@@ -145,6 +146,7 @@ export default function AdminPage() {
           estimatesData.push({
             id: doc.id,
             ...docData,
+            toolId: docData.toolId ?? 'budget-estimator',
             createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
             updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
             submittedAt: docData.submittedAt?.toDate ? docData.submittedAt.toDate() : docData.submittedAt,

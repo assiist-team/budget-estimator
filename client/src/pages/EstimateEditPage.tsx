@@ -47,7 +47,7 @@ export default function EstimateEditPage() {
   // Redirect if no estimate loaded
   useEffect(() => {
     if (!loading && !estimate && !error) {
-      navigate('/admin');
+      navigate('/tools');
     }
   }, [loading, estimate, error, navigate]);
 
@@ -104,7 +104,7 @@ export default function EstimateEditPage() {
         <div className="text-center">
           <p className="text-red-600 text-lg">Error: {error || 'Estimate not found'}</p>
           <button
-            onClick={() => navigate('/admin')}
+            onClick={() => navigate('/tools')}
             className="btn-primary mt-4"
           >
             Back to Admin
@@ -136,7 +136,7 @@ export default function EstimateEditPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate('/admin')}
+                onClick={() => navigate('/tools')}
                 className="btn-secondary"
               >
                 ← Back
