@@ -278,7 +278,7 @@ exports.onEstimateSubmit = functions.firestore
         quality_tier: estimate.qualityTier,
         property_sqft: estimate.propertySpecs.squareFootage,
         guest_capacity: estimate.propertySpecs.guestCapacity,
-        room_count: estimate.rooms.length,
+        room_count: estimate.rooms.reduce((total, room) => total + room.quantity, 0),
         rooms_selected: getRoomsList(estimate.rooms),
         submission_date: new Date().toISOString(),
         estimate_url: `https://estimator.1584design.com/view/${estimateId}`,

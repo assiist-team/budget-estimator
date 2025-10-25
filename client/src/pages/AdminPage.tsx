@@ -642,7 +642,7 @@ export default function AdminPage() {
 
                           <div>
                             <p className="text-gray-600">
-                              <span className="font-medium">Rooms:</span> {estimate.rooms.length}
+                              <span className="font-medium">Rooms:</span> {estimate.rooms.reduce((total, room) => total + room.quantity, 0)}
                             </p>
                             <p className="text-gray-600">
                               <span className="font-medium">Project Range:</span>{' '}
