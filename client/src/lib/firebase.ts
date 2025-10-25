@@ -1,6 +1,6 @@
 // Firebase configuration and initialization
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence, onAuthStateChanged, type User } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration
@@ -22,6 +22,19 @@ export const db = getFirestore(app);
 
 // Initialize Auth
 export const auth = getAuth(app);
+
+// Initialize Firebase helpers
+export function initializeFirebase(): void {
+  // Reserved for future cache hygiene if needed. Intentionally a no-op to preserve auth persistence keys.
+}
+
+export async function initializeAuthPersistence(): Promise<void> {
+  await setPersistence(auth, browserLocalPersistence);
+}
+
+export function onAuthStateChange(callback: (user: User | null) => void): () => void {
+  return onAuthStateChanged(auth, callback);
+}
 
 export default app;
 

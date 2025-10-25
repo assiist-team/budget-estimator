@@ -69,10 +69,10 @@ Enhanced Flow:
                                      ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   HIGHLEVEL CRM                             │
-│  • Create/Update Contact                                    │
+│  • Create/Update Contact (upsert)                           │
 │  • Add to "Estimator Leads" pipeline                        │
 │  • Trigger automation workflow                              │
-│  • Store estimate details in custom fields                  │
+│  • Store estimate_vacation_rental URL field only            │
 │  • Start follow-up sequence                                 │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -94,19 +94,14 @@ POST https://rest.gohighlevel.com/v1/contacts/
   "phone": "(555) 123-4567",
   "source": "Project Estimator Tool",
   "tags": ["estimator-lead", "oct-2025"],
-  
-  // Custom fields (configure in HighLevel first)
+
+  // Custom field (configure in HighLevel first)
   "customField": {
-    "estimate_id": "est_abc123",
-    "estimate_total_low": "$45,000",
-    "estimate_total_high": "$125,000",
-    "quality_tier": "Mid/High",
-    "property_sqft": "3200",
-    "guest_capacity": "12",
-    "room_count": "7",
-    "submission_date": "2025-10-13",
-    "estimate_url": "https://estimator.1584design.com/view/est_abc123"
+    "estimate_vacation_rental": "https://estimator.1584design.com/view/est_abc123"
   },
+  
+  // Upsert by email if contact exists, otherwise create
+  "upsert": true,
   
   // Add to pipeline
   "pipelineId": "YOUR_PIPELINE_ID",
@@ -124,11 +119,7 @@ Source: Project Estimator Tool
 Tags: estimator-lead, oct-2025
 
 Custom Fields:
-├─ Estimate Total Range: $45,000 - $125,000
-├─ Quality Tier: Mid/High
-├─ Property: 3,200 sqft, 12 guests
-├─ Rooms: 7 total
-└─ Estimate Link: [View Full Estimate]
+└─ estimate_vacation_rental: https://estimator.1584design.com/view/est_abc123
 
 Pipeline: Estimator Leads
 Stage: New Lead → Follow Up → Proposal Sent → Closed
@@ -152,7 +143,7 @@ TRIGGER: Contact tagged with "estimator-lead"
 │
 ├─ WAIT: 2 hours
 ├─ ACTION: Send Email
-│   Subject: "About Your {{property_sqft}} sqft Project"
+│   Subject: "About Your Project"
 │   Body: Personalized email with estimate recap
 │
 ├─ WAIT: 2 days
@@ -224,25 +215,12 @@ HighLevel Funnel:
 
 ### Required Custom Fields in HighLevel:
 
-Create these custom fields for contacts:
+Create this custom field for contacts:
 
 ```
 Field Name                  Type        Description
 ─────────────────────────────────────────────────────────────
-estimate_id                 Text        Unique estimate ID
-estimate_total_low          Currency    Low-end budget estimate
-estimate_total_high         Currency    High-end budget estimate  
-quality_tier                Dropdown    Budget/Mid/Mid-High/High
-property_sqft               Number      Square footage
-guest_capacity              Number      Max guests
-property_type               Dropdown    Vacation/Primary/Commercial
-room_count                  Number      Total rooms selected
-rooms_selected              Text        Comma-separated room list
-submission_date             Date        When estimate submitted
-estimate_url                URL         Link to view full estimate
-estimate_status             Dropdown    Draft/Sent/Viewed/Contacted
-last_viewed_date            Date        Last time they viewed estimate
-view_count                  Number      Times they've viewed it
+estimate_vacation_rental   URL         Direct link to the estimate view
 ```
 
 ---
@@ -272,18 +250,10 @@ exports.onEstimateSubmit = functions.firestore
       source: 'Project Estimator Tool',
       tags: ['estimator-lead', getMonthTag()],
       customField: {
-        estimate_id: estimateId,
-        estimate_total_low: estimate.budgetRange.low,
-        estimate_total_high: estimate.budgetRange.high,
-        quality_tier: estimate.qualityTier,
-        property_sqft: estimate.propertySpecs.squareFootage,
-        guest_capacity: estimate.propertySpecs.guestCapacity,
-        room_count: estimate.rooms.reduce((total, room) => total + room.quantity, 0),
-        rooms_selected: getRoomsList(estimate.rooms),
-        submission_date: new Date().toISOString(),
-        estimate_url: `https://estimator.1584design.com/view/${estimateId}`,
-        estimate_status: 'Sent'
-      }
+        estimate_vacation_rental: `https://estimator.1584design.com/view/${estimateId}`
+      },
+      // Upsert behavior: identify existing contact by email; create if not found
+      upsert: true
     };
     
     try {
@@ -465,10 +435,10 @@ await syncToHighLevel(estimate);
 ### Phase 2 Testing (HighLevel Integration):
 ```
 1. Create HighLevel test account/sandbox
-2. Set up custom fields
+2. Set up the single custom field: estimate_vacation_rental (URL)
 3. Test API connection
 4. Submit test estimate
-5. Verify lead appears in HighLevel
+5. Verify lead appears in HighLevel (contact upserted by email)
 6. Test automation workflows
 7. Go live with real integration
 ```
@@ -480,7 +450,7 @@ await syncToHighLevel(estimate);
 When you're ready to integrate:
 
 - [ ] Get HighLevel API key (Settings → API)
-- [ ] Create custom fields in HighLevel
+- [ ] Create custom field in HighLevel: estimate_vacation_rental (URL)
 - [ ] Create "Estimator Leads" pipeline
 - [ ] Set up pipeline stages (New Lead → Follow Up → etc.)
 - [ ] Create automation workflows

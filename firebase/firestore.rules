@@ -5,12 +5,16 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isOwner() {
-      return signedIn() && resource.data.ownerUid == request.auth.uid;
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
     function isAdmin() {
-      return signedIn() && (request.auth.token.role in ['owner', 'admin']);
+      return signedIn() && (userRole() == 'owner' || userRole() == 'admin');
+    }
+
+    function isOwnerOfDoc() {
+      return signedIn() && resource.data.ownerUid == request.auth.uid;
     }
 
     match /users/{uid} {
@@ -19,12 +23,12 @@ service cloud.firestore {
 
     match /estimates/{id} {
       allow create: if signedIn();
-      allow read, update, delete: if signedIn() && (isOwner() || isAdmin());
+      allow read, update, delete: if signedIn() && (isOwnerOfDoc() || isAdmin());
     }
 
     match /projections/{id} {
       allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid;
-      allow read, update, delete: if signedIn() && (isOwner() || isAdmin());
+      allow read, update, delete: if signedIn() && (isOwnerOfDoc() || isAdmin());
     }
 
     match /config/{docId} {
