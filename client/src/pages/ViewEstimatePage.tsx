@@ -1,0 +1,452 @@
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { doc, getDoc, collection } from 'firebase/firestore';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { db } from '../lib/firebase';
+import Header from '../components/Header';
+import type { Estimate, RoomItem, Budget, ProjectBudget } from '../types';
+import { formatCurrency, calculateTotalRooms, calculateTotalItems, calculateEstimate } from '../utils/calculations';
+import { useRoomTemplates } from '../hooks/useRoomTemplates';
+import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
+import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
+import type { BudgetDefaults } from '../types';
+
+// Type guard to check if budget is a ProjectBudget
+function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
+  return budget !== null && 'projectRange' in budget;
+}
+
+export default function ViewEstimatePage() {
+  const { estimateId } = useParams<{ estimateId: string }>();
+  const navigate = useNavigate();
+
+  const [estimate, setEstimate] = useState<Estimate | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+
+  const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
+  const { rules: autoConfigRules, loading: rulesLoading } = useAutoConfigRules();
+  const [budgetDefaults, setBudgetDefaults] = useState<BudgetDefaults | null>(null);
+  const [defaultsLoading, setDefaultsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEstimate = async () => {
+      if (!estimateId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const estimateRef = doc(db, 'estimates', estimateId);
+        const estimateSnap = await getDoc(estimateRef);
+
+        if (estimateSnap.exists()) {
+          setEstimate({ id: estimateSnap.id, ...estimateSnap.data() } as Estimate);
+        } else {
+          console.log('No such document!');
+        }
+      } catch (error) {
+        console.error('Error fetching estimate:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchEstimate();
+  }, [estimateId]);
+  
+    // Load budget defaults from Firestore on mount
+    useEffect(() => {
+        const loadBudgetDefaults = async () => {
+          setDefaultsLoading(true);
+          try {
+            const docRef = doc(collection(db, 'config'), 'budgetDefaults');
+            const docSnap = await getDoc(docRef);
+    
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setBudgetDefaults({
+                installationCents: data.installationCents || 0,
+                fuelCents: data.fuelCents || 0,
+                storageAndReceivingCents: data.storageAndReceivingCents || 0,
+                kitchenCents: data.kitchenCents || 0,
+                propertyManagementCents: data.propertyManagementCents || 0,
+                designFeeRatePerSqftCents: data.designFeeRatePerSqftCents || 1000,
+              });
+            } else {
+              setBudgetDefaults({
+                installationCents: 0,
+                fuelCents: 0,
+                storageAndReceivingCents: 0,
+                kitchenCents: 0,
+                propertyManagementCents: 0,
+                designFeeRatePerSqftCents: 1000,
+              });
+            }
+          } catch (error) {
+            console.error('Error loading budget defaults from Firestore:', error);
+            setBudgetDefaults({
+              installationCents: 0,
+              fuelCents: 0,
+              storageAndReceivingCents: 0,
+              kitchenCents: 0,
+              propertyManagementCents: 0,
+              designFeeRatePerSqftCents: 1000,
+            });
+          } finally {
+            setDefaultsLoading(false);
+          }
+        };
+    
+        void loadBudgetDefaults();
+      }, []);
+
+  const selectedRooms = estimate?.rooms || [];
+  const propertySpecs = estimate?.propertySpecs;
+
+  const roomTemplatesMap = useMemo(() => {
+    const map = new Map<string, any>();
+    roomTemplates.forEach(template => map.set(template.id, template));
+    return map;
+  }, [roomTemplates]);
+
+  const itemsMap = useMemo(() => {
+    const map = new Map<string, any>();
+    items.forEach(item => map.set(item.id, item));
+    return map;
+  }, [items]);
+
+  const budget: Budget | ProjectBudget | null = useMemo(() => {
+    if (selectedRooms.length === 0 || !propertySpecs) {
+      return null;
+    }
+
+    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, {
+      propertySpecs,
+      budgetDefaults: budgetDefaults || undefined,
+    });
+  }, [selectedRooms, roomTemplatesMap, itemsMap, propertySpecs, budgetDefaults]);
+
+  const totalRooms = useMemo(() => calculateTotalRooms(selectedRooms), [selectedRooms]);
+  const totalItems = useMemo(() => calculateTotalItems(selectedRooms, roomTemplatesMap, itemsMap), [selectedRooms, roomTemplatesMap, itemsMap]);
+
+  const actualCapacity = useMemo(() => {
+    if (!autoConfigRules || selectedRooms.length === 0) return 0;
+    const roomData = selectedRooms.map(room => ({
+      roomType: room.roomType,
+      quantity: room.quantity,
+      roomSize: room.roomSize
+    }));
+    return calculateSelectedRoomCapacity(roomData, autoConfigRules);
+  }, [selectedRooms, autoConfigRules]);
+
+  const toggleRoomExpansion = (roomType: string) => {
+    setExpandedRooms(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(roomType)) {
+        newSet.delete(roomType);
+      } else {
+        newSet.add(roomType);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAllRooms = () => {
+    if (budget?.roomBreakdown) {
+      setExpandedRooms(new Set(budget.roomBreakdown.map(room => room.roomType)));
+    }
+  };
+
+  const collapseAllRooms = () => {
+    setExpandedRooms(new Set());
+  };
+
+  if (loading || templatesLoading || defaultsLoading || rulesLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading estimate...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!estimate || !budget || !propertySpecs) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Estimate not found</h1>
+          <p className="text-gray-600">The estimate you are looking for does not exist.</p>
+          <button onClick={() => navigate('/admin')} className="btn-primary mt-6">
+            Back to Admin
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const isProjectBudgetType = isProjectBudget(budget);
+
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => navigate('/admin')}
+              className="btn-secondary"
+            >
+              ← Back to Admin
+            </button>
+            <Link to={`/estimate/edit/${estimateId}`} className="btn-primary">
+              Edit
+            </Link>
+          </div>
+        </div>
+
+        <div className="mt-8">
+          {/* Overall Budget Range */}
+          <div className="bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 mb-8">
+            <div className="text-center py-6">
+              <p className="text-lg font-medium mb-3 opacity-90">
+                {isProjectBudgetType ? 'ESTIMATED PROJECT BUDGET' : 'ESTIMATED FURNISHINGS BUDGET RANGE'}
+              </p>
+              <div className="text-5xl font-bold mb-2">
+                {isProjectBudgetType && isProjectBudget(budget)
+                  ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
+                  : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
+              </div>
+              <p className="text-sm opacity-75 mt-4 mb-2">
+                {propertySpecs.squareFootage.toLocaleString()} sq ft • {propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
+              </p>
+              <p className="text-xs sm:text-sm opacity-75">
+                {estimate.clientInfo.firstName} {estimate.clientInfo.lastName} • {estimate.clientInfo.email}
+                {estimate.clientInfo.phone && ` • ${estimate.clientInfo.phone}`}
+              </p>
+            </div>
+          </div>
+
+
+          {/* Project Budget Breakdown */}
+          {isProjectBudget(budget) && (
+
+            <div className="mb-8">
+              <div className="card bg-gray-50 border-2 border-gray-200">
+                <div className="w-full text-left">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex-1">
+                      <div className="mb-1">
+                        <span className="text-2xl font-bold text-primary-800">
+                          Project Budget Breakdown
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Furnishings */}
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Furnishings</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        All furniture, accessories, and finishing touches
+                      </p>
+                    </div>
+
+                    {/* Project Add-ons */}
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Design Fee</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(budget.projectAddOns.designFee)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Comprehensive design planning, procurement, and placement services
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Installation</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.installation)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Professional delivery, setup, and installation services
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Fuel</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.fuel)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Transportation and fuel costs
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Storage & Receiving</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Temporary storage solutions and receiving services
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Kitchen</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Kitchen equipment including cookware, flatware, and accessories
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Property Management</span>
+                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Items required by property management
+                      </p>
+                    </div>
+
+                    {/* Project Total */}
+                    <div className="flex justify-between items-center py-4 border-t-2 border-gray-300 mt-4">
+                      <span className="text-xl font-bold text-gray-900">Project Total</span>
+                      <span className="text-xl font-bold text-primary-600">
+                        {formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Detailed Room Breakdown */}
+          <div id="detailed-room-breakdown" className="mb-8">
+            <div className="card">
+              <div className="w-full text-left">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex-1">
+                    <div className="mb-1">
+                      <span className="text-2xl font-bold text-primary-800">
+                        Detailed Furnishings Budget Breakdown
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Complete itemized breakdown by room
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={expandAllRooms}
+                      className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                    >
+                      Expand All
+                    </button>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      onClick={collapseAllRooms}
+                      className="text-sm text-primary-600 hover:text-primary-800 font-medium"
+                    >
+                      Collapse All
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {budget.roomBreakdown.map((room, idx) => {
+                    const template = roomTemplates.get(room.roomType);
+                    const roomSizeData = template?.sizes[room.roomSize as 'small' | 'medium' | 'large'];
+                    const isExpanded = expandedRooms.has(room.roomType);
+                    const roomDisplayName = room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                    return (
+                      <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
+                        {/* Room Header - Always Visible */}
+                        <div
+                          className="flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                          onClick={() => toggleRoomExpansion(room.roomType)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex-shrink-0">
+                              {isExpanded ? (
+                                <ChevronDown className="w-5 h-5 text-gray-600" />
+                              ) : (
+                                <ChevronRight className="w-5 h-5 text-gray-600" />
+                              )}
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-lg text-gray-900">
+                                {roomDisplayName}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)} × {room.quantity}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-semibold text-lg text-gray-900">
+                              {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Room Details - Collapsible */}
+                        {isExpanded && roomSizeData && roomSizeData.items.length > 0 && (
+                          <div className="border-t border-gray-200 p-4 bg-white">
+                            <h5 className="text-sm font-medium text-gray-700 mb-3">Included Items:</h5>
+                            <div className="grid gap-2">
+                              {roomSizeData.items
+                                .sort((a: RoomItem, b: RoomItem) => {
+                                  const itemA = items.get(a.itemId);
+                                  const itemB = items.get(b.itemId);
+                                  const nameA = itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  const nameB = itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  return nameA.localeCompare(nameB);
+                                })
+                                .map((roomItem: RoomItem, itemIdx: number) => {
+                                  const item = items.get(roomItem.itemId);
+                                  const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+
+                                  return (
+                                    <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-4 py-3 rounded-lg">
+                                      <span className="text-gray-700 font-medium">
+                                        {itemDisplayName}
+                                      </span>
+                                      <span className="text-gray-600">
+                                        Qty: {roomItem.quantity}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

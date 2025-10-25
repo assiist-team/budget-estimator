@@ -606,21 +606,13 @@ export default function AdminPage() {
             ) : (
               <div className="space-y-4">
                 {estimates.map((estimate) => (
-                  <div key={estimate.id} className="card hover:shadow-xl transition-shadow">
+                  <Link to={`/estimate/view/${estimate.id}`} key={estimate.id} className="card hover:shadow-xl transition-shadow block">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-gray-900">
                             {estimate.clientInfo.firstName} {estimate.clientInfo.lastName}
                           </h3>
-                          <span className={`
-                            px-3 py-1 rounded-full text-xs font-medium
-                            ${estimate.status === 'submitted' ? 'bg-blue-100 text-blue-800' : ''}
-                            ${estimate.status === 'viewed' ? 'bg-yellow-100 text-yellow-800' : ''}
-                            ${estimate.status === 'contacted' ? 'bg-green-100 text-green-800' : ''}
-                          `}>
-                            {estimate.status}
-                          </span>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-4 text-sm">
@@ -673,17 +665,14 @@ export default function AdminPage() {
                         )}
                       </div>
 
-                      {/* Edit and Delete buttons */}
-                      <div className="flex items-start gap-2">
-                        <Link
-                          to={`/admin/edit/${estimate.id}`}
-                          className="text-sm text-primary-600 hover:text-primary-800 p-2"
-                          title="Edit Estimate"
-                        >
-                          <EditIcon />
-                        </Link>
+                      {/* Delete button */}
+                      <div className="flex items-start">
                         <button
-                          onClick={() => deleteEstimate(estimate.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            deleteEstimate(estimate.id);
+                          }}
                           className="text-sm text-red-600 hover:text-red-800 p-2"
                           title="Delete Estimate"
                         >
@@ -691,7 +680,7 @@ export default function AdminPage() {
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

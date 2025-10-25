@@ -15,9 +15,6 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
             <Link to="/" className="text-2xl font-bold text-primary-800">
               1584 Project Estimator
             </Link>
-            <span className="text-sm text-gray-500">
-              Complete project budgeting in minutes
-            </span>
           </div>
 
           <div className="flex items-center gap-4">

@@ -130,7 +130,7 @@ export default function EstimateEditPage() {
     <div className="min-h-screen bg-gray-50">
       <Header currentStep={0} totalSteps={0} />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Sticky Controls Container */}
         <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -181,15 +181,15 @@ export default function EstimateEditPage() {
         </div>
 
         {/* Sticky Budget Summary */}
-        <div className="sticky top-[4.25rem] z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-4 sm:p-6">
-          <div className="text-center">
-            <p className="text-base sm:text-lg font-medium mb-2 sm:mb-3 opacity-90">
-              PROJECT BUDGET TOTAL
+        <div className="sticky top-[4.25rem] z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+          <div className="text-center py-6">
+            <p className="text-lg font-medium mb-3 opacity-90">
+              ESTIMATED PROJECT BUDGET
             </p>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 leading-tight">
-              <span className="font-medium">Project Range:</span> {calculateBudgetRange(estimate.rooms)}
+            <div className="text-5xl font-bold mb-2">
+              {calculateBudgetRange(estimate.rooms)}
             </div>
-            <p className="text-xs sm:text-sm opacity-75 mb-2">
+            <p className="text-sm opacity-75 mt-4 mb-2">
               {estimate.propertySpecs.squareFootage.toLocaleString()} sq ft • {estimate.propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
             </p>
             <p className="text-xs sm:text-sm opacity-75">
