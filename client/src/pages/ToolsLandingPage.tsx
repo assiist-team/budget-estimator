@@ -81,11 +81,7 @@ export default function ToolsLandingPage() {
     });
   }, [toolsConfig, profile, hasToolAccess]);
 
-  const canSeeAdmin = useMemo(() => {
-    return !!profile && ['owner', 'admin'].includes(profile.role);
-  }, [profile]);
-
-  const totalCards = accessibleTools.length + (canSeeAdmin ? 1 : 0);
+  const totalCards = accessibleTools.length;
 
   if (loading || loadingConfig) {
     return (
@@ -111,7 +107,7 @@ export default function ToolsLandingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header showAdminLink={false} />
+      <Header />
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">1584 Toolkit</h1>
@@ -135,20 +131,6 @@ export default function ToolsLandingPage() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
-            {canSeeAdmin && (
-              <div className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="p-6">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Admin Dashboard</h2>
-                  <p className="text-gray-600 mb-4">Manage estimates, templates, items, and defaults.</p>
-                  <Link
-                    to="/admin"
-                    className="btn-primary inline-flex items-center gap-2"
-                  >
-                    Open admin →
-                  </Link>
-                </div>
-              </div>
-            )}
             {accessibleTools.map((tool) => (
               <div key={tool.id} className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                 <div className="p-6">
