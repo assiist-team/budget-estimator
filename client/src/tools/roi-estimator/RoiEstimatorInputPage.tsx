@@ -31,8 +31,8 @@ export default function RoiEstimatorInputPage() {
   };
 
   const previewMetrics = [
-    { label: 'Annual Net Cash Flow Gain', formattedValue: usd(computed.annualCashFlowGain) },
-    { label: 'Enterprise Value Gain', formattedValue: usd(computed.enterpriseValueGain) },
+    { label: 'Annual Net Cash Flow Gain', formattedValue: usd(computed.annualCashFlowGain), tooltip: 'Annual cash flow from your property after all operating and financing expenses' },
+    { label: 'Enterprise Value Gain', formattedValue: usd(computed.enterpriseValueGain), tooltip: 'The added value of your property as a cash-generating asset, beyond its real estate value' },
     { label: 'Total Year One Gain', formattedValue: usd(computed.totalYearOneGain) },
   ];
 
@@ -51,7 +51,7 @@ export default function RoiEstimatorInputPage() {
               <div className="grid gap-6 md:grid-rows-[auto,1fr]">
                 <div>
                   <h1 className="text-2xl font-semibold text-gray-900 mb-4">Interior Design ROI Estimator</h1>
-                  <p className="text-sm text-gray-600">Enter your current and projected performance metrics and adjust annual fixed costs and key assumptions as needed to calculate your expected ROI from Interior Design, expressed as <span className="font-semibold">Annual Net Cash Flow Gain</span> and <span className="font-semibold">Enterprise Value Gain</span>.</p>
+                  <p className="text-sm text-gray-600">Enter your current and projected performance metrics and adjust annual fixed costs and key assumptions as needed to calculate your expected ROI from Interior Design, expressed as <span className="font-semibold flex items-center gap-1 inline-flex">Annual Net Cash Flow Gain<HelpIcon title="Annual cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" /></span> and <span className="font-semibold flex items-center gap-1 inline-flex">Enterprise Value Gain<HelpIcon title="The added value of your property as a cash-generating asset, beyond its real estate value" className="text-gray-400 hover:text-gray-700 cursor-help" /></span>.</p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-gray-50/30 p-4 rounded-lg items-start">
                   {/* Left Column: Performance + Assumptions */}
@@ -59,7 +59,7 @@ export default function RoiEstimatorInputPage() {
                     <div>
                       <h3 className="font-medium text-gray-800 mb-4">Performance</h3>
 
-                      {/* Occupancy Before/After */}
+                      {/* Occupancy Without/With Interior Design */}
                       <div className="space-y-6">
                         <div>
                           <div className="flex items-center gap-1 mb-2">
@@ -68,29 +68,29 @@ export default function RoiEstimatorInputPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Before</label>
+                              <label className="block text-xs text-gray-500 mb-1">Without Interior Design</label>
                               <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyBefore * 1000) / 10}
                                 onChange={(e) => updateNumber('occupancyBefore', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">After</label>
+                              <label className="block text-xs text-gray-500 mb-1">With Interior Design</label>
                               <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyAfter * 1000) / 10}
                                 onChange={(e) => updateNumber('occupancyAfter', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
                             </div>
                           </div>
                         </div>
 
-                        {/* ADR Before/After */}
+                        {/* ADR Without/With Interior Design */}
                         <div>
                           <label className="block text-sm text-gray-600 mb-2">Average Daily Rate ($)</label>
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Before</label>
+                              <label className="block text-xs text-gray-500 mb-1">Without Interior Design</label>
                               <input type="number" className="input-field-roi" value={inputs.adrBefore}
                                 onChange={(e) => updateNumber('adrBefore', Number(e.target.value))} />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">After</label>
+                              <label className="block text-xs text-gray-500 mb-1">With Interior Design</label>
                               <input type="number" className="input-field-roi" value={inputs.adrAfter}
                                 onChange={(e) => updateNumber('adrAfter', Number(e.target.value))} />
                             </div>
@@ -145,11 +145,14 @@ export default function RoiEstimatorInputPage() {
 
                 {/* Gains Preview Card */}
                 <div className="bg-white rounded-md p-4 border border-gray-100">
-                  <div className="rounded-md bg-gray-50 p-4 text-base text-center text-black space-y-3">
-                    {previewMetrics.map(({ label, formattedValue }) => (
-                      <p key={label} className="text-lg leading-tight">
-                        {`${label}: `}
-                        <span className="font-semibold text-black">{formattedValue}</span>
+                  <div className="rounded-md bg-gray-50 p-4 text-base text-left text-black space-y-3 pl-6">
+                    {previewMetrics.map(({ label, formattedValue, tooltip }) => (
+                      <p key={label} className={`text-base leading-tight ${label === 'Total Year One Gain' ? 'font-semibold text-green-600' : 'text-black'}`}>
+                        <span className="flex items-center gap-1">
+                          {`${label}${tooltip ? ':' : ':'}`}
+                          {tooltip && <HelpIcon title={tooltip} className="text-gray-400 hover:text-gray-700 cursor-help" />}
+                        </span>
+                        <span>{formattedValue}</span>
                       </p>
                     ))}
                   </div>

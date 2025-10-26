@@ -5,6 +5,7 @@ import Header from '../../components/Header';
 import { db, auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { computeProjection, type RoiInputs } from '../../utils/roi';
+import { HelpIcon } from '../../components/Icons';
 
 export default function RoiEstimatorPage() {
   const navigate = useNavigate();
@@ -70,20 +71,20 @@ export default function RoiEstimatorPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Inputs</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="pr-4">
-                <h3 className="font-medium text-gray-800 mb-2">Before</h3>
-                <label className="block text-sm text-gray-600 mb-1">Occupancy %</label>
+                <h3 className="font-medium text-gray-800 mb-2">Without Interior Design</h3>
+                <label className="block text-sm text-gray-600 mb-1">Occupancy % (Without Interior Design)</label>
                 <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyBefore * 1000) / 10}
                   onChange={(e) => updateNumber('occupancyBefore', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
-                <label className="block text-sm text-gray-600 mt-4 mb-1">Average Daily Rate ($)</label>
+                <label className="block text-sm text-gray-600 mt-4 mb-1">Average Daily Rate ($) (Without Interior Design)</label>
                 <input type="number" className="input-field-roi" value={inputs.adrBefore}
                   onChange={(e) => updateNumber('adrBefore', Number(e.target.value))} />
               </div>
               <div className="pr-4">
-                <h3 className="font-medium text-gray-800 mb-2">After</h3>
-                <label className="block text-sm text-gray-600 mb-1">Occupancy %</label>
+                <h3 className="font-medium text-gray-800 mb-2">With Interior Design</h3>
+                <label className="block text-sm text-gray-600 mb-1">Occupancy % (With Interior Design)</label>
                 <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyAfter * 1000) / 10}
                   onChange={(e) => updateNumber('occupancyAfter', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
-                <label className="block text-sm text-gray-600 mt-4 mb-1">Average Daily Rate ($)</label>
+                <label className="block text-sm text-gray-600 mt-4 mb-1">Average Daily Rate ($) (With Interior Design)</label>
                 <input type="number" className="input-field-roi" value={inputs.adrAfter}
                   onChange={(e) => updateNumber('adrAfter', Number(e.target.value))} />
               </div>
@@ -128,34 +129,58 @@ export default function RoiEstimatorPage() {
               <div className="flex justify-between"><span>SDE Multiple</span><span>{inputs.sdeMultiple}×</span></div>
             </div>
             <div className="mt-4 border-t pt-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span>Annual Cash Flow Gain</span><span className="font-semibold text-primary-700">{usd(computed.annualCashFlowGain)}</span></div>
-              <div className="flex justify-between"><span>Enterprise Value Gain</span><span className="font-semibold text-primary-700">{usd(computed.enterpriseValueGain)}</span></div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  Annual Cash Flow Gain
+                  <HelpIcon title="Annual cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                </span>
+                <span className="font-semibold text-primary-700">{usd(computed.annualCashFlowGain)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  Enterprise Value Gain
+                  <HelpIcon title="The added value of your property as a cash-generating asset, beyond its real estate value" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                </span>
+                <span className="font-semibold text-primary-700">{usd(computed.enterpriseValueGain)}</span>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3">Before</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Without Interior Design</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span>Gross</span><span>{usd(computed.grossBefore)}</span></div>
               <div className="flex justify-between"><span>PM Fee</span><span>{usd(computed.pmBefore)}</span></div>
               <div className="flex justify-between"><span>Other Fixed (ex Mortgage)</span><span>{usd(computed.otherFixed)}</span></div>
               <div className="flex justify-between"><span>Mortgage</span><span>{usd(inputs.fixed.mortgage)}</span></div>
-              <div className="flex justify-between"><span>Net Cash Flow</span><span>{usd(computed.netCashFlowBefore)}</span></div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  Net Cash Flow
+                  <HelpIcon title="Cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                </span>
+                <span>{usd(computed.netCashFlowBefore)}</span>
+              </div>
               <div className="flex justify-between"><span>SDE</span><span>{usd(computed.sdeBefore)}</span></div>
               <div className="flex justify-between"><span>Enterprise Value</span><span>{usd(computed.evBefore)}</span></div>
             </div>
           </div>
 
           <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3">After</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">With Interior Design</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span>Gross</span><span>{usd(computed.grossAfter)}</span></div>
               <div className="flex justify-between"><span>PM Fee</span><span>{usd(computed.pmAfter)}</span></div>
               <div className="flex justify-between"><span>Other Fixed (ex Mortgage)</span><span>{usd(computed.otherFixed)}</span></div>
               <div className="flex justify-between"><span>Mortgage</span><span>{usd(inputs.fixed.mortgage)}</span></div>
-              <div className="flex justify-between"><span>Net Cash Flow</span><span>{usd(computed.netCashFlowAfter)}</span></div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  Net Cash Flow
+                  <HelpIcon title="Cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                </span>
+                <span>{usd(computed.netCashFlowAfter)}</span>
+              </div>
               <div className="flex justify-between"><span>SDE</span><span>{usd(computed.sdeAfter)}</span></div>
               <div className="flex justify-between"><span>Enterprise Value</span><span>{usd(computed.evAfter)}</span></div>
             </div>

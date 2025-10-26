@@ -8,6 +8,7 @@ import { useRoiEstimatorStore } from '../../store/roiEstimatorStore';
 import { computeProjection } from '../../utils/roi';
 import { db, auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { HelpIcon } from '../../components/Icons';
 
 export default function RoiEstimatorResultsPage() {
   const { inputs } = useRoiEstimatorStore();
@@ -39,58 +40,142 @@ export default function RoiEstimatorResultsPage() {
           <div className="w-64"><ProgressBar currentStep={2} totalSteps={2} /></div>
         </div>
 
-        <div className="card mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Results Summary</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="p-4 rounded bg-white border">
-              <div className="text-gray-600">Total Year One Gain</div>
-              <div className="text-2xl font-bold text-primary-700">{usd(computed.totalYearOneGain)}</div>
-            </div>
-            <div className="p-4 rounded bg-white border">
-              <div className="text-gray-600">Annual Cash Flow Gain</div>
-              <div className="text-2xl font-semibold">{usd(computed.annualCashFlowGain)}</div>
-            </div>
-            <div className="p-4 rounded bg-white border">
-              <div className="text-gray-600">Enterprise Value Gain</div>
-              <div className="text-2xl font-semibold">{usd(computed.enterpriseValueGain)}</div>
-            </div>
-          </div>
-          <button onClick={saveProjection} className="btn-primary mt-4" disabled={!firebaseUser}>Save Projection</button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 mb-8">
           <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3">Before</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span>Occupancy</span><span>{pct(inputs.occupancyBefore)}</span></div>
-              <div className="flex justify-between"><span>ADR</span><span>{usd(inputs.adrBefore)}</span></div>
-              <div className="flex justify-between"><span>Gross</span><span>{usd(computed.grossBefore)}</span></div>
-              <div className="flex justify-between"><span>PM Fee</span><span>{usd(computed.pmBefore)}</span></div>
-              <div className="flex justify-between"><span>Other Fixed (ex Mortgage)</span><span>{usd(computed.otherFixed)}</span></div>
-              <div className="flex justify-between"><span>Mortgage</span><span>{usd(inputs.fixed.mortgage)}</span></div>
-              <div className="flex justify-between"><span>Net Cash Flow</span><span>{usd(computed.netCashFlowBefore)}</span></div>
-              <div className="flex justify-between"><span>SDE</span><span>{usd(computed.sdeBefore)}</span></div>
-              <div className="flex justify-between"><span>Enterprise Value</span><span>{usd(computed.evBefore)}</span></div>
-            </div>
-          </div>
-          <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3">After</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span>Occupancy</span><span>{pct(inputs.occupancyAfter)}</span></div>
-              <div className="flex justify-between"><span>ADR</span><span>{usd(inputs.adrAfter)}</span></div>
-              <div className="flex justify-between"><span>Gross</span><span>{usd(computed.grossAfter)}</span></div>
-              <div className="flex justify-between"><span>PM Fee</span><span>{usd(computed.pmAfter)}</span></div>
-              <div className="flex justify-between"><span>Other Fixed (ex Mortgage)</span><span>{usd(computed.otherFixed)}</span></div>
-              <div className="flex justify-between"><span>Mortgage</span><span>{usd(inputs.fixed.mortgage)}</span></div>
-              <div className="flex justify-between"><span>Net Cash Flow</span><span>{usd(computed.netCashFlowAfter)}</span></div>
-              <div className="flex justify-between"><span>SDE</span><span>{usd(computed.sdeAfter)}</span></div>
-              <div className="flex justify-between"><span>Enterprise Value</span><span>{usd(computed.evAfter)}</span></div>
-            </div>
-          </div>
-        </div>
+            <div className="grid gap-8 md:grid-cols-[minmax(0,1.5fr),minmax(0,1.25fr)]">
+              <div className="grid gap-6">
+                {/* Results Summary */}
+                <div>
+                  <h1 className="text-2xl font-semibold text-gray-900 mb-4">Interior Design ROI Results</h1>
+                  <p className="text-sm text-gray-600 mb-6">Based on your inputs, here are the projected gains from interior design improvements.</p>
 
-        <div className="mt-6">
-          <Methodology />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                      <div className="text-xs text-gray-600 mb-1 flex items-center gap-1">
+                        Net Cash Flow Gain
+                        <HelpIcon title="Annual cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                      </div>
+                      <div className="text-2xl font-semibold text-primary-700">{usd(computed.annualCashFlowGain)}</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                      <div className="text-xs text-gray-600 mb-1 flex items-center gap-1">
+                        Enterprise Value Gain
+                        <HelpIcon title="The added value of your property as a cash-generating asset, beyond its real estate value" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                      </div>
+                      <div className="text-2xl font-semibold text-primary-700">{usd(computed.enterpriseValueGain)}</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                      <div className="text-xs text-gray-600 mb-1">Total Year One Gain</div>
+                      <div className="text-2xl font-bold text-green-600">{usd(computed.totalYearOneGain)}</div>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Without/With Interior Design Comparison */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-gray-50/30 p-4 rounded-lg">
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-gray-800">Without Interior Design</h3>
+                    <div className="bg-white rounded-md p-4 border border-gray-100 space-y-3">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Occupancy</span>
+                        <span className="font-medium">{pct(inputs.occupancyBefore)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">ADR</span>
+                        <span className="font-medium">{usd(inputs.adrBefore)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Gross Revenue</span>
+                        <span className="font-medium">{usd(computed.grossBefore)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">PM Fee</span>
+                        <span className="font-medium">{usd(computed.pmBefore)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Other Fixed Costs</span>
+                        <span className="font-medium">{usd(computed.otherFixed)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Mortgage</span>
+                        <span className="font-medium">{usd(inputs.fixed.mortgage)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs border-t border-gray-200 pt-3">
+                        <span className="text-gray-700 font-medium flex items-center gap-1">
+                          Net Cash Flow
+                          <HelpIcon title="Cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                        </span>
+                        <span className="font-semibold">{usd(computed.netCashFlowBefore)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs border-t border-gray-200 pt-3">
+                        <span className="text-gray-700 font-medium">SDE</span>
+                        <span className="font-semibold">{usd(computed.sdeBefore)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs border-t border-gray-200 pt-3">
+                        <span className="text-gray-700 font-medium">Enterprise Value</span>
+                        <span className="font-semibold">{usd(computed.evBefore)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-medium text-gray-800">With Interior Design</h3>
+                    <div className="bg-white rounded-md p-4 border border-gray-100 space-y-3">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Occupancy</span>
+                        <span className="font-medium">{pct(inputs.occupancyAfter)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">ADR</span>
+                        <span className="font-medium">{usd(inputs.adrAfter)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Gross Revenue</span>
+                        <span className="font-medium">{usd(computed.grossAfter)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">PM Fee</span>
+                        <span className="font-medium">{usd(computed.pmAfter)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Other Fixed Costs</span>
+                        <span className="font-medium">{usd(computed.otherFixed)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-gray-600">Mortgage</span>
+                        <span className="font-medium">{usd(inputs.fixed.mortgage)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs border-t border-gray-200 pt-3">
+                        <span className="text-gray-700 font-medium flex items-center gap-1">
+                          Net Cash Flow
+                          <HelpIcon title="Cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                        </span>
+                        <span className="font-semibold">{usd(computed.netCashFlowAfter)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs border-t border-gray-200 pt-3">
+                        <span className="text-gray-700 font-medium">SDE</span>
+                        <span className="font-semibold">{usd(computed.sdeAfter)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs border-t border-gray-200 pt-3">
+                        <span className="text-gray-700 font-medium">Enterprise Value</span>
+                        <span className="font-semibold">{usd(computed.evAfter)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Methodology */}
+              <div className="flex flex-col gap-4 md:self-stretch">
+                <div className="bg-white rounded-md p-4 border border-gray-100">
+                  <Methodology />
+                </div>
+
+                <button onClick={saveProjection} className="btn-primary w-full" disabled={!firebaseUser}>Save & Send Report</button>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>

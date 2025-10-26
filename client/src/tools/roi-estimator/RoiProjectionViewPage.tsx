@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header';
 import Methodology from './components/Methodology';
 import { db } from '../../lib/firebase';
+import { HelpIcon } from '../../components/Icons';
 
 interface ProjectionDoc {
   inputs: any;
@@ -82,32 +83,56 @@ export default function RoiProjectionViewPage() {
           </div>
           <div className="mt-4 border-t pt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div className="flex justify-between"><span>Total Year One Gain</span><span className="font-semibold text-primary-700">{usd(computed.totalYearOneGain ?? (computed.annualCashFlowGain + computed.enterpriseValueGain))}</span></div>
-            <div className="flex justify-between"><span>Annual Cash Flow Gain</span><span className="font-semibold text-primary-700">{usd(computed.annualCashFlowGain)}</span></div>
-            <div className="flex justify-between"><span>Enterprise Value Gain</span><span className="font-semibold text-primary-700">{usd(computed.enterpriseValueGain)}</span></div>
+            <div className="flex justify-between">
+              <span className="flex items-center gap-1">
+                Annual Cash Flow Gain
+                <HelpIcon title="Annual cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+              </span>
+              <span className="font-semibold text-primary-700">{usd(computed.annualCashFlowGain)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="flex items-center gap-1">
+                Enterprise Value Gain
+                <HelpIcon title="The added value of your property as a cash-generating asset, beyond its real estate value" className="text-gray-400 hover:text-gray-700 cursor-help" />
+              </span>
+              <span className="font-semibold text-primary-700">{usd(computed.enterpriseValueGain)}</span>
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3">Before</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Without Interior Design</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span>Gross</span><span>{usd(computed.grossBefore)}</span></div>
               <div className="flex justify-between"><span>PM Fee</span><span>{usd(computed.pmBefore)}</span></div>
               <div className="flex justify-between"><span>Other Fixed (ex Mortgage)</span><span>{usd(computed.otherFixed)}</span></div>
               <div className="flex justify-between"><span>Mortgage</span><span>{usd(inputs.fixed.mortgage)}</span></div>
-              <div className="flex justify-between"><span>Net Cash Flow</span><span>{usd(computed.netCashFlowBefore)}</span></div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  Net Cash Flow
+                  <HelpIcon title="Cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                </span>
+                <span>{usd(computed.netCashFlowBefore)}</span>
+              </div>
               <div className="flex justify-between"><span>SDE</span><span>{usd(computed.sdeBefore)}</span></div>
               <div className="flex justify-between"><span>Enterprise Value</span><span>{usd(computed.evBefore)}</span></div>
             </div>
           </div>
           <div className="card">
-            <h3 className="font-semibold text-gray-900 mb-3">After</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">With Interior Design</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span>Gross</span><span>{usd(computed.grossAfter)}</span></div>
               <div className="flex justify-between"><span>PM Fee</span><span>{usd(computed.pmAfter)}</span></div>
               <div className="flex justify-between"><span>Other Fixed (ex Mortgage)</span><span>{usd(computed.otherFixed)}</span></div>
               <div className="flex justify-between"><span>Mortgage</span><span>{usd(inputs.fixed.mortgage)}</span></div>
-              <div className="flex justify-between"><span>Net Cash Flow</span><span>{usd(computed.netCashFlowAfter)}</span></div>
+              <div className="flex justify-between">
+                <span className="flex items-center gap-1">
+                  Net Cash Flow
+                  <HelpIcon title="Cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" />
+                </span>
+                <span>{usd(computed.netCashFlowAfter)}</span>
+              </div>
               <div className="flex justify-between"><span>SDE</span><span>{usd(computed.sdeAfter)}</span></div>
               <div className="flex justify-between"><span>Enterprise Value</span><span>{usd(computed.evAfter)}</span></div>
             </div>

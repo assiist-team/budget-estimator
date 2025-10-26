@@ -3,7 +3,7 @@ export default function Methodology() {
     <div className="rounded-md bg-gray-50 p-4 text-sm text-gray-700">
       <h3 className="text-base font-semibold text-gray-900 mb-2">Methodology</h3>
       <p className="mb-2">
-      Gains reflect the difference between the After and Before scenarios.
+      Gains reflect the difference between the With and Without Interior Design scenarios.
       </p>
       <ul className="list-disc pl-5 space-y-1 mb-2 text-[13px]">
         <li>Gross revenue: G = ADR × Occupancy × 365</li>
