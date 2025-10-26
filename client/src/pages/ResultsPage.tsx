@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
-import { useAuthModal } from '../components/auth/AuthModalProvider';
+import { useAuthModal, AuthModalCancelledError } from '../components/auth/AuthModalProvider';
 import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
@@ -192,7 +192,14 @@ export default function ResultsPage() {
     try {
       // Require account to save and send report
       if (!firebaseUser) {
-        await requireAccount({ reason: 'Create your free account to save and receive this report.' });
+        try {
+          await requireAccount({ reason: 'Create your free account to save and receive this report.' });
+        } catch (error) {
+          if (error instanceof AuthModalCancelledError) {
+            return;
+          }
+          throw error;
+        }
       }
 
       // Convert selectedRooms to RoomWithItems with complete item mappings

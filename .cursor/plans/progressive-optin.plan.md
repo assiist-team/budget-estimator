@@ -106,15 +106,15 @@ Current routes (to be changed):
 
 ### To-dos
 
-- [ ] Create opt-in storage util with TTL and normalization
-- [ ] Build OptInPage and RequireOptIn gate
-- [ ] Replace tools RequireAuth with RequireOptIn; drop per-tool RequireAuth
-- [ ] Show all enabled tools for unauthenticated users
-- [ ] Implement AuthModal and provider with Google + Email/Password
-- [ ] Expose useAuthModal.requireAccount and wire into actions
-- [ ] Gate save/export in Results and ROI pages via requireAccount
-- [ ] Open AuthModal on ReportsPage when unauthenticated
-- [ ] Implement syncLeadToHighLevel and call on opt-in submit
-- [ ] Add updateUserContactInfo and store phone/firstName
-- [ ] Adjust Firestore rules for public config read and writes gating
-- [ ] Bypass opt-in and modal when VITE_AUTH_DISABLED=true
+- [x] Create opt-in storage util with TTL and normalization
+- [x] Build OptInPage and RequireOptIn gate
+- [x] Replace tools RequireAuth with RequireOptIn; drop per-tool RequireAuth
+- [x] Show all enabled tools for unauthenticated users
+- [x] Implement AuthModal and provider with Google + Email/Password
+- [x] Expose useAuthModal.requireAccount and wire into actions
+- [x] Gate save/export in Results and ROI pages via requireAccount
+- [x] Open AuthModal on ReportsPage when unauthenticated
+- [x] Implement syncLeadToHighLevel and call on opt-in submit
+- [x] Add updateUserContactInfo and store phone/firstName
+- [x] Adjust Firestore rules for public config read and writes gating
+- [x] Bypass opt-in and modal when VITE_AUTH_DISABLED=true

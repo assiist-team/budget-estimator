@@ -16,6 +16,7 @@ import RoiEstimatorResultsPage from './tools/roi-estimator/RoiEstimatorResultsPa
 import RoiProjectionViewPage from './tools/roi-estimator/RoiProjectionViewPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import RoiProjectionEditPage from './tools/roi-estimator/RoiProjectionEditPage';
+import OptInCallbackPage from './pages/OptInCallbackPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/" element={<Navigate to="/tools" replace />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/opt-in" element={<OptInPage />} />
+          <Route path="/opt-in/callback" element={<OptInCallbackPage />} />
           <Route path="/tools" element={<RequireOptIn />}>
             <Route index element={<ToolsLandingPage />} />
             <Route path="reports" element={<ReportsPage />} />

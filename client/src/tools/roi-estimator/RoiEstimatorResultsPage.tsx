@@ -8,7 +8,7 @@ import { useRoiEstimatorStore } from '../../store/roiEstimatorStore';
 import { computeProjection } from '../../utils/roi';
 import { db, auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
-import { useAuthModal } from '../../components/auth/AuthModalProvider';
+import { useAuthModal, AuthModalCancelledError } from '../../components/auth/AuthModalProvider';
 import { HelpIcon } from '../../components/Icons';
 
 export default function RoiEstimatorResultsPage() {
@@ -22,7 +22,14 @@ export default function RoiEstimatorResultsPage() {
 
   const saveProjection = async () => {
     if (!firebaseUser) {
-      await requireAccount({ reason: 'Create your free account to save and access this projection.' });
+      try {
+        await requireAccount({ reason: 'Create your free account to save and access this projection.' });
+      } catch (error) {
+        if (error instanceof AuthModalCancelledError) {
+          return;
+        }
+        throw error;
+      }
     }
     const docRef = await addDoc(collection(db, 'projections'), {
       toolId: 'roi-estimator',

@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import EstimatesReportsTab from './EstimatesReportsTab';
 import ProjectionsReportsTab from './ProjectionsReportsTab';
 import { useAuth } from '../../context/AuthContext';
-import { useAuthModal } from '../../components/auth/AuthModalProvider';
+import { useAuthModal, AuthModalCancelledError } from '../../components/auth/AuthModalProvider';
 
 export default function ReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,7 +26,12 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (!firebaseUser) {
-      void requireAccount({ reason: 'Sign in to view your saved reports.' });
+      void requireAccount({ reason: 'Sign in to view your saved reports.' }).catch((error) => {
+        if (error instanceof AuthModalCancelledError) {
+          return;
+        }
+        throw error;
+      });
     }
   }, [firebaseUser, requireAccount]);
 

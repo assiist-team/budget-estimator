@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import AuthModal from './AuthModal';
 import { useAuth } from '../../context/AuthContext';
@@ -9,10 +9,17 @@ interface AuthModalContextValue {
 
 const AuthModalContext = createContext<AuthModalContextValue | undefined>(undefined);
 
+export class AuthModalCancelledError extends Error {
+  constructor() {
+    super('Auth modal was dismissed before authentication.');
+    this.name = 'AuthModalCancelledError';
+  }
+}
+
 export function AuthModalProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<string | undefined>(undefined);
-  const [resolver, setResolver] = useState<(() => void) | null>(null);
+  const pendingRef = useRef<{ resolve: () => void; reject: (reason?: unknown) => void } | null>(null);
   const { firebaseUser } = useAuth();
   const AUTH_DISABLED = import.meta.env.VITE_AUTH_DISABLED === 'true';
 
@@ -20,24 +27,28 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     if (AUTH_DISABLED || firebaseUser) {
       return Promise.resolve();
     }
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
       setReason(opts?.reason);
-      setResolver(() => resolve);
+      pendingRef.current = { resolve, reject };
       setOpen(true);
     });
   }, [AUTH_DISABLED, firebaseUser]);
 
   const handleClose = useCallback(() => {
     setOpen(false);
+    if (pendingRef.current) {
+      pendingRef.current.reject(new AuthModalCancelledError());
+      pendingRef.current = null;
+    }
   }, []);
 
   const handleAuthed = useCallback(() => {
     setOpen(false);
-    if (resolver) {
-      resolver();
-      setResolver(null);
+    if (pendingRef.current) {
+      pendingRef.current.resolve();
+      pendingRef.current = null;
     }
-  }, [resolver]);
+  }, []);
 
   const value = useMemo<AuthModalContextValue>(() => ({ requireAccount }), [requireAccount]);
 
