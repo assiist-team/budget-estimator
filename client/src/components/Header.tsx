@@ -26,13 +26,23 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
                 Step {currentStep} of {totalSteps}
               </div>
             )}
-            {showAdminLink && profile && ['owner', 'admin'].includes(profile.role) && (
-              <Link
-                to="/tools"
-                className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
-              >
-                Toolkit
-              </Link>
+            {showAdminLink && profile && (
+              <>
+                {['owner', 'admin'].includes(profile.role) && (
+                  <Link
+                    to="/admin"
+                    className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                  >
+                    Admin
+                  </Link>
+                )}
+                <Link
+                  to="/tools"
+                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                >
+                  Toolkit
+                </Link>
+              </>
             )}
             {firebaseUser ? (
               <button

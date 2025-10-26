@@ -69,28 +69,28 @@ export default function RoiEstimatorPage() {
           <div className="card lg:col-span-2">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Inputs</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <div className="pr-4">
                 <h3 className="font-medium text-gray-800 mb-2">Before</h3>
                 <label className="block text-sm text-gray-600 mb-1">Occupancy %</label>
-                <input type="number" className="input" value={Math.round(inputs.occupancyBefore * 1000) / 10}
+                <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyBefore * 1000) / 10}
                   onChange={(e) => updateNumber('occupancyBefore', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
                 <label className="block text-sm text-gray-600 mt-4 mb-1">Average Daily Rate ($)</label>
-                <input type="number" className="input" value={inputs.adrBefore}
+                <input type="number" className="input-field-roi" value={inputs.adrBefore}
                   onChange={(e) => updateNumber('adrBefore', Number(e.target.value))} />
               </div>
-              <div>
+              <div className="pr-4">
                 <h3 className="font-medium text-gray-800 mb-2">After</h3>
                 <label className="block text-sm text-gray-600 mb-1">Occupancy %</label>
-                <input type="number" className="input" value={Math.round(inputs.occupancyAfter * 1000) / 10}
+                <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyAfter * 1000) / 10}
                   onChange={(e) => updateNumber('occupancyAfter', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
                 <label className="block text-sm text-gray-600 mt-4 mb-1">Average Daily Rate ($)</label>
-                <input type="number" className="input" value={inputs.adrAfter}
+                <input type="number" className="input-field-roi" value={inputs.adrAfter}
                   onChange={(e) => updateNumber('adrAfter', Number(e.target.value))} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-              <div>
+              <div className="pr-4">
                 <h3 className="font-medium text-gray-800 mb-2">Fixed Costs (Annual)</h3>
                 {([
                   ['mortgage', 'Mortgage'],
@@ -102,18 +102,18 @@ export default function RoiEstimatorPage() {
                 ] as const).map(([key, label]) => (
                   <div key={key} className="mb-3">
                     <label className="block text-sm text-gray-600 mb-1">{label}</label>
-                    <input type="number" className="input" value={inputs.fixed[key]}
+                    <input type="number" className="input-field-roi" value={inputs.fixed[key]}
                       onChange={(e) => updateNumber(`fixed.${key}`, Number(e.target.value))} />
                   </div>
                 ))}
               </div>
-              <div>
+              <div className="pr-4">
                 <h3 className="font-medium text-gray-800 mb-2">Assumptions</h3>
                 <label className="block text-sm text-gray-600 mb-1">Property Management Fee %</label>
-                <input type="number" className="input" value={Math.round(inputs.propertyManagementPct * 1000) / 10}
+                <input type="number" className="input-field-roi" value={Math.round(inputs.propertyManagementPct * 1000) / 10}
                   onChange={(e) => updateNumber('propertyManagementPct', Math.max(0, Number(e.target.value) / 100))} />
                 <label className="block text-sm text-gray-600 mt-4 mb-1">SDE Multiple</label>
-                <input type="number" className="input" value={inputs.sdeMultiple}
+                <input type="number" className="input-field-roi" value={inputs.sdeMultiple}
                   onChange={(e) => updateNumber('sdeMultiple', Math.max(0, Number(e.target.value)))} />
               </div>
             </div>

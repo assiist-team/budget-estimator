@@ -33,6 +33,7 @@ export interface RoiComputedFlat {
   netCashFlowAfter: number;
   annualCashFlowGain: number;
   enterpriseValueGain: number;
+  totalYearOneGain: number;
 }
 
 export function gross(adr: number, occupancy: number): number {
@@ -95,6 +96,7 @@ export function computeProjection(inputs: RoiInputs): RoiComputedFlat {
     netCashFlowAfter: netAfter,
     annualCashFlowGain: netAfter - netBefore,
     enterpriseValueGain: evAfter - evBefore,
+    totalYearOneGain: (netAfter - netBefore) + (evAfter - evBefore),
   };
 }
 

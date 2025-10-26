@@ -18,7 +18,8 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow read, write: if signedIn() && (uid == request.auth.uid || isAdmin());
+      allow read: if signedIn() && uid == request.auth.uid;
+      allow write: if signedIn() && (uid == request.auth.uid || isAdmin());
     }
 
     match /estimates/{id} {
@@ -39,6 +40,14 @@ service cloud.firestore {
     match /resources/{resourceId} {
       allow read: if signedIn();
       allow write: if isAdmin();
+    }
+
+    match /roomTemplates/{templateId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /items/{itemId} {
+      allow read, write: if isAdmin();
     }
   }
 }

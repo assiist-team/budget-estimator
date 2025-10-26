@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import Header from '../../components/Header';
+import Methodology from './components/Methodology';
 import { db } from '../../lib/firebase';
 
 interface ProjectionDoc {
@@ -79,7 +80,8 @@ export default function RoiProjectionViewPage() {
               <div className="flex justify-between"><span>SDE Multiple</span><span>{inputs.sdeMultiple}×</span></div>
             </div>
           </div>
-          <div className="mt-4 border-t pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="mt-4 border-t pt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex justify-between"><span>Total Year One Gain</span><span className="font-semibold text-primary-700">{usd(computed.totalYearOneGain ?? (computed.annualCashFlowGain + computed.enterpriseValueGain))}</span></div>
             <div className="flex justify-between"><span>Annual Cash Flow Gain</span><span className="font-semibold text-primary-700">{usd(computed.annualCashFlowGain)}</span></div>
             <div className="flex justify-between"><span>Enterprise Value Gain</span><span className="font-semibold text-primary-700">{usd(computed.enterpriseValueGain)}</span></div>
           </div>
@@ -110,6 +112,9 @@ export default function RoiProjectionViewPage() {
               <div className="flex justify-between"><span>Enterprise Value</span><span>{usd(computed.evAfter)}</span></div>
             </div>
           </div>
+        </div>
+        <div className="mt-6">
+          <Methodology />
         </div>
       </main>
     </div>

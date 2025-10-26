@@ -23,7 +23,7 @@ async function seedTools() {
         {
           id: 'roi-estimator',
           name: 'ROI Estimator',
-          description: 'Estimate cash flow and enterprise value impact from design.',
+          description: 'Estimates cash flow and enterprise value impact from an investment in interior design.',
           routeBase: '/tools/roi-estimator',
           enabled: true,
           rolesAllowed: ['owner', 'admin', 'customer'],

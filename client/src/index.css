@@ -80,6 +80,12 @@ html {
            focus:border-transparent transition-all duration-200;
   }
 
+  .input-field-roi {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg
+           focus:outline-none focus:ring-2 focus:ring-primary-500
+           focus:border-transparent transition-all duration-200;
+  }
+
   .card {
     @apply bg-white rounded-xl shadow-md p-6 hover:shadow-lg
            transition-shadow duration-200;
@@ -91,5 +97,68 @@ html {
 
   .progress-fill {
     @apply bg-primary-600 h-full transition-all duration-300 ease-out;
+  }
+
+  /* Tooltip styles */
+  [data-tooltip] {
+    position: relative;
+  }
+
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: white;
+    color: #374151;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    white-space: normal;
+    z-index: 1000;
+    max-width: 280px;
+    min-width: 180px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    animation: tooltipFadeIn 0.15s ease-out;
+    word-wrap: break-word;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  [data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid white;
+    z-index: 1001;
+    margin-bottom: -6px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
+
+  /* Responsive tooltip positioning - fallback for edge cases */
+  @media (max-width: 768px) {
+    [data-tooltip]:hover::after {
+      transform: translateX(-50%) translateY(-12px);
+      max-width: 250px;
+    }
+  }
+
+  @keyframes tooltipFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-8px);
+    }
   }
 }

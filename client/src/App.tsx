@@ -9,7 +9,8 @@ import ViewEstimatePage from './pages/ViewEstimatePage';
 import ToolsLandingPage from './pages/ToolsLandingPage';
 import RequireAuth from './components/RequireAuth';
 import SignInPage from './pages/SignInPage';
-import RoiEstimatorPage from './tools/roi-estimator/RoiEstimatorPage';
+import RoiEstimatorInputPage from './tools/roi-estimator/RoiEstimatorInputPage';
+import RoiEstimatorResultsPage from './tools/roi-estimator/RoiEstimatorResultsPage';
 import RoiProjectionViewPage from './tools/roi-estimator/RoiProjectionViewPage';
 
 function App() {
@@ -30,7 +31,8 @@ function App() {
               <Route path="estimate/view/:estimateId" element={<ViewEstimatePage />} />
             </Route>
             <Route path="roi-estimator" element={<RequireAuth requiredToolId="roi-estimator" />}>
-              <Route index element={<RoiEstimatorPage />} />
+              <Route index element={<RoiEstimatorInputPage />} />
+              <Route path="results" element={<RoiEstimatorResultsPage />} />
               <Route path="projection/view/:projectionId" element={<RoiProjectionViewPage />} />
             </Route>
           </Route>

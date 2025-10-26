@@ -16,7 +16,7 @@ export interface UserProfile {
   entitlements: UserEntitlements;
 }
 
-const DEFAULT_TOOL_ACCESS = ['budget-estimator'];
+const DEFAULT_TOOL_ACCESS = ['budget-estimator', 'roi-estimator'];
 
 export function normalizeEntitlements(entitlements?: UserEntitlements | null): UserEntitlements {
   if (!entitlements || !Array.isArray(entitlements.tools)) {
