@@ -19,7 +19,7 @@ interface ToolsConfig {
 }
 
 export default function ToolsLandingPage() {
-  const { profile, loading, hasToolAccess } = useAuth();
+  const { loading } = useAuth();
   const [toolsConfig, setToolsConfig] = useState<ToolsConfig | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loadingConfig, setLoadingConfig] = useState(true);
@@ -63,21 +63,9 @@ export default function ToolsLandingPage() {
   const accessibleTools = useMemo(() => {
     if (!toolsConfig) return [];
 
-    // If not authenticated, show all enabled tools (public access after opt-in)
-    if (!profile) {
-      return toolsConfig.tools.filter((tool) => tool.enabled);
-    }
-
-    // Authenticated users: keep entitlements/roles logic
-    return toolsConfig.tools.filter((tool) => {
-      if (!tool.enabled) return false;
-      if (!hasToolAccess(tool.id)) return false;
-      if (tool.rolesAllowed && tool.rolesAllowed.length > 0) {
-        return tool.rolesAllowed.includes(profile.role);
-      }
-      return true;
-    });
-  }, [toolsConfig, profile, hasToolAccess]);
+    // All users get access to all enabled tools.
+    return toolsConfig.tools.filter((tool) => tool.enabled);
+  }, [toolsConfig]);
 
   const totalCards = accessibleTools.length;
 

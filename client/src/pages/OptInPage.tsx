@@ -62,15 +62,15 @@ export default function OptInPage() {
     setOptIn(data);
     // When using HighLevel form, we never sync here; HL already captures the lead
     if (!USE_HL_FORM) {
-      try {
-        await syncLeadToHighLevel({
-          firstName: data.firstName,
-          email: data.email,
-          phone: data.phone,
-        });
-      } catch (e) {
-        // Non-blocking
-        console.warn('HighLevel opt-in sync failed', e);
+    try {
+      await syncLeadToHighLevel({
+        firstName: data.firstName,
+        email: data.email,
+        phone: data.phone,
+      });
+    } catch (e) {
+      // Non-blocking
+      console.warn('HighLevel opt-in sync failed', e);
       }
     }
     navigate(from, { replace: true });
