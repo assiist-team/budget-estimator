@@ -111,9 +111,6 @@ export default function ToolsLandingPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-10">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">1584 Toolkit</h1>
-          <p className="text-lg text-gray-600">
-            Access estimators and workflows enabled for your account.
-          </p>
         </div>
 
         {error && (

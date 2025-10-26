@@ -37,6 +37,12 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
                   </Link>
                 )}
                 <Link
+                  to="/tools/reports"
+                  className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                >
+                  Reports
+                </Link>
+                <Link
                   to="/tools"
                   className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
                 >

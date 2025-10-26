@@ -589,103 +589,14 @@ export default function AdminPage() {
 
         {/* Tab Content */}
         {activeTab === 'estimates' && (
-          <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Recent Estimates
-              </h2>
-              <p className="text-gray-600">
-                {estimates.length} estimate{estimates.length !== 1 ? 's' : ''} submitted
-              </p>
+          <div className="card">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">View Reports</h2>
+                <p className="text-gray-600">All estimates and ROI projections are available in the Reports section.</p>
+              </div>
+              <Link to="/tools/reports" className="btn-primary">Open Reports →</Link>
             </div>
-
-            {estimates.length === 0 ? (
-              <div className="card text-center py-12">
-                <p className="text-gray-600 text-lg">
-                  No estimates submitted yet
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {estimates.map((estimate) => (
-                  <Link to={`/estimate/view/${estimate.id}`} key={estimate.id} className="card hover:shadow-xl transition-shadow block">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {estimate.clientInfo.firstName} {estimate.clientInfo.lastName}
-                          </h3>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-gray-600">
-                              <span className="font-medium">Email:</span> {estimate.clientInfo.email}
-                            </p>
-                            {estimate.clientInfo.phone && (
-                              <p className="text-gray-600">
-                                <span className="font-medium">Phone:</span> {estimate.clientInfo.phone}
-                              </p>
-                            )}
-                            <p className="text-gray-600">
-                              <span className="font-medium">Property:</span>{' '}
-                              {estimate.propertySpecs.squareFootage.toLocaleString()} sqft,
-                              {' '}{estimate.propertySpecs.guestCapacity} guests
-                            </p>
-                          </div>
-
-                          <div>
-                            <p className="text-gray-600">
-                              <span className="font-medium">Rooms:</span> {estimate.rooms.reduce((total, room) => total + room.quantity, 0)}
-                            </p>
-                            <p className="text-gray-600">
-                              <span className="font-medium">Project Range:</span>{' '}
-                              {(() => {
-                                const options = estimate.propertySpecs && budgetDefaults
-                                  ? { propertySpecs: estimate.propertySpecs, budgetDefaults }
-                                  : undefined;
-                                const estimateBudget = calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, options);
-                                if ('projectRange' in estimateBudget) {
-                                  return `${formatCurrency(estimateBudget.projectRange.low)} - ${formatCurrency(estimateBudget.projectRange.mid)}`;
-                                }
-                                return `${formatCurrency(estimateBudget.rangeLow)} - ${formatCurrency(estimateBudget.rangeHigh)}`;
-                              })()}
-                            </p>
-                            <p className="text-gray-600">
-                              <span className="font-medium">Submitted:</span>{' '}
-                              {estimate.submittedAt?.toLocaleDateString() || 'N/A'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {estimate.propertySpecs.notes && (
-                          <div className="mt-3 pt-3 border-t border-gray-200">
-                            <p className="text-sm text-gray-600">
-                              <span className="font-medium">Notes:</span> {estimate.propertySpecs.notes}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Delete button */}
-                      <div className="flex items-start">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            deleteEstimate(estimate.id);
-                          }}
-                          className="text-sm text-red-600 hover:text-red-800 p-2"
-                          title="Delete Estimate"
-                        >
-                          <TrashIcon />
-                        </button>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
           </div>
         )}
 

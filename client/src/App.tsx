@@ -12,6 +12,8 @@ import SignInPage from './pages/SignInPage';
 import RoiEstimatorInputPage from './tools/roi-estimator/RoiEstimatorInputPage';
 import RoiEstimatorResultsPage from './tools/roi-estimator/RoiEstimatorResultsPage';
 import RoiProjectionViewPage from './tools/roi-estimator/RoiProjectionViewPage';
+import ReportsPage from './pages/reports/ReportsPage';
+import RoiProjectionEditPage from './tools/roi-estimator/RoiProjectionEditPage';
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/tools" element={<RequireAuth />}>
             <Route index element={<ToolsLandingPage />} />
+            <Route path="reports" element={<ReportsPage />} />
             <Route path="budget-estimator" element={<RequireAuth requiredToolId="budget-estimator" />}>
               <Route index element={<LandingPage />} />
               <Route path="property" element={<PropertyInputPage />} />
@@ -34,6 +37,7 @@ function App() {
               <Route index element={<RoiEstimatorInputPage />} />
               <Route path="results" element={<RoiEstimatorResultsPage />} />
               <Route path="projection/view/:projectionId" element={<RoiProjectionViewPage />} />
+              <Route path="projection/edit/:projectionId" element={<RoiProjectionEditPage />} />
             </Route>
           </Route>
           <Route path="/admin" element={<RequireAuth requireAdmin />}>
