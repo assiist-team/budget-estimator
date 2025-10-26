@@ -47,7 +47,7 @@ export default function RoiEstimatorResultsPage() {
                 {/* Results Summary */}
                 <div>
                   <h1 className="text-2xl font-semibold text-gray-900 mb-4">Interior Design ROI Results</h1>
-                  <p className="text-sm text-gray-600 mb-6">Based on your inputs, here are the projected gains from interior design improvements.</p>
+                  <p className="text-sm text-gray-600 mb-6">Based on your inputs, here are the projected gains from interior design services.</p>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
@@ -172,7 +172,7 @@ export default function RoiEstimatorResultsPage() {
                   <Methodology />
                 </div>
 
-                <button onClick={saveProjection} className="btn-primary w-full" disabled={!firebaseUser}>Save & Send Report</button>
+                <button onClick={saveProjection} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed" disabled={!firebaseUser}>Save & Send Report →</button>
               </div>
             </div>
           </div>

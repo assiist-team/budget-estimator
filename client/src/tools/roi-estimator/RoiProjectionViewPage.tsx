@@ -53,7 +53,7 @@ export default function RoiProjectionViewPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Projection not found</h1>
-          <button onClick={() => navigate('/tools/roi-estimator')} className="btn-primary mt-6">Back</button>
+          <button onClick={() => navigate('/tools/roi-estimator')} className="btn-secondary mt-6">← Back</button>
         </div>
       </div>
     );

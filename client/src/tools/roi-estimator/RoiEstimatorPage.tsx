@@ -63,7 +63,7 @@ export default function RoiEstimatorPage() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <Link to="/tools" className="btn-secondary">← Back</Link>
-          <button onClick={saveProjection} className="btn-primary" disabled={!firebaseUser}>Save Projection</button>
+          <button onClick={saveProjection} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled={!firebaseUser}>Save Projection →</button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

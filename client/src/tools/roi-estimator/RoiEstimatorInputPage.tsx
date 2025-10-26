@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import ProgressBar from '../../components/ProgressBar';
@@ -10,6 +10,11 @@ import { HelpIcon } from '../../components/Icons';
 export default function RoiEstimatorInputPage() {
   const navigate = useNavigate();
   const { inputs, setInputs, setCurrentStep } = useRoiEstimatorStore();
+  const [localInputs, setLocalInputs] = useState(inputs);
+
+  useEffect(() => {
+    setLocalInputs(inputs);
+  }, [inputs]);
 
   const computed = useMemo(() => computeProjection(inputs), [inputs]);
 
@@ -26,6 +31,7 @@ export default function RoiEstimatorInputPage() {
   const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
   const goToResults = () => {
+    setInputs(() => localInputs);
     setCurrentStep(1);
     navigate('/tools/roi-estimator/results');
   };
@@ -69,12 +75,12 @@ export default function RoiEstimatorInputPage() {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-xs text-gray-500 mb-1">Without Interior Design</label>
-                              <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyBefore * 1000) / 10}
+                              <input type="number" className="input-field-roi" value={Math.round(localInputs.occupancyBefore * 1000) / 10}
                                 onChange={(e) => updateNumber('occupancyBefore', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
                             </div>
                             <div>
                               <label className="block text-xs text-gray-500 mb-1">With Interior Design</label>
-                              <input type="number" className="input-field-roi" value={Math.round(inputs.occupancyAfter * 1000) / 10}
+                              <input type="number" className="input-field-roi" value={Math.round(localInputs.occupancyAfter * 1000) / 10}
                                 onChange={(e) => updateNumber('occupancyAfter', Math.max(0, Math.min(1, Number(e.target.value) / 100)))} />
                             </div>
                           </div>
@@ -86,12 +92,12 @@ export default function RoiEstimatorInputPage() {
                           <div className="grid grid-cols-2 gap-3">
                             <div>
                               <label className="block text-xs text-gray-500 mb-1">Without Interior Design</label>
-                              <input type="number" className="input-field-roi" value={inputs.adrBefore}
+                              <input type="number" className="input-field-roi" value={localInputs.adrBefore}
                                 onChange={(e) => updateNumber('adrBefore', Number(e.target.value))} />
                             </div>
                             <div>
                               <label className="block text-xs text-gray-500 mb-1">With Interior Design</label>
-                              <input type="number" className="input-field-roi" value={inputs.adrAfter}
+                              <input type="number" className="input-field-roi" value={localInputs.adrAfter}
                                 onChange={(e) => updateNumber('adrAfter', Number(e.target.value))} />
                             </div>
                           </div>
@@ -105,13 +111,13 @@ export default function RoiEstimatorInputPage() {
                         <label className="block text-sm text-gray-600">Property Management Fee %</label>
                         <HelpIcon title="The percentage of gross revenue paid to the property management company" className="text-gray-400 hover:text-gray-700 cursor-help ml-1" />
                       </div>
-                      <input type="number" className="input-field-roi" value={Math.round(inputs.propertyManagementPct * 1000) / 10}
+                      <input type="number" className="input-field-roi" value={Math.round(localInputs.propertyManagementPct * 1000) / 10}
                         onChange={(e) => updateNumber('propertyManagementPct', Math.max(0, Number(e.target.value) / 100))} />
                       <div className="flex items-center gap-1 mt-4 mb-1">
                         <label className="block text-sm text-gray-600">SDE Multiple</label>
                         <HelpIcon title="The multiple used to determine enterprise value based on Seller's Discretionary Earnings (SDE)" className="text-gray-400 hover:text-gray-700 cursor-help ml-1" />
                       </div>
-                      <input type="number" className="input-field-roi" value={inputs.sdeMultiple}
+                      <input type="number" className="input-field-roi" value={localInputs.sdeMultiple}
                         onChange={(e) => updateNumber('sdeMultiple', Math.max(0, Number(e.target.value)))} />
                     </div>
                   </div>
@@ -129,7 +135,7 @@ export default function RoiEstimatorInputPage() {
                     ] as const).map(([key, label]) => (
                       <div key={key} className="mb-3">
                         <label className="block text-sm text-gray-600 mb-1">{label}</label>
-                        <input type="number" className="input-field-roi" value={inputs.fixed[key]}
+                        <input type="number" className="input-field-roi" value={localInputs.fixed[key]}
                           onChange={(e) => updateNumber(`fixed.${key}`, Number(e.target.value))} />
                       </div>
                     ))}
@@ -158,7 +164,10 @@ export default function RoiEstimatorInputPage() {
                   </div>
                 </div>
 
-                <button onClick={goToResults} className="btn-primary w-full text-lg">Generate Full Report</button>
+                <button onClick={goToResults} className="btn-primary w-full">Generate Full Report →</button>
+                <p className="text-sm text-gray-600 text-center">
+                  The full report gives you a side-by-side comparison of cash flow, SDE, enterprise value, expenses, and other key metrics for both "Without Interior Design" and "With Interior Design" scenarios.
+                </p>
               </div>
             </div>
           </div>
