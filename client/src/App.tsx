@@ -8,6 +8,8 @@ import EstimateEditPage from './pages/EstimateEditPage';
 import ViewEstimatePage from './pages/ViewEstimatePage';
 import ToolsLandingPage from './pages/ToolsLandingPage';
 import RequireAuth from './components/RequireAuth';
+import RequireOptIn from './components/RequireOptIn';
+import OptInPage from './pages/OptInPage';
 import SignInPage from './pages/SignInPage';
 import RoiEstimatorInputPage from './tools/roi-estimator/RoiEstimatorInputPage';
 import RoiEstimatorResultsPage from './tools/roi-estimator/RoiEstimatorResultsPage';
@@ -22,10 +24,11 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/tools" replace />} />
           <Route path="/sign-in" element={<SignInPage />} />
-          <Route path="/tools" element={<RequireAuth />}>
+          <Route path="/opt-in" element={<OptInPage />} />
+          <Route path="/tools" element={<RequireOptIn />}>
             <Route index element={<ToolsLandingPage />} />
             <Route path="reports" element={<ReportsPage />} />
-            <Route path="budget-estimator" element={<RequireAuth requiredToolId="budget-estimator" />}>
+            <Route path="budget-estimator">
               <Route index element={<LandingPage />} />
               <Route path="property" element={<PropertyInputPage />} />
               <Route path="rooms" element={<RoomConfigurationPage />} />
@@ -33,7 +36,7 @@ function App() {
               <Route path="estimate/edit/:estimateId" element={<EstimateEditPage />} />
               <Route path="estimate/view/:estimateId" element={<ViewEstimatePage />} />
             </Route>
-            <Route path="roi-estimator" element={<RequireAuth requiredToolId="roi-estimator" />}>
+            <Route path="roi-estimator">
               <Route index element={<RoiEstimatorInputPage />} />
               <Route path="results" element={<RoiEstimatorResultsPage />} />
               <Route path="projection/view/:projectionId" element={<RoiProjectionViewPage />} />

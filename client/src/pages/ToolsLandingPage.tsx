@@ -62,21 +62,19 @@ export default function ToolsLandingPage() {
 
   const accessibleTools = useMemo(() => {
     if (!toolsConfig) return [];
-    if (!profile) return [];
 
+    // If not authenticated, show all enabled tools (public access after opt-in)
+    if (!profile) {
+      return toolsConfig.tools.filter((tool) => tool.enabled);
+    }
+
+    // Authenticated users: keep entitlements/roles logic
     return toolsConfig.tools.filter((tool) => {
-      if (!tool.enabled) {
-        return false;
-      }
-
-      if (!hasToolAccess(tool.id)) {
-        return false;
-      }
-
+      if (!tool.enabled) return false;
+      if (!hasToolAccess(tool.id)) return false;
       if (tool.rolesAllowed && tool.rolesAllowed.length > 0) {
         return tool.rolesAllowed.includes(profile.role);
       }
-
       return true;
     });
   }, [toolsConfig, profile, hasToolAccess]);
@@ -94,16 +92,7 @@ export default function ToolsLandingPage() {
     );
   }
 
-  if (!profile) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Access required</h1>
-          <p className="text-gray-600">Please sign in to see your available tools.</p>
-        </div>
-      </div>
-    );
-  }
+  // With public access after opt-in, we always render the list
 
   return (
     <div className="min-h-screen bg-gray-50">
