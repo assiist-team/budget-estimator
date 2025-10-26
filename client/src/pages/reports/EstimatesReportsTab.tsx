@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import type { Estimate } from '../../types';
@@ -13,7 +13,7 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
   const { firebaseUser, isAdmin } = useAuth();
   const [estimates, setEstimates] = useState<Estimate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const location = useLocation();
 
   useEffect(() => {
     const fetchEstimates = async () => {
@@ -47,43 +47,19 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
     void fetchEstimates();
   }, [firebaseUser, isAdmin, onCountChange]);
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return estimates;
-    return estimates.filter((e) =>
-      [
-        e.clientInfo.firstName,
-        e.clientInfo.lastName,
-        e.clientInfo.email,
-        String(e.propertySpecs?.squareFootage ?? ''),
-      ]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(term))
-    );
-  }, [search, estimates]);
-
   if (!firebaseUser) {
     return null;
   }
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="input w-full md:w-80"
-          placeholder="Search by name, email, or sqft"
-        />
-      </div>
-
       {loading ? (
         <div className="text-gray-600">Loading estimates…</div>
-      ) : filtered.length === 0 ? (
+      ) : estimates.length === 0 ? (
         <div className="card">No estimates found.</div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((estimate) => (
+          {estimates.map((estimate) => (
             <div key={estimate.id} className="card">
               <div className="flex items-start justify-between">
                 <div>
@@ -100,12 +76,14 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
                 <div className="flex items-center gap-2">
                   <Link
                     to={`/tools/budget-estimator/estimate/view/${estimate.id}`}
+                    state={{ from: { pathname: location.pathname, search: location.search } }}
                     className="btn-secondary"
                   >
                     View
                   </Link>
                   <Link
                     to={`/tools/budget-estimator/estimate/edit/${estimate.id}`}
+                    state={{ from: { pathname: location.pathname, search: location.search } }}
                     className="btn-primary"
                   >
                     Edit

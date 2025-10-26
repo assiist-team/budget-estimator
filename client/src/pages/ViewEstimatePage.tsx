@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useBackDestination } from '../hooks/useBackDestination';
 import { doc, getDoc, collection } from 'firebase/firestore';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { db } from '../lib/firebase';
@@ -19,6 +20,7 @@ function isProjectBudget(budget: Budget | ProjectBudget | null): budget is Proje
 export default function ViewEstimatePage() {
   const { estimateId } = useParams<{ estimateId: string }>();
   const navigate = useNavigate();
+  const { href: backHref } = useBackDestination('/tools/reports?tab=estimates');
 
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -178,9 +180,7 @@ export default function ViewEstimatePage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Estimate not found</h1>
           <p className="text-gray-600">The estimate you are looking for does not exist.</p>
-          <button onClick={() => navigate('/tools/budget-estimator')} className="btn-primary mt-6">
-            Back
-          </button>
+          <Link to={backHref} className="btn-primary mt-6">← Back to Reports</Link>
         </div>
       </div>
     );
@@ -195,12 +195,7 @@ export default function ViewEstimatePage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <button
-              onClick={() => navigate('/tools/budget-estimator')}
-              className="btn-secondary"
-            >
-              ← Back
-            </button>
+            <Link to={backHref} className="btn-secondary">← Back to Reports</Link>
             <Link to={`/tools/budget-estimator/estimate/edit/${estimateId}`} className="btn-primary">
               Edit
             </Link>

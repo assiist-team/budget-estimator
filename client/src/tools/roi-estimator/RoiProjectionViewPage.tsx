@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { useBackDestination } from '../../hooks/useBackDestination';
 import Header from '../../components/Header';
 import ProgressBar from '../../components/ProgressBar';
 import Methodology from './components/Methodology';
@@ -13,10 +14,12 @@ interface ProjectionDoc {
 }
 
 export default function RoiProjectionViewPage() {
-  const navigate = useNavigate();
   const { projectionId } = useParams<{ projectionId: string }>();
   const [projection, setProjection] = useState<ProjectionDoc | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sent = searchParams.get('sent') === '1';
+  const { href: backHref } = useBackDestination('/tools/reports?tab=projections');
 
   useEffect(() => {
     const fetchProjection = async () => {
@@ -38,6 +41,10 @@ export default function RoiProjectionViewPage() {
   const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -54,7 +61,7 @@ export default function RoiProjectionViewPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">Projection not found</h1>
-          <button onClick={() => navigate('/tools/roi-estimator')} className="btn-secondary mt-6">← Back</button>
+          <Link to={backHref} className="btn-secondary mt-6">← Back to Reports</Link>
         </div>
       </div>
     );
@@ -64,10 +71,30 @@ export default function RoiProjectionViewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <div className="print:hidden">
+        <Header />
+      </div>
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <Link to="/tools/roi-estimator" className="btn-secondary">← Back to Input</Link>
+        {sent && (
+          <div className="mb-6 rounded-md bg-green-50 border border-green-200 p-4 text-green-800 flex items-start justify-between">
+            <div>
+              <div className="font-semibold">Report sent and saved</div>
+              <div className="text-sm">We emailed your report and saved it to your Reports.</div>
+            </div>
+            <button
+              className="text-green-800/80 hover:text-green-900 text-sm"
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.delete('sent');
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+        <div className="flex items-center justify-between mb-6 print:hidden">
+          <Link to={backHref} className="btn-secondary">← Back to Reports</Link>
           <div className="w-64"><ProgressBar currentStep={2} totalSteps={2} /></div>
         </div>
 
@@ -77,7 +104,7 @@ export default function RoiProjectionViewPage() {
               <div className="grid gap-6">
                 {/* Results Summary */}
                 <div>
-                  <h1 className="text-2xl font-semibold text-gray-900 mb-4">Interior Design ROI Results</h1>
+                  <h1 className="text-2xl font-semibold text-gray-900 mb-4">Interior Design ROI Estimate</h1>
                   <p className="text-sm text-gray-600 mb-6">Based on your inputs, here are the projected gains from interior design services.</p>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -202,7 +229,9 @@ export default function RoiProjectionViewPage() {
                 <div className="bg-white rounded-md p-4 border border-gray-100">
                   <Methodology />
                 </div>
-                {/* No save button on the view page */}
+                <div className="print:hidden">
+                  <button onClick={handlePrint} className="btn-primary w-full">Print Report</button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Link } from 'react-router-dom';
 import Header from '../../components/Header';
@@ -10,36 +10,80 @@ import { db, auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useAuthModal, AuthModalCancelledError } from '../../components/auth/AuthModalProvider';
 import { HelpIcon } from '../../components/Icons';
+import { getOptIn } from '../../utils/optInStorage';
+import { syncRoiToHighLevel } from '../../utils/highLevelSync';
 
 export default function RoiEstimatorResultsPage() {
   const { inputs } = useRoiEstimatorStore();
   const computed = useMemo(() => computeProjection(inputs), [inputs]);
   const { firebaseUser } = useAuth();
   const { requireAccount } = useAuthModal();
+  const [isSaving, setIsSaving] = useState(false);
 
   const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
   const saveProjection = async () => {
-    if (!firebaseUser) {
-      try {
-        await requireAccount({ reason: 'Create your free account to save and access this projection.' });
-      } catch (error) {
-        if (error instanceof AuthModalCancelledError) {
-          return;
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      if (!firebaseUser) {
+        try {
+          await requireAccount({ reason: 'Create your free account to save and access this projection.' });
+        } catch (error) {
+          if (error instanceof AuthModalCancelledError) {
+            return;
+          }
+          throw error;
         }
-        throw error;
       }
+
+      const currentUser = auth.currentUser;
+      if (!currentUser?.uid) {
+        throw new Error('Authentication did not complete. Please try again.');
+      }
+
+      const optIn = getOptIn();
+
+      const docRef = await addDoc(collection(db, 'projections'), {
+        toolId: 'roi-estimator',
+        ownerUid: currentUser.uid,
+        inputs,
+        computed,
+        contact: optIn
+          ? {
+              email: optIn.email,
+              phone: optIn.normalizedPhone ?? optIn.phone,
+              firstName: optIn.firstName,
+            }
+          : null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      // Best-effort CRM sync (non-blocking)
+      try {
+        void syncRoiToHighLevel(
+          {
+            contact: optIn
+              ? {
+                  email: optIn.email,
+                  phone: optIn.normalizedPhone ?? optIn.phone,
+                  firstName: optIn.firstName,
+                }
+              : null,
+          },
+          docRef.id
+        );
+      } catch {}
+
+      window.location.assign(`/tools/roi-estimator/projection/view/${docRef.id}?sent=1`);
+    } catch (error) {
+      console.error('Error saving projection:', error);
+      alert('There was an error saving your report. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
-    const docRef = await addDoc(collection(db, 'projections'), {
-      toolId: 'roi-estimator',
-      ownerUid: auth.currentUser?.uid ?? null,
-      inputs,
-      computed,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-    window.location.assign(`/tools/roi-estimator/projection/view/${docRef.id}`);
   };
 
   return (
@@ -183,7 +227,7 @@ export default function RoiEstimatorResultsPage() {
                   <Methodology />
                 </div>
 
-                <button onClick={saveProjection} className="btn-primary w-full">Save & Send Report →</button>
+                <button onClick={saveProjection} disabled={isSaving} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">{isSaving ? 'Saving…' : 'Save & Send Report →'}</button>
               </div>
             </div>
           </div>
