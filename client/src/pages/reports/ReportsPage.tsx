@@ -1,13 +1,17 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from '../../components/Header';
 import { useSearchParams } from 'react-router-dom';
 import EstimatesReportsTab from './EstimatesReportsTab';
 import ProjectionsReportsTab from './ProjectionsReportsTab';
+import { useAuth } from '../../context/AuthContext';
+import { useAuthModal } from '../../components/auth/AuthModalProvider';
 
 export default function ReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [estimatesCount, setEstimatesCount] = useState(0);
   const [projectionsCount, setProjectionsCount] = useState(0);
+  const { firebaseUser } = useAuth();
+  const { requireAccount } = useAuthModal();
 
   const activeTab = useMemo<'estimates' | 'projections'>(() => {
     const tab = searchParams.get('tab');
@@ -19,6 +23,12 @@ export default function ReportsPage() {
     next.set('tab', tab);
     setSearchParams(next, { replace: true });
   };
+
+  useEffect(() => {
+    if (!firebaseUser) {
+      void requireAccount({ reason: 'Sign in to view your saved reports.' });
+    }
+  }, [firebaseUser, requireAccount]);
 
   return (
     <div className="min-h-screen bg-gray-50">

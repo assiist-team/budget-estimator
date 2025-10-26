@@ -82,4 +82,13 @@ export async function createOrUpdateUserDocument(firebaseUser: User): Promise<Us
   return profile;
 }
 
+export async function updateUserContactInfo(uid: string, data: { phone?: string | null; firstName?: string | null }): Promise<void> {
+  const userRef = doc(db, 'users', uid);
+  await setDoc(userRef, {
+    ...(data.firstName ? { displayName: data.firstName } : {}),
+    ...(data.phone ? { phone: data.phone } : {}),
+    updatedAt: serverTimestamp(),
+  }, { merge: true });
+}
+
 

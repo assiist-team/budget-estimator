@@ -26,9 +26,9 @@ export default function Header({ showAdminLink = true, currentStep, totalSteps }
                 Step {currentStep} of {totalSteps}
               </div>
             )}
-            {showAdminLink && profile && (
+            {showAdminLink && (
               <>
-                {['owner', 'admin'].includes(profile.role) && (
+                {profile && ['owner', 'admin'].includes(profile.role) && (
                   <Link
                     to="/admin"
                     className="text-sm text-gray-600 hover:text-primary-600 transition-colors"

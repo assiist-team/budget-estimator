@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { collection, addDoc, updateDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
+import { useAuthModal } from '../components/auth/AuthModalProvider';
 import { useEstimatorStore } from '../store/estimatorStore';
 import Header from '../components/Header';
 import ProgressBar from '../components/ProgressBar';
@@ -23,6 +25,8 @@ import type { BudgetDefaults } from '../types';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
+  const { firebaseUser } = useAuth();
+  const { requireAccount } = useAuthModal();
   const {
     propertySpecs,
     selectedRooms,
@@ -186,6 +190,11 @@ export default function ResultsPage() {
     setClientInfo(data);
 
     try {
+      // Require account to save and send report
+      if (!firebaseUser) {
+        await requireAccount({ reason: 'Create your free account to save and receive this report.' });
+      }
+
       // Convert selectedRooms to RoomWithItems with complete item mappings
       const roomsWithItems: RoomWithItems[] = selectedRooms.map(room => {
         const template = roomTemplates.get(room.roomType);

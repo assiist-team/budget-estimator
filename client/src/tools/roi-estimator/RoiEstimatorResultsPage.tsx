@@ -8,18 +8,22 @@ import { useRoiEstimatorStore } from '../../store/roiEstimatorStore';
 import { computeProjection } from '../../utils/roi';
 import { db, auth } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useAuthModal } from '../../components/auth/AuthModalProvider';
 import { HelpIcon } from '../../components/Icons';
 
 export default function RoiEstimatorResultsPage() {
   const { inputs } = useRoiEstimatorStore();
   const computed = useMemo(() => computeProjection(inputs), [inputs]);
   const { firebaseUser } = useAuth();
+  const { requireAccount } = useAuthModal();
 
   const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;
 
   const saveProjection = async () => {
-    if (!firebaseUser) return;
+    if (!firebaseUser) {
+      await requireAccount({ reason: 'Create your free account to save and access this projection.' });
+    }
     const docRef = await addDoc(collection(db, 'projections'), {
       toolId: 'roi-estimator',
       ownerUid: auth.currentUser?.uid ?? null,
@@ -172,7 +176,7 @@ export default function RoiEstimatorResultsPage() {
                   <Methodology />
                 </div>
 
-                <button onClick={saveProjection} className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed" disabled={!firebaseUser}>Save & Send Report →</button>
+                <button onClick={saveProjection} className="btn-primary w-full">Save & Send Report →</button>
               </div>
             </div>
           </div>
