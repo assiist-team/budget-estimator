@@ -30,8 +30,6 @@ export default function ResultsPage() {
   const {
     propertySpecs,
     selectedRooms,
-    setClientInfo,
-    reset
   } = useEstimatorStore();
 
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();

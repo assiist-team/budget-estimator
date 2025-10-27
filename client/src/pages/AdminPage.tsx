@@ -49,18 +49,7 @@ export default function AdminPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [autoConfigRules, setAutoConfigRules] = useState<AutoConfigRules | null>(null);
 
-  // Convert arrays to Maps for calculation functions
-  const roomTemplatesMap = useMemo(() => {
-    const map = new Map<string, RoomTemplate>();
-    roomTemplates.forEach(template => map.set(template.id, template));
-    return map;
-  }, [roomTemplates]);
-
-  const itemsMap = useMemo(() => {
-    const map = new Map<string, Item>();
-    items.forEach(item => map.set(item.id, item));
-    return map;
-  }, [items]);
+  // (removed unused roomTemplatesMap and itemsMap)
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'templates' | 'items' | 'autoconfig' | 'defaults'>('templates');
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
@@ -85,7 +74,7 @@ export default function AdminPage() {
     saveDefaults,
     setError,
   } = useBudgetDefaultsStore();
-  const budgetDefaults = defaults;
+  // (removed unused budgetDefaults alias)
   const [localDefaults, setLocalDefaults] = useState<BudgetDefaults | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [savingBudgetDefaults, setSavingBudgetDefaults] = useState(false);
@@ -704,7 +693,7 @@ export default function AdminPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={async () => {
-                      if (!isAutoConfigDirty) return;
+                      if (!autoConfigUnsavedChanges || !autoConfigRules) return;
                       setAutoConfigSaving(true);
                       try {
                         await saveAutoConfigRules(autoConfigRules);

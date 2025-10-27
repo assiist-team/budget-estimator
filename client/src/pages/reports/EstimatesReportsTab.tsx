@@ -62,7 +62,7 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
             createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
             updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
             submittedAt: docData.submittedAt?.toDate ? docData.submittedAt.toDate() : docData.submittedAt,
-          } as Estimate);
+          } as unknown as Estimate);
         });
         setEstimates(rows);
         onCountChange?.(rows.length);

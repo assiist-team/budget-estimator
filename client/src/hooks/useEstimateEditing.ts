@@ -1,6 +1,6 @@
 // Hook for estimate editing functionality
 import { useState, useEffect, useCallback } from 'react';
-import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy, limit, serverTimestamp, where } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy, limit, serverTimestamp, where, QueryConstraint } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useRoomTemplates } from './useRoomTemplates';
 import type { Estimate, RoomWithItems, EditHistoryEntry } from '../types';
@@ -33,7 +33,7 @@ export function useEstimateEditing() {
     setError(null);
 
     try {
-      const queryConstraints = [
+      const queryConstraints: QueryConstraint[] = [
         where('toolId', '==', 'budget-estimator'),
       ];
 
@@ -91,7 +91,7 @@ export function useEstimateEditing() {
             ...entry,
             timestamp: entry.timestamp?.toDate ? entry.timestamp.toDate() : entry.timestamp
           }))
-        } as Estimate);
+        } as unknown as Estimate);
       });
 
       setEstimates(estimatesData);
