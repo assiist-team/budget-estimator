@@ -1,18 +1,18 @@
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import { useAuth } from '../context/AuthContext';
+import Header from '../../components/Header';
+import { useAuth } from '../../context/AuthContext';
 
-export default function LandingPage() {
+export default function RoiEstimatorLandingPage() {
   const navigate = useNavigate();
   const { firebaseUser } = useAuth();
 
-  const handleStartEstimate = () => {
+  const handleStartCalculation = () => {
     if (!firebaseUser) {
-      navigate('/sign-in', { state: { from: { pathname: '/tools/budget-estimator/property' } } });
+      navigate('/sign-in', { state: { from: { pathname: '/tools/roi-estimator/inputs' } } });
       return;
     }
 
-    navigate('/tools/budget-estimator/property');
+    navigate('/tools/roi-estimator/inputs');
   };
 
   return (
@@ -23,13 +23,13 @@ export default function LandingPage() {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Let's Create Your Project Budget
+            Let's Calculate Your Interior Design ROI
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            We'll walk through your property details and room configurations to create a comprehensive budget that covers furnishings, design fees, and all project services.
+          <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto">
+            Discover how interior design can boost your property's performance and create significant value through increased occupancy rates and average daily rates.
           </p>
 
-          {/* Process Cards */}
+          {/* ROI Process Cards */}
           <div className="max-w-6xl mx-auto mb-12">
             <div className="grid md:grid-cols-3 gap-8">
               <div className="card text-center p-6">
@@ -37,10 +37,10 @@ export default function LandingPage() {
                   1
                 </div>
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                  Define Your Property
+                  Enter Your Current Performance
                 </h3>
                 <p className="text-gray-600">
-                  We'll start by understanding your property's size, guest capacity, and basic requirements
+                  Input your current occupancy rate, average daily rate, and fixed costs to establish your baseline
                 </p>
               </div>
 
@@ -49,10 +49,10 @@ export default function LandingPage() {
                   2
                 </div>
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                  Design Your Spaces
+                  Project Your Improvements
                 </h3>
                 <p className="text-gray-600">
-                  Next, we'll configure each room, select appropriate sizes, and define your complete project scope
+                  Set your post-interior design performance metrics to see potential impact
                 </p>
               </div>
 
@@ -61,26 +61,25 @@ export default function LandingPage() {
                   3
                 </div>
                 <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                  See Your Complete Budget
+                  See Your ROI Results
                 </h3>
                 <p className="text-gray-600">
-                  You'll get a comprehensive budget covering furnishings, design fees, and all project services in one clear estimate
+                  Get a detailed breakdown of your ROI, expressed as the expected value added by interior design services
                 </p>
               </div>
             </div>
           </div>
 
           <button
-            onClick={handleStartEstimate}
+            onClick={handleStartCalculation}
             className="btn-primary inline-flex items-center gap-2 text-lg px-6 py-3"
           >
-            Start Creating Your Budget
+            Start ROI Calculation
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
-
       </main>
 
       {/* Footer */}
@@ -94,4 +93,3 @@ export default function LandingPage() {
     </div>
   );
 }
-

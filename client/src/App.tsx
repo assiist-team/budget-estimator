@@ -10,6 +10,7 @@ import ToolsLandingPage from './pages/ToolsLandingPage';
 import RequireAuth from './components/RequireAuth';
 import RequireOptIn from './components/RequireOptIn';
 import OptInPage from './pages/OptInPage';
+import RoiEstimatorLandingPage from './tools/roi-estimator/RoiEstimatorLandingPage';
 import RoiEstimatorInputPage from './tools/roi-estimator/RoiEstimatorInputPage';
 import RoiEstimatorResultsPage from './tools/roi-estimator/RoiEstimatorResultsPage';
 import RoiProjectionViewPage from './tools/roi-estimator/RoiProjectionViewPage';
@@ -38,7 +39,8 @@ function App() {
               <Route path="estimate/view/:estimateId" element={<ViewEstimatePage />} />
             </Route>
             <Route path="roi-estimator">
-              <Route index element={<RoiEstimatorInputPage />} />
+              <Route index element={<RoiEstimatorLandingPage />} />
+              <Route path="inputs" element={<RoiEstimatorInputPage />} />
               <Route path="results" element={<RoiEstimatorResultsPage />} />
               <Route path="projection/view/:projectionId" element={<RoiProjectionViewPage />} />
               <Route path="projection/edit/:projectionId" element={<RoiProjectionEditPage />} />

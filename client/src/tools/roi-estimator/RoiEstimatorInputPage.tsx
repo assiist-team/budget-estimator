@@ -47,8 +47,8 @@ export default function RoiEstimatorInputPage() {
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
-          <Link to="/tools" className="btn-secondary">← Back</Link>
-          <div className="w-64"><ProgressBar currentStep={1} totalSteps={2} /></div>
+          <Link to="/tools/roi-estimator" className="btn-secondary">← Back</Link>
+          <div className="w-64"><ProgressBar currentStep={1} totalSteps={3} /></div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 mb-8">
@@ -56,7 +56,7 @@ export default function RoiEstimatorInputPage() {
             <div className="grid gap-8 md:grid-cols-[minmax(0,1.5fr),minmax(0,1.25fr)]">
               <div className="grid gap-6 md:grid-rows-[auto,1fr]">
                 <div>
-                  <h1 className="text-2xl font-semibold text-gray-900 mb-4">Interior Design ROI Estimator</h1>
+                  <h1 className="text-2xl font-semibold text-gray-900 mb-4">Interior Design ROI Calculator</h1>
                   <p className="text-sm text-gray-600">Enter your current and projected performance metrics and adjust annual fixed costs and key assumptions as needed to calculate your expected ROI from Interior Design, expressed as <span className="font-semibold flex items-center gap-1 inline-flex">Annual Net Cash Flow Gain<HelpIcon title="Annual cash flow from your property after all operating and financing expenses" className="text-gray-400 hover:text-gray-700 cursor-help" /></span> and <span className="font-semibold flex items-center gap-1 inline-flex">Enterprise Value Gain<HelpIcon title="The added value of your property as a cash-generating asset, beyond its real estate value" className="text-gray-400 hover:text-gray-700 cursor-help" /></span>.</p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-gray-50/30 p-4 rounded-lg items-start">
