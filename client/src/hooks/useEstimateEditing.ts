@@ -153,7 +153,7 @@ export function useEstimateEditing() {
       setError(err instanceof Error ? err.message : 'Failed to update estimate');
       return false;
     }
-  }, []);
+  }, [isAdmin, firebaseUser]);
 
   useEffect(() => {
     loadEstimates();

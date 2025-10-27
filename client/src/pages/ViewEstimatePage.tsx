@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useBackDestination } from '../hooks/useBackDestination';
-import { doc, getDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { db } from '../lib/firebase';
 import Header from '../components/Header';
@@ -19,7 +19,6 @@ function isProjectBudget(budget: Budget | ProjectBudget | null): budget is Proje
 
 export default function ViewEstimatePage() {
   const { estimateId } = useParams<{ estimateId: string }>();
-  const navigate = useNavigate();
   const { href: backHref } = useBackDestination('/tools/reports?tab=estimates');
   const [searchParams, setSearchParams] = useSearchParams();
   const sent = searchParams.get('sent') != null;
@@ -34,28 +33,26 @@ export default function ViewEstimatePage() {
   const [defaultsLoading, setDefaultsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEstimate = async () => {
-      if (!estimateId) {
-        setLoading(false);
-        return;
-      }
-      try {
-        const estimateRef = doc(db, 'estimates', estimateId);
-        const estimateSnap = await getDoc(estimateRef);
+    if (!estimateId) {
+      setLoading(false);
+      return;
+    }
 
-        if (estimateSnap.exists()) {
-          setEstimate({ id: estimateSnap.id, ...estimateSnap.data() } as Estimate);
-        } else {
-          console.log('No such document!');
-        }
-      } catch (error) {
-        console.error('Error fetching estimate:', error);
-      } finally {
-        setLoading(false);
+    const estimateRef = doc(db, 'estimates', estimateId);
+    const unsubscribe = onSnapshot(estimateRef, (estimateSnap) => {
+      if (estimateSnap.exists()) {
+        setEstimate({ id: estimateSnap.id, ...estimateSnap.data() } as Estimate);
+      } else {
+        console.log('No such document!');
+        setEstimate(null);
       }
-    };
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching estimate:', error);
+      setLoading(false);
+    });
 
-    void fetchEstimate();
+    return () => unsubscribe();
   }, [estimateId]);
   
     // Load budget defaults from Firestore on mount
@@ -391,8 +388,9 @@ export default function ViewEstimatePage() {
 
                 <div className="space-y-4">
                   {budget.roomBreakdown.map((room, idx) => {
-                    const template = roomTemplates.get(room.roomType);
-                    const roomSizeData = template?.sizes[room.roomSize as 'small' | 'medium' | 'large'];
+                    const estimateRoomData = estimate.rooms.find(
+                      (r) => r.roomType === room.roomType && r.roomSize === room.roomSize
+                    );
                     const isExpanded = expandedRooms.has(room.roomType);
                     const roomDisplayName = room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
@@ -428,11 +426,11 @@ export default function ViewEstimatePage() {
                         </div>
 
                         {/* Room Details - Collapsible */}
-                        {isExpanded && roomSizeData && roomSizeData.items.length > 0 && (
+                        {isExpanded && estimateRoomData && estimateRoomData.items.length > 0 && (
                           <div className="border-t border-gray-200 p-4 bg-white">
                             <h5 className="text-sm font-medium text-gray-700 mb-3">Included Items:</h5>
                             <div className="grid gap-2">
-                              {roomSizeData.items
+                              {estimateRoomData.items
                                 .sort((a: RoomItem, b: RoomItem) => {
                                   const itemA = items.get(a.itemId);
                                   const itemB = items.get(b.itemId);
