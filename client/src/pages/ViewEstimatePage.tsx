@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useBackDestination } from '../hooks/useBackDestination';
 import { doc, getDoc, collection } from 'firebase/firestore';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -21,6 +21,8 @@ export default function ViewEstimatePage() {
   const { estimateId } = useParams<{ estimateId: string }>();
   const navigate = useNavigate();
   const { href: backHref } = useBackDestination('/tools/reports?tab=estimates');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sent = searchParams.get('sent') != null;
 
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -193,6 +195,24 @@ export default function ViewEstimatePage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {sent && (
+          <div className="mb-6 rounded-md bg-green-50 border border-green-200 p-4 text-green-800 flex items-start justify-between">
+            <div>
+              <div className="font-semibold">Report sent and saved</div>
+              <div className="text-sm">We emailed your report and saved it to your Reports.</div>
+            </div>
+            <button
+              className="text-green-800/80 hover:text-green-900 text-sm"
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.delete('sent');
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <Link to={backHref} className="btn-secondary">← Back to Reports</Link>
@@ -217,8 +237,16 @@ export default function ViewEstimatePage() {
               {propertySpecs.squareFootage.toLocaleString()} sq ft • {propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
             </p>
             <p className="text-xs sm:text-sm opacity-75">
-              {estimate.clientInfo.firstName} {estimate.clientInfo.lastName} • {estimate.clientInfo.email}
-              {estimate.clientInfo.phone && ` • ${estimate.clientInfo.phone}`}
+              {(() => {
+                const parts = [estimate.clientInfo.firstName, estimate.clientInfo.lastName].filter(Boolean);
+                const fullName = parts.join(' ');
+                return (
+                  <>
+                    {fullName ? `${fullName} • ` : ''}{estimate.clientInfo.email}
+                    {estimate.clientInfo.phone && ` • ${estimate.clientInfo.phone}`}
+                  </>
+                );
+              })()}
             </p>
           </div>
         </div>

@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
+import { collection, getCountFromServer, query, where } from 'firebase/firestore';
 import Header from '../../components/Header';
 import { useSearchParams } from 'react-router-dom';
 import EstimatesReportsTab from './EstimatesReportsTab';
 import ProjectionsReportsTab from './ProjectionsReportsTab';
 import { useAuth } from '../../context/AuthContext';
 import { useAuthModal, AuthModalCancelledError } from '../../components/auth/AuthModalProvider';
+import { db } from '../../lib/firebase';
 
 export default function ReportsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [estimatesCount, setEstimatesCount] = useState(0);
   const [projectionsCount, setProjectionsCount] = useState(0);
-  const { firebaseUser } = useAuth();
+  const { firebaseUser, isAdmin } = useAuth();
   const { requireAccount } = useAuthModal();
 
   const activeTab = useMemo<'estimates' | 'projections'>(() => {
@@ -34,6 +36,60 @@ export default function ReportsPage() {
       });
     }
   }, [firebaseUser, requireAccount]);
+
+  // Fetch tab counts immediately so badges are populated without needing to click tabs
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchCounts = async () => {
+      // If no user and not admin, do not attempt to fetch user-scoped counts
+      if (!firebaseUser && !isAdmin) return;
+
+      try {
+        const estimatesBase = collection(db, 'estimates');
+        const estimatesQuery = isAdmin
+          ? query(
+              estimatesBase,
+              where('toolId', '==', 'budget-estimator')
+            )
+          : query(
+              estimatesBase,
+              where('ownerUid', '==', firebaseUser!.uid),
+              where('toolId', '==', 'budget-estimator')
+            );
+
+        const projectionsBase = collection(db, 'projections');
+        const projectionsQuery = isAdmin
+          ? query(
+              projectionsBase,
+              where('toolId', '==', 'roi-estimator')
+            )
+          : query(
+              projectionsBase,
+              where('ownerUid', '==', firebaseUser!.uid),
+              where('toolId', '==', 'roi-estimator')
+            );
+
+        const [estimatesSnap, projectionsSnap] = await Promise.all([
+          getCountFromServer(estimatesQuery),
+          getCountFromServer(projectionsQuery),
+        ]);
+
+        if (!cancelled) {
+          setEstimatesCount(estimatesSnap.data().count ?? 0);
+          setProjectionsCount(projectionsSnap.data().count ?? 0);
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to fetch report counts', error);
+      }
+    };
+
+    void fetchCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, [firebaseUser, isAdmin]);
 
   return (
     <div className="min-h-screen bg-gray-50">

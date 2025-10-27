@@ -14,6 +14,11 @@ export async function syncToHighLevel(estimate: any, estimateId: string): Promis
   try {
     const estimateUrl = `${window.location.origin}/tools/budget-estimator/estimate/view/${estimateId}`;
 
+    if (!estimate?.clientInfo?.email) {
+      // No email to match/create contact; skip HL sync gracefully
+      return false;
+    }
+
     // First, try to find existing contact by email
     const searchResponse = await fetch(
       `https://rest.gohighlevel.com/v1/contacts/?locationId=${locationId}&email=${encodeURIComponent(estimate.clientInfo.email)}`,
@@ -32,12 +37,12 @@ export async function syncToHighLevel(estimate: any, estimateId: string): Promis
     const searchData = await searchResponse.json();
     const existingContacts = searchData.contacts || [];
 
-    const contactData = {
+    const contactData: any = {
       locationId: locationId,
       email: estimate.clientInfo.email,
       firstName: estimate.clientInfo.firstName,
-      lastName: estimate.clientInfo.lastName,
-      ...(estimate.clientInfo.phone && { phone: estimate.clientInfo.phone }),
+      ...(estimate.clientInfo?.lastName ? { lastName: estimate.clientInfo.lastName } : {}),
+      ...(estimate.clientInfo.phone ? { phone: estimate.clientInfo.phone } : {}),
       customField: {
         estimate_vacation_rental: estimateUrl
       }

@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { BudgetDefaults } from '../types';
-import { collection, getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc, getDoc, setDoc, where } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Link } from 'react-router-dom';
-import type { Estimate, RoomTemplate, Item, RoomItem } from '../types';
+import type { RoomTemplate, Item, RoomItem } from '../types';
 import type { AutoConfigRules, BedroomMixRule } from '../types/config';
 import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
-import { formatCurrency, calculateEstimate } from '../utils/calculations';
+import { formatCurrency } from '../utils/calculations';
 import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 import { EditIcon, TrashIcon } from '../components/Icons';
 
@@ -45,7 +45,6 @@ async function saveAutoConfigRules(rules: AutoConfigRules): Promise<void> {
 }
 
 export default function AdminPage() {
-  const [estimates, setEstimates] = useState<Estimate[]>([]);
   const [roomTemplates, setRoomTemplates] = useState<RoomTemplate[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [autoConfigRules, setAutoConfigRules] = useState<AutoConfigRules | null>(null);
@@ -63,7 +62,7 @@ export default function AdminPage() {
     return map;
   }, [items]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'estimates' | 'templates' | 'items' | 'autoconfig' | 'defaults'>('estimates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'items' | 'autoconfig' | 'defaults'>('templates');
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [showCreateItem, setShowCreateItem] = useState(false);
@@ -130,29 +129,6 @@ export default function AdminPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch estimates
-        const estimatesQuery = query(
-          collection(db, 'estimates'),
-          where('toolId', '==', 'budget-estimator'),
-          orderBy('createdAt', 'desc'),
-          limit(50)
-        );
-
-        const estimatesSnapshot = await getDocs(estimatesQuery);
-        const estimatesData: Estimate[] = [];
-
-        estimatesSnapshot.forEach((doc) => {
-          const docData = doc.data();
-          estimatesData.push({
-            id: doc.id,
-            ...docData,
-            toolId: docData.toolId ?? 'budget-estimator',
-            createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
-            updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
-            submittedAt: docData.submittedAt?.toDate ? docData.submittedAt.toDate() : docData.submittedAt,
-          } as Estimate);
-        });
-
         // Fetch room templates
         const templatesQuery = query(collection(db, 'roomTemplates'), orderBy('sortOrder'));
         const templatesSnapshot = await getDocs(templatesQuery);
@@ -217,7 +193,6 @@ export default function AdminPage() {
           console.error('Error loading auto-configuration rules:', error);
         }
 
-        setEstimates(estimatesData);
         setRoomTemplates(templatesData);
         setItems(itemsData);
       } catch (error) {
@@ -422,26 +397,7 @@ export default function AdminPage() {
     }
   };
 
-  // Function to delete an estimate
-  const deleteEstimate = async (estimateId: string) => {
-    if (!confirm('Are you sure you want to delete this estimate? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const estimateRef = doc(db, 'estimates', estimateId);
-      await deleteDoc(estimateRef);
-
-      // Update local state
-      setEstimates(prev => prev.filter(estimate => estimate.id !== estimateId));
-
-      // Show success message
-      alert('Estimate deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting estimate:', error);
-      alert('Failed to delete estimate. Please try again.');
-    }
-  };
+  // (Removed) deleteEstimate - Estimates management moved to Reports; Admin no longer manages estimates here.
 
   // Function to update a bedroom rule
   const updateBedroomRule = async (ruleId: string, updates: Partial<BedroomMixRule>) => {
@@ -509,7 +465,7 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading estimates...</p>
+          <p className="text-gray-600">Loading admin data...</p>
         </div>
       </div>
     );
@@ -534,16 +490,7 @@ export default function AdminPage() {
         {/* Tab Navigation */}
         <div className="border-b border-gray-200 mb-8">
           <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('estimates')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'estimates'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              📋 Estimates ({estimates.length})
-            </button>
+            
             <button
               onClick={() => setActiveTab('templates')}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
@@ -588,17 +535,6 @@ export default function AdminPage() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'estimates' && (
-          <div className="card">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">View Reports</h2>
-                <p className="text-gray-600">All estimates and ROI projections are available in the Reports section.</p>
-              </div>
-              <Link to="/tools/reports" className="btn-primary">Open Reports →</Link>
-            </div>
-          </div>
-        )}
 
         {activeTab === 'templates' && (
           <div>
