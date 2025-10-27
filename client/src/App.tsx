@@ -23,7 +23,7 @@ function App() {
     <Router>
       <div className="min-h-screen">
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<Navigate to="/tools" replace />} />
           <Route path="/sign-in" element={<Navigate to="/" replace />} />
           <Route path="/opt-in" element={<OptInPage />} />
           <Route path="/opt-in/callback" element={<OptInCallbackPage />} />
