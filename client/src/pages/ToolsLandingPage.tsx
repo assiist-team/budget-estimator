@@ -40,7 +40,7 @@ export default function ToolsLandingPage() {
                 description: 'Estimate budget for vacation rental projects.',
                 routeBase: '/tools/budget-estimator',
                 enabled: true,
-                rolesAllowed: ['owner', 'admin', 'customer'],
+                rolesAllowed: ['admin', 'user'],
               },
             ],
           });

@@ -85,11 +85,31 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Save your results and come back anytime</h2>
-          <p className="text-sm text-gray-600 mt-1">{reason ?? 'Create your free account to store your reports and access them later.'}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-center items-center flex-col pt-8 px-8 pb-4 border-b border-gray-200">
+          <img src="/logo.png" alt="1584 Design Projects Logo" className="h-32 w-56 object-contain" />
+          <h2 className="text-2xl font-semibold text-gray-900 mt-4">Vacation Rental Toolkit</h2>
+          <p className="text-sm text-gray-600 mt-1">{reason ?? 'Sign in or create an account to continue'}</p>
+
+          <div className="flex mt-4 border border-gray-200 rounded-md">
+            <button
+              onClick={() => setMode('signup')}
+              className={`px-4 py-2 text-sm font-medium rounded-l-md ${
+                mode === 'signup' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Sign Up
+            </button>
+            <button
+              onClick={() => setMode('login')}
+              className={`px-4 py-2 text-sm font-medium rounded-r-md ${
+                mode === 'login' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              Sign In
+            </button>
+          </div>
         </div>
 
         <div className="p-6 space-y-4">
@@ -98,16 +118,31 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
             <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                  <div><span className="text-gray-500">Email:</span> {optIn.email}</div>
-                  {optIn.phone && <div><span className="text-gray-500">Phone:</span> {optIn.phone}</div>}
+                  <div>
+                    <span className="text-gray-500">Email:</span> {optIn.email}
+                  </div>
+                  {optIn.phone && (
+                    <div>
+                      <span className="text-gray-500">Phone:</span> {optIn.phone}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          <button onClick={signInGoogle} disabled={loading} className="btn-primary w-full">Continue with Google</button>
+          <button onClick={signInGoogle} disabled={loading} className="btn-primary w-full">
+            Continue with Google
+          </button>
 
-          <div className="text-center text-xs text-gray-400">or</div>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             <div>
@@ -119,20 +154,28 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
               <input type="password" className="input-field w-full" {...register('password', { required: true, minLength: 6 })} />
             </div>
             {error && <div className="text-sm text-red-600">{error}</div>}
-            <button type="submit" disabled={loading} className="btn-secondary w-full">{mode === 'signup' ? 'Create account' : 'Sign in'}</button>
+            <button type="submit" disabled={loading} className="btn-secondary w-full">
+              {mode === 'signup' ? 'Create account' : 'Sign in'}
+            </button>
           </form>
 
           <div className="text-xs text-gray-600 text-center">
             {mode === 'signup' ? (
-              <button className="underline" onClick={() => setMode('login')}>Already have an account? Sign in</button>
+              <span>
+                Already have an account?{' '}
+                <button className="underline" onClick={() => setMode('login')}>
+                  Sign in
+                </button>
+              </span>
             ) : (
-              <button className="underline" onClick={() => setMode('signup')}>Create a new account</button>
+              <span>
+                Don't have an account?{' '}
+                <button className="underline" onClick={() => setMode('signup')}>
+                  Sign up
+                </button>
+              </span>
             )}
           </div>
-        </div>
-
-        <div className="p-4 border-t border-gray-200 flex justify-end">
-          <button onClick={onClose} className="text-sm text-gray-600 hover:text-gray-900">Close</button>
         </div>
       </div>
     </div>

@@ -10,7 +10,6 @@ import ToolsLandingPage from './pages/ToolsLandingPage';
 import RequireAuth from './components/RequireAuth';
 import RequireOptIn from './components/RequireOptIn';
 import OptInPage from './pages/OptInPage';
-import SignInPage from './pages/SignInPage';
 import RoiEstimatorInputPage from './tools/roi-estimator/RoiEstimatorInputPage';
 import RoiEstimatorResultsPage from './tools/roi-estimator/RoiEstimatorResultsPage';
 import RoiProjectionViewPage from './tools/roi-estimator/RoiProjectionViewPage';
@@ -23,8 +22,8 @@ function App() {
     <Router>
       <div className="min-h-screen">
         <Routes>
-          <Route path="/" element={<Navigate to="/tools" replace />} />
-          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/sign-in" element={<Navigate to="/" replace />} />
           <Route path="/opt-in" element={<OptInPage />} />
           <Route path="/opt-in/callback" element={<OptInCallbackPage />} />
           <Route path="/tools" element={<RequireOptIn />}>

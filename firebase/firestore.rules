@@ -10,7 +10,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return signedIn() && (userRole() == 'owner' || userRole() == 'admin');
+      return signedIn() && userRole() == 'admin';
     }
 
     function isOwnerOfDoc() {
@@ -45,7 +45,8 @@ service cloud.firestore {
     }
 
     match /roomTemplates/{templateId} {
-      allow read, write: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /items/{itemId} {

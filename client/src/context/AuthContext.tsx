@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       firebaseUser,
       profile,
       loading,
-      isAdmin: profile ? ['owner', 'admin'].includes(profile.role) : false,
+      isAdmin: profile ? profile.role === 'admin' : false,
       signInWithGoogle,
       signOutUser,
       hasToolAccess,

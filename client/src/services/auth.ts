@@ -2,7 +2,7 @@ import { doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from 'fireb
 import type { User } from 'firebase/auth';
 import { db } from '../lib/firebase';
 
-export type UserRole = 'owner' | 'admin' | 'customer' | 'viewer';
+export type UserRole = 'admin' | 'user';
 
 export interface UserEntitlements {
   tools: string[];
@@ -32,7 +32,7 @@ export async function createOrUpdateUserDocument(firebaseUser: User): Promise<Us
 
   if (snap.exists()) {
     const data = snap.data() as any;
-    const role: UserRole = (data.role as UserRole) ?? 'customer';
+    const role: UserRole = (data.role as UserRole) ?? 'user';
     const entitlements = normalizeEntitlements(data.entitlements as UserEntitlements | undefined);
 
     await setDoc(
@@ -57,8 +57,10 @@ export async function createOrUpdateUserDocument(firebaseUser: User): Promise<Us
     };
   }
 
-  const usersSnapshot = await getDocs(collection(db, 'users'));
-  const role: UserRole = usersSnapshot.empty ? 'owner' : 'customer';
+  // To avoid needing list permissions on the users collection, we'll default all new
+  // users to 'customer' role. The first user can be promoted to 'owner' manually
+  // in the Firebase console.
+  const role: UserRole = 'user';
   const entitlements = normalizeEntitlements(undefined);
 
   const profile: UserProfile = {

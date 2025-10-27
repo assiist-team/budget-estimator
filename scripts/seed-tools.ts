@@ -17,7 +17,7 @@ async function seedTools() {
           description: 'Estimates budgets for vacation rental projects.',
           routeBase: '/tools/budget-estimator',
           enabled: true,
-          rolesAllowed: ['owner', 'admin', 'customer'],
+          rolesAllowed: ['admin', 'user'],
           sortOrder: 1,
         },
         {
@@ -26,7 +26,7 @@ async function seedTools() {
           description: 'Estimates cash flow and enterprise value impact from an investment in interior design.',
           routeBase: '/tools/roi-estimator',
           enabled: true,
-          rolesAllowed: ['owner', 'admin', 'customer'],
+          rolesAllowed: ['admin', 'user'],
           sortOrder: 2,
         },
       ],
