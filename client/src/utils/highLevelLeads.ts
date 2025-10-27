@@ -1,7 +1,10 @@
+const HIGHLEVEL_API_ENDPOINT = 'https://services.leadconnectorhq.com/contacts/upsert';
+
 interface LeadInput {
   firstName: string;
   email: string;
   phone?: string;
+  source?: string;
 }
 
 export async function syncLeadToHighLevel(lead: LeadInput): Promise<boolean> {
@@ -13,56 +16,35 @@ export async function syncLeadToHighLevel(lead: LeadInput): Promise<boolean> {
     return false;
   }
 
+  const contactPayload = {
+    firstName: lead.firstName,
+    email: lead.email,
+    ...(lead.phone && { phone: lead.phone }),
+    source: lead.source || 'Website Lead Form',
+    locationId: locationId
+  };
+
   try {
-    // Search by email
-    const searchResponse = await fetch(
-      `https://rest.gohighlevel.com/v1/contacts/?locationId=${locationId}&email=${encodeURIComponent(lead.email)}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Version': '2021-07-28'
-        }
-      }
-    );
-    if (!searchResponse.ok) throw new Error(`HighLevel search error: ${searchResponse.status}`);
-    const searchData = await searchResponse.json();
-    const existingContacts = searchData.contacts || [];
-
-    const contactPayload: any = {
-      locationId,
-      email: lead.email,
-      firstName: lead.firstName,
-      ...(lead.phone ? { phone: lead.phone } : {}),
-    };
-
-    if (existingContacts.length > 0) {
-      const contactId = existingContacts[0].id;
-      const updateResp = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Version': '2021-07-28',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(contactPayload),
-      });
-      if (!updateResp.ok) throw new Error(`HighLevel update error: ${updateResp.status}`);
-      return true;
-    }
-
-    const createResp = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
+    const response = await fetch(HIGHLEVEL_API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Version': '2021-07-28',
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Version': '2021-07-28'
       },
-      body: JSON.stringify(contactPayload),
+      body: JSON.stringify(contactPayload)
     });
-    if (!createResp.ok) throw new Error(`HighLevel create error: ${createResp.status}`);
+
+    if (!response.ok) {
+      const responseBody = await response.text();
+      throw new Error(`HighLevel API error: ${response.status} ${responseBody}`);
+    }
+
+    console.log('HighLevel lead sync successful for:', lead.email);
     return true;
   } catch (err) {
-    console.warn('High Level lead sync failed', err);
+    console.error('High Level lead sync failed', err);
     return false;
   }
 }

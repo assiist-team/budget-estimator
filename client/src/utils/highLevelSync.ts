@@ -1,8 +1,9 @@
 // High Level CRM Integration
 // Syncs estimate submissions to High Level CRM
 
+const HIGHLEVEL_API_ENDPOINT = 'https://services.leadconnectorhq.com/contacts/upsert';
 
-export async function syncToHighLevel(estimate: any, estimateId: string): Promise<boolean> {
+async function upsertHighLevelContact(payload: any): Promise<boolean> {
   const token = import.meta.env.VITE_HIGHLEVEL_TOKEN;
   const locationId = import.meta.env.VITE_HIGHLEVEL_LOCATION_ID;
 
@@ -11,173 +12,79 @@ export async function syncToHighLevel(estimate: any, estimateId: string): Promis
     return false;
   }
 
+  if (!payload.email) {
+    console.warn('HighLevel sync skipped: contact email is missing.');
+    return false;
+  }
+
+  const fullPayload = {
+    ...payload,
+    locationId
+  };
+
   try {
-    const estimateUrl = `${window.location.origin}/tools/budget-estimator/estimate/view/${estimateId}`;
+    const response = await fetch(HIGHLEVEL_API_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Version': '2021-07-28'
+      },
+      body: JSON.stringify(fullPayload)
+    });
 
-    if (!estimate?.clientInfo?.email) {
-      // No email to match/create contact; skip HL sync gracefully
-      return false;
+    if (!response.ok) {
+      const responseBody = await response.text();
+      throw new Error(`HighLevel API error: ${response.status} ${responseBody}`);
     }
 
-    // First, try to find existing contact by email
-    const searchResponse = await fetch(
-      `https://rest.gohighlevel.com/v1/contacts/?locationId=${locationId}&email=${encodeURIComponent(estimate.clientInfo.email)}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Version': '2021-07-28'
-        }
-      }
-    );
-
-    if (!searchResponse.ok) {
-      throw new Error(`High Level API error: ${searchResponse.status}`);
-    }
-
-    const searchData = await searchResponse.json();
-    const existingContacts = searchData.contacts || [];
-
-    const contactData: any = {
-      locationId: locationId,
-      email: estimate.clientInfo.email,
-      firstName: estimate.clientInfo.firstName,
-      ...(estimate.clientInfo?.lastName ? { lastName: estimate.clientInfo.lastName } : {}),
-      ...(estimate.clientInfo.phone ? { phone: estimate.clientInfo.phone } : {}),
-      customField: {
-        estimate_vacation_rental: estimateUrl
-      }
-    };
-
-    if (existingContacts.length > 0) {
-      // Update existing contact
-      const contactId = existingContacts[0].id;
-      const updateResponse = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Version': '2021-07-28'
-        },
-        body: JSON.stringify(contactData)
-      });
-
-      if (!updateResponse.ok) {
-        throw new Error(`Failed to update contact: ${updateResponse.status}`);
-      }
-
-      console.log('Updated existing High Level contact:', contactId);
-    } else {
-      // Create new contact
-      const createResponse = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Version': '2021-07-28'
-        },
-        body: JSON.stringify(contactData)
-      });
-
-      if (!createResponse.ok) {
-        throw new Error(`Failed to create contact: ${createResponse.status}`);
-      }
-
-      console.log('Created new High Level contact for:', estimate.clientInfo.email);
-    }
-
+    const result = await response.json();
+    console.log('HighLevel contact upsert successful:', result);
     return true;
   } catch (error) {
     console.error('High Level sync failed:', error);
-    // Don't fail the estimate submission - just log the error
     return false;
   }
 }
 
+export async function syncToHighLevel(estimate: any, estimateId: string): Promise<boolean> {
+  const estimateUrl = `${window.location.origin}/tools/budget-estimator/estimate/view/${estimateId}`;
+
+  const contactData = {
+    firstName: estimate.clientInfo.firstName,
+    ...(estimate.clientInfo?.lastName && { lastName: estimate.clientInfo.lastName }),
+    email: estimate.clientInfo.email,
+    ...(estimate.clientInfo.phone && { phone: estimate.clientInfo.phone }),
+    source: 'Project Estimator budget tool',
+    customField: {
+      estimate_vacation_rental: estimateUrl
+    }
+  };
+
+  return await upsertHighLevelContact(contactData);
+}
+
 // ROI Projection sync (optional, mirrors estimate sync with ROI link)
-export async function syncRoiToHighLevel(payload: { contact: { email: string; firstName?: string | null; phone?: string | null } | null }, projectionId: string): Promise<boolean> {
-  const token = import.meta.env.VITE_HIGHLEVEL_TOKEN;
-  const locationId = import.meta.env.VITE_HIGHLEVEL_LOCATION_ID;
-
-  if (!token || !locationId) {
-    console.warn('High Level credentials not configured');
+export async function syncRoiToHighLevel(
+  payload: { contact: { email: string; firstName?: string | null; phone?: string | null } | null },
+  projectionId: string
+): Promise<boolean> {
+  if (!payload.contact) {
     return false;
   }
 
-  if (!payload.contact?.email) {
-    return false;
-  }
+  const projectionUrl = `${window.location.origin}/tools/roi-estimator/projection/view/${projectionId}`;
 
-  try {
-    const projectionUrl = `${window.location.origin}/tools/roi-estimator/projection/view/${projectionId}`;
-
-    // First, try to find existing contact by email
-    const searchResponse = await fetch(
-      `https://rest.gohighlevel.com/v1/contacts/?locationId=${locationId}&email=${encodeURIComponent(payload.contact.email)}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Version': '2021-07-28'
-        }
-      }
-    );
-
-    if (!searchResponse.ok) {
-      throw new Error(`High Level API error: ${searchResponse.status}`);
+  const contactData = {
+    ...(payload.contact.firstName && { firstName: payload.contact.firstName }),
+    email: payload.contact.email,
+    ...(payload.contact.phone && { phone: payload.contact.phone }),
+    source: 'Project Estimator ROI tool',
+    customField: {
+      vacation_rental_projection: projectionUrl
     }
+  };
 
-    const searchData = await searchResponse.json();
-    const existingContacts = searchData.contacts || [];
-
-    const contactData: any = {
-      locationId: locationId,
-      email: payload.contact.email,
-      ...(payload.contact.firstName ? { firstName: payload.contact.firstName } : {}),
-      ...(payload.contact.phone ? { phone: payload.contact.phone } : {}),
-      customField: {
-        vacation_rental_projection: projectionUrl
-      }
-    };
-
-    if (existingContacts.length > 0) {
-      // Update existing contact
-      const contactId = existingContacts[0].id;
-      const updateResponse = await fetch(`https://rest.gohighlevel.com/v1/contacts/${contactId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Version': '2021-07-28'
-        },
-        body: JSON.stringify(contactData)
-      });
-
-      if (!updateResponse.ok) {
-        throw new Error(`Failed to update contact: ${updateResponse.status}`);
-      }
-
-      console.log('Updated existing High Level contact for ROI:', contactId);
-    } else {
-      // Create new contact
-      const createResponse = await fetch('https://rest.gohighlevel.com/v1/contacts/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Version': '2021-07-28'
-        },
-        body: JSON.stringify(contactData)
-      });
-
-      if (!createResponse.ok) {
-        throw new Error(`Failed to create contact: ${createResponse.status}`);
-      }
-
-      console.log('Created new High Level contact for ROI:', payload.contact.email);
-    }
-
-    return true;
-  } catch (error) {
-    console.error('High Level ROI sync failed:', error);
-    return false;
-  }
+  return await upsertHighLevelContact(contactData);
 }
