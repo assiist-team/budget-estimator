@@ -287,7 +287,7 @@ export default function ResultsPage() {
               <p className="text-lg font-medium mb-3 opacity-90">
                 {isProjectBudgetType ? 'ESTIMATED PROJECT BUDGET RANGE' : 'ESTIMATED FURNISHINGS BUDGET RANGE'}
               </p>
-              <div className="text-5xl font-bold mb-2">
+              <div className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
                 {isProjectBudgetType && isProjectBudget(budget)
                   ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
                   : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
@@ -319,8 +319,8 @@ export default function ResultsPage() {
                     {/* Furnishings */}
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Furnishings</span>
-                        <span className="text-gray-700">
+                        <span className="text-gray-700 flex-1 min-w-0">Furnishings</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">
                           {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
                         </span>
                       </div>
@@ -332,8 +332,8 @@ export default function ResultsPage() {
                     {/* Project Add-ons */}
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Design Fee</span>
-                        <span className="text-gray-700">
+                        <span className="text-gray-700 flex-1 min-w-0">Design Fee</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">
                           {formatCurrency(budget.projectAddOns.designFee)}
                         </span>
                       </div>
@@ -344,8 +344,8 @@ export default function ResultsPage() {
 
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Installation</span>
-                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.installation)}</span>
+                        <span className="text-gray-700 flex-1 min-w-0">Installation</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.installation)}</span>
                       </div>
                       <p className="text-xs text-gray-500">
                         Professional delivery, setup, and installation services
@@ -354,8 +354,8 @@ export default function ResultsPage() {
 
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Fuel</span>
-                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.fuel)}</span>
+                        <span className="text-gray-700 flex-1 min-w-0">Fuel</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.fuel)}</span>
                       </div>
                       <p className="text-xs text-gray-500">
                         Transportation and fuel costs
@@ -364,8 +364,8 @@ export default function ResultsPage() {
 
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Storage & Receiving</span>
-                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                        <span className="text-gray-700 flex-1 min-w-0">Storage & Receiving</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
                       </div>
                       <p className="text-xs text-gray-500">
                         Temporary storage solutions and receiving services
@@ -374,8 +374,8 @@ export default function ResultsPage() {
 
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Kitchen</span>
-                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                        <span className="text-gray-700 flex-1 min-w-0">Kitchen</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.kitchen)}</span>
                       </div>
                       <p className="text-xs text-gray-500">
                         Kitchen equipment including cookware, flatware, and accessories
@@ -384,8 +384,8 @@ export default function ResultsPage() {
 
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Property Management</span>
-                        <span className="text-gray-700">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                        <span className="text-gray-700 flex-1 min-w-0">Property Management</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
                       </div>
                       <p className="text-xs text-gray-500">
                         Items required by property management
@@ -394,8 +394,8 @@ export default function ResultsPage() {
 
                     {/* Project Total */}
                     <div className="flex justify-between items-center py-4 border-t-2 border-gray-300 mt-4">
-                      <span className="text-xl font-bold text-gray-900">Project Total</span>
-                      <span className="text-xl font-bold text-primary-600">
+                      <span className="text-lg sm:text-xl font-bold text-gray-900 flex-1 min-w-0">Project Total</span>
+                      <span className="text-lg sm:text-xl font-bold text-primary-600 flex-shrink-0 ml-3">
                         {formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}
                       </span>
                     </div>
@@ -410,18 +410,16 @@ export default function ResultsPage() {
           <div id="detailed-room-breakdown" className="mb-8">
             <div className="card">
               <div className="w-full text-left">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex-1">
-                    <div className="mb-1">
-                      <span className="text-2xl font-bold text-primary-800">
-                        Detailed Furnishings Budget Breakdown
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Complete itemized breakdown by room
-                    </p>
+                <div className="mb-6">
+                  <div className="mb-1">
+                    <span className="text-2xl font-bold text-primary-800">
+                      Detailed Furnishings Budget Breakdown
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
+                  <p className="text-sm text-gray-600 mt-1 mb-4">
+                    Complete itemized breakdown by room
+                  </p>
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={expandAllRooms}
                       className="text-sm text-primary-600 hover:text-primary-800 font-medium"
@@ -452,7 +450,7 @@ export default function ResultsPage() {
                           className="flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
                           onClick={() => toggleRoomExpansion(room.roomType)}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className="flex-shrink-0">
                               {isExpanded ? (
                                 <ChevronDown className="w-5 h-5 text-gray-600" />
@@ -460,17 +458,17 @@ export default function ResultsPage() {
                                 <ChevronRight className="w-5 h-5 text-gray-600" />
                               )}
                             </div>
-                            <div>
-                              <h4 className="font-semibold text-lg text-gray-900">
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-semibold text-base sm:text-lg text-gray-900 truncate">
                                 {roomDisplayName}
                               </h4>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500 truncate">
                                 {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)} × {room.quantity}
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <div className="font-semibold text-lg text-gray-900">
+                          <div className="text-right flex-shrink-0 ml-3">
+                            <div className="font-semibold text-gray-700 whitespace-nowrap">
                               {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
                             </div>
                           </div>

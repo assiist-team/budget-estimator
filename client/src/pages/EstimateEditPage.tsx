@@ -136,7 +136,7 @@ export default function EstimateEditPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate('/tools')}
+                onClick={() => navigate(-1)}
                 className="btn-secondary"
               >
                 ← Back
@@ -144,12 +144,6 @@ export default function EstimateEditPage() {
             </div>
 
             <div className="flex gap-3">
-              {hasUnsavedChanges && (
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
-                  Unsaved Changes
-                </span>
-              )}
-
               <div className="flex gap-2">
                 <button
                   onClick={undo}
@@ -186,7 +180,7 @@ export default function EstimateEditPage() {
             <p className="text-lg font-medium mb-3 opacity-90">
               ESTIMATED PROJECT BUDGET
             </p>
-            <div className="text-5xl font-bold mb-2">
+            <div className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
               {calculateBudgetRange(estimate.rooms)}
             </div>
             <p className="text-sm opacity-75 mt-4 mb-2">

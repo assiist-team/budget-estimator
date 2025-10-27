@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { useRoomTemplates } from './useRoomTemplates';
 import type { Estimate, RoomWithItems, EditHistoryEntry } from '../types';
 import { calculateEstimate } from '../utils/calculations';
+import { useAuth } from '../context/AuthContext';
 
 /**
  * Hook for loading and managing estimates with complete item mappings
@@ -14,18 +15,38 @@ export function useEstimateEditing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { roomTemplates, items } = useRoomTemplates();
+  const { firebaseUser, isAdmin, loading: authLoading } = useAuth();
 
   // Load estimates from Firestore
   const loadEstimates = useCallback(async () => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!firebaseUser) {
+      setEstimates([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
+      const queryConstraints = [
+        where('toolId', '==', 'budget-estimator'),
+      ];
+
+      if (!isAdmin) {
+        queryConstraints.push(where('ownerUid', '==', firebaseUser.uid));
+      }
+      
+      queryConstraints.push(orderBy('createdAt', 'desc'));
+      queryConstraints.push(limit(50));
+      
       const estimatesQuery = query(
         collection(db, 'estimates'),
-        where('toolId', '==', 'budget-estimator'),
-        orderBy('createdAt', 'desc'),
-        limit(50)
+        ...queryConstraints
       );
 
       const estimatesSnapshot = await getDocs(estimatesQuery);
@@ -80,7 +101,7 @@ export function useEstimateEditing() {
     } finally {
       setLoading(false);
     }
-  }, [roomTemplates]);
+  }, [roomTemplates, firebaseUser, isAdmin, authLoading]);
 
   // Update estimate in Firestore
   const updateEstimate = useCallback(async (estimateId: string, updates: Partial<Estimate>) => {

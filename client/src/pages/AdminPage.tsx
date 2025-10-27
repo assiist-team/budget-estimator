@@ -702,15 +702,9 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  {autoConfigUnsavedChanges && (
-                    <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                      Unsaved Changes
-                    </span>
-                  )}
                   <button
                     onClick={async () => {
-                      if (!autoConfigRules || autoConfigSaving) return;
-
+                      if (!isAutoConfigDirty) return;
                       setAutoConfigSaving(true);
                       try {
                         await saveAutoConfigRules(autoConfigRules);
@@ -1892,11 +1886,6 @@ export default function AdminPage() {
                     <h2 className="text-xl font-semibold text-gray-900">
                       Edit Room Template: {editingTemplate.displayName}
                     </h2>
-                    {hasUnsavedChanges && (
-                      <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-                        Unsaved Changes
-                      </span>
-                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <button
