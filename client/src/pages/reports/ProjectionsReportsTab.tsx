@@ -63,18 +63,22 @@ export default function ProjectionsReportsTab({ onCountChange }: Props) {
         <div className="space-y-3">
           {rows.map((row) => (
             <div key={row.id} className="card">
-              <div className="flex items-start justify-between">
-                <div>
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                <div className="flex-1">
                   {row.createdAt?.seconds && (
                     <div className="text-sm text-gray-500 mb-1">
                       {new Date(row.createdAt.seconds * 1000).toLocaleDateString()}
                     </div>
                   )}
                   <div className="font-semibold text-gray-800">
-                    Occupancy: {Math.round((row.inputs?.occupancyBefore ?? 0) * 100)}% →{' '}
-                    {Math.round((row.inputs?.occupancyAfter ?? 0) * 100)}%
-                    <span className="font-normal text-gray-400 mx-2">|</span>
-                    ADR: ${row.inputs?.adrBefore} → ${row.inputs?.adrAfter}
+                    <span className="block sm:inline">
+                      Occupancy: {Math.round((row.inputs?.occupancyBefore ?? 0) * 100)}% →{' '}
+                      {Math.round((row.inputs?.occupancyAfter ?? 0) * 100)}%
+                    </span>
+                    <span className="hidden sm:inline font-normal text-gray-400 mx-2">|</span>
+                    <span className="block sm:inline">
+                      ADR: ${row.inputs?.adrBefore} → ${row.inputs?.adrAfter}
+                    </span>
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -116,18 +120,18 @@ export default function ProjectionsReportsTab({ onCountChange }: Props) {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-4 md:mt-0 justify-center md:justify-start">
                   <Link
                     to={`/tools/roi-estimator/projection/view/${row.id}`}
                     state={{ from: { pathname: location.pathname, search: location.search } }}
-                    className="btn-secondary"
+                    className="btn-secondary w-full sm:w-auto"
                   >
                     View
                   </Link>
                   <Link
                     to={`/tools/roi-estimator/projection/edit/${row.id}`}
                     state={{ from: { pathname: location.pathname, search: location.search } }}
-                    className="btn-primary"
+                    className="btn-primary w-full sm:w-auto"
                   >
                     Edit
                   </Link>

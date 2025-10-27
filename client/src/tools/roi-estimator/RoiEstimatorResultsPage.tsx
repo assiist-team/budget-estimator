@@ -90,9 +90,9 @@ export default function RoiEstimatorResultsPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <Link to="/tools/roi-estimator/inputs" className="btn-secondary">← Back to Input</Link>
-          <div className="w-64"><ProgressBar currentStep={2} totalSteps={3} /></div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+          <Link to="/tools/roi-estimator/inputs" className="btn-secondary w-full sm:w-auto">← Back to Input</Link>
+          <div className="w-full sm:w-64"><ProgressBar currentStep={2} totalSteps={3} /></div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 mb-8">

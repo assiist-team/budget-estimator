@@ -97,7 +97,7 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
 
             return (
               <div key={estimate.id} className="card">
-                <div className="flex items-start justify-between">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between">
                   <div className="flex-1">
                     {/* Date and Client Info */}
                     <div className="mb-2">
@@ -158,18 +158,18 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-4 md:mt-0 md:ml-4 justify-center md:justify-start">
                     <Link
                       to={`/tools/budget-estimator/estimate/view/${estimate.id}`}
                       state={{ from: { pathname: location.pathname, search: location.search } }}
-                      className="btn-secondary"
+                      className="btn-secondary w-full sm:w-auto"
                     >
                       View
                     </Link>
                     <Link
                       to={`/tools/budget-estimator/estimate/edit/${estimate.id}`}
                       state={{ from: { pathname: location.pathname, search: location.search } }}
-                      className="btn-primary"
+                      className="btn-primary w-full sm:w-auto"
                     >
                       Edit
                     </Link>
