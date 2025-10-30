@@ -16,6 +16,8 @@ interface Props {
 interface EmailPasswordForm {
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
 }
 
 export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
@@ -26,11 +28,13 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
   const optIn = useMemo(() => getOptIn(), [open]);
 
   const { register, handleSubmit, setValue } = useForm<EmailPasswordForm>({
-    defaultValues: { email: optIn?.email ?? '', password: '' },
+    defaultValues: { email: optIn?.email ?? '', password: '', firstName: optIn?.firstName ?? '', lastName: optIn?.lastName ?? '' },
   });
 
   useEffect(() => {
     if (optIn?.email) setValue('email', optIn.email);
+    if (optIn?.firstName) setValue('firstName', optIn.firstName);
+    if (optIn?.lastName) setValue('lastName', optIn.lastName);
   }, [optIn, setValue]);
 
   useEffect(() => {
@@ -72,8 +76,12 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
       }
       try {
         const oi = getOptIn();
-        if (auth.currentUser && oi) {
-          await updateUserContactInfo(auth.currentUser.uid, { phone: oi.normalizedPhone ?? oi.phone ?? null, firstName: oi.firstName });
+        if (auth.currentUser) {
+          await updateUserContactInfo(auth.currentUser.uid, {
+            phone: oi?.normalizedPhone ?? oi?.phone ?? null,
+            firstName: data.firstName ?? oi?.firstName ?? null,
+            lastName: data.lastName ?? oi?.lastName ?? null,
+          });
         }
       } catch {}
       onAuthed();
@@ -145,6 +153,18 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+            {mode === 'signup' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">First Name</label>
+                  <input type="text" className="input-field w-full" {...register('firstName', { required: true })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Last Name</label>
+                  <input type="text" className="input-field w-full" {...register('lastName', { required: true })} />
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
               <input type="email" className="input-field w-full" {...register('email', { required: true })} />

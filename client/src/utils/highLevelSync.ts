@@ -17,10 +17,16 @@ async function upsertHighLevelContact(payload: any): Promise<boolean> {
     return false;
   }
 
-  const fullPayload = {
-    ...payload,
-    locationId
+  const allowedPayload: { [key: string]: any } = {
+    locationId,
+    email: payload.email,
+    customFields: payload.customFields
   };
+
+  if (payload.firstName) allowedPayload.firstName = payload.firstName;
+  if (payload.lastName) allowedPayload.lastName = payload.lastName;
+  if (payload.phone) allowedPayload.phone = payload.phone;
+
 
   try {
     const response = await fetch(HIGHLEVEL_API_ENDPOINT, {
@@ -31,7 +37,7 @@ async function upsertHighLevelContact(payload: any): Promise<boolean> {
         'Accept': 'application/json',
         'Version': '2021-07-28'
       },
-      body: JSON.stringify(fullPayload)
+      body: JSON.stringify(allowedPayload)
     });
 
     if (!response.ok) {
@@ -56,10 +62,12 @@ export async function syncToHighLevel(estimate: any, estimateId: string): Promis
     ...(estimate.clientInfo?.lastName && { lastName: estimate.clientInfo.lastName }),
     email: estimate.clientInfo.email,
     ...(estimate.clientInfo.phone && { phone: estimate.clientInfo.phone }),
-    source: 'Project Estimator budget tool',
-    customField: {
-      estimate_vacation_rental: estimateUrl
-    }
+    customFields: [
+      {
+        key: 'vacation_rental_estimate',
+        field_value: estimateUrl
+      }
+    ]
   };
 
   return await upsertHighLevelContact(contactData);
@@ -67,23 +75,26 @@ export async function syncToHighLevel(estimate: any, estimateId: string): Promis
 
 // ROI Projection sync (optional, mirrors estimate sync with ROI link)
 export async function syncRoiToHighLevel(
-  payload: { contact: { email: string; firstName?: string | null; phone?: string | null } | null },
+  payload: { clientInfo: { email: string; firstName?: string | null; lastName?: string | null; phone?: string | null } | null },
   projectionId: string
 ): Promise<boolean> {
-  if (!payload.contact) {
+  if (!payload.clientInfo) {
     return false;
   }
 
   const projectionUrl = `${window.location.origin}/tools/roi-estimator/projection/view/${projectionId}`;
 
   const contactData = {
-    ...(payload.contact.firstName && { firstName: payload.contact.firstName }),
-    email: payload.contact.email,
-    ...(payload.contact.phone && { phone: payload.contact.phone }),
-    source: 'Project Estimator ROI tool',
-    customField: {
-      vacation_rental_projection: projectionUrl
-    }
+    ...(payload.clientInfo.firstName && { firstName: payload.clientInfo.firstName }),
+    ...(payload.clientInfo.lastName && { lastName: payload.clientInfo.lastName }),
+    email: payload.clientInfo.email,
+    ...(payload.clientInfo.phone && { phone: payload.clientInfo.phone }),
+    customFields: [
+      {
+        key: 'vacation_rental_projection',
+        field_value: projectionUrl
+      }
+    ]
   };
 
   return await upsertHighLevelContact(contactData);

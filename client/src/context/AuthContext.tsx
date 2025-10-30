@@ -33,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         uid: 'dev-user',
         email: 'dev@example.com',
         displayName: 'Dev User',
+        firstName: 'Dev',
+        lastName: 'User',
+        phone: '123-456-7890',
         role: 'admin',
         entitlements: { tools: ['budget-estimator', 'roi-estimator'] },
       });

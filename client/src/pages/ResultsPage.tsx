@@ -25,7 +25,7 @@ import { getOptIn } from '../utils/optInStorage';
 
 export default function ResultsPage() {
   const navigate = useNavigate();
-  const { firebaseUser } = useAuth();
+  const { firebaseUser, profile } = useAuth();
   const { requireAccount } = useAuthModal();
   const {
     propertySpecs,
@@ -214,14 +214,11 @@ export default function ResultsPage() {
         };
       });
 
-      const optIn = getOptIn();
-
-      // Build client info from opt-in
       const clientInfo = {
-        firstName: optIn?.firstName ?? '',
-        lastName: '',
-        email: optIn?.email ?? '',
-        phone: optIn?.normalizedPhone ?? optIn?.phone ?? '',
+        firstName: profile?.firstName || '',
+        lastName: profile?.lastName || '',
+        email: profile?.email || '',
+        phone: profile?.phone || '',
       };
 
       // Save estimate to Firestore with complete item mappings
@@ -271,7 +268,7 @@ export default function ResultsPage() {
       });
 
       // Redirect to view page with success banner
-      window.location.assign(`/tools/budget-estimator/estimate/view/${estimateId}?sent=1`);
+      // window.location.assign(`/tools/budget-estimator/estimate/view/${estimateId}?sent=1`);
     } catch (error) {
       console.error('Error saving estimate:', error);
       alert('There was an error saving your project budget. Please try again.');

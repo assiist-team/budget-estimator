@@ -12,6 +12,9 @@ export interface UserProfile {
   uid: string;
   email: string;
   displayName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
   role: UserRole;
   entitlements: UserEntitlements;
 }
@@ -52,6 +55,9 @@ export async function createOrUpdateUserDocument(firebaseUser: User): Promise<Us
       uid: firebaseUser.uid,
       email: firebaseUser.email ?? data.email ?? '',
       displayName: firebaseUser.displayName ?? data.displayName ?? null,
+      firstName: data.firstName ?? null,
+      lastName: data.lastName ?? null,
+      phone: data.phone ?? null,
       role,
       entitlements,
     };
@@ -63,10 +69,16 @@ export async function createOrUpdateUserDocument(firebaseUser: User): Promise<Us
   const role: UserRole = 'user';
   const entitlements = normalizeEntitlements(undefined);
 
+  const [firstName, ...lastNameParts] = (firebaseUser.displayName ?? '').split(' ');
+  const lastName = lastNameParts.join(' ');
+
   const profile: UserProfile = {
     uid: firebaseUser.uid,
     email: firebaseUser.email ?? '',
     displayName: firebaseUser.displayName ?? null,
+    firstName: firstName ?? null,
+    lastName: lastName ?? null,
+    phone: firebaseUser.phoneNumber ?? null,
     role,
     entitlements,
   };
@@ -74,6 +86,9 @@ export async function createOrUpdateUserDocument(firebaseUser: User): Promise<Us
   await setDoc(userRef, {
     email: profile.email,
     displayName: profile.displayName,
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    phone: profile.phone,
     role: profile.role,
     entitlements: profile.entitlements,
     createdAt: serverTimestamp(),
@@ -84,13 +99,37 @@ export async function createOrUpdateUserDocument(firebaseUser: User): Promise<Us
   return profile;
 }
 
-export async function updateUserContactInfo(uid: string, data: { phone?: string | null; firstName?: string | null }): Promise<void> {
+export async function updateUserContactInfo(uid: string, data: { phone?: string | null; firstName?: string | null, lastName?: string | null }): Promise<void> {
   const userRef = doc(db, 'users', uid);
-  await setDoc(userRef, {
-    ...(data.firstName ? { displayName: data.firstName } : {}),
-    ...(data.phone ? { phone: data.phone } : {}),
+
+  const updateData: { [key: string]: any } = {
     updatedAt: serverTimestamp(),
-  }, { merge: true });
+  };
+
+  if (data.firstName) {
+    updateData.firstName = data.firstName;
+  }
+  if (data.lastName) {
+    updateData.lastName = data.lastName;
+  }
+  if (data.phone) {
+    updateData.phone = data.phone;
+  }
+
+  // A user's displayName should be their full name if we have it, otherwise their email.
+  const existingDoc = await getDoc(userRef);
+  const existingData = existingDoc.data();
+  const firstName = data.firstName ?? existingData?.firstName;
+  const lastName = data.lastName ?? existingData?.lastName;
+
+  if (firstName && lastName) {
+    updateData.displayName = `${firstName} ${lastName}`;
+  } else if (firstName) {
+    updateData.displayName = firstName;
+  }
+
+
+  await setDoc(userRef, updateData, { merge: true });
 }
 
 

@@ -61,20 +61,23 @@ export default function RoiEstimatorResultsPage() {
         updatedAt: serverTimestamp(),
       });
 
+      const profile = firebaseUser?.displayName ? {
+        firstName: firebaseUser.displayName.split(' ')[0],
+        lastName: firebaseUser.displayName.split(' ')[1] || '',
+        email: firebaseUser.email || '',
+        phone: null, // Phone number is not directly available in the profile object
+      } : null;
+
+      const clientInfo = {
+        firstName: profile?.firstName ?? optIn?.firstName ?? null,
+        lastName: profile?.lastName ?? optIn?.lastName ?? null,
+        email: profile?.email ?? optIn?.email ?? '',
+        phone: profile?.phone ?? optIn?.normalizedPhone ?? optIn?.phone ?? null,
+      }
+
       // Best-effort CRM sync (non-blocking)
       try {
-        void syncRoiToHighLevel(
-          {
-            contact: optIn
-              ? {
-                  email: optIn.email,
-                  phone: optIn.normalizedPhone ?? optIn.phone,
-                  firstName: optIn.firstName,
-                }
-              : null,
-          },
-          docRef.id
-        );
+        void syncRoiToHighLevel({ clientInfo }, docRef.id);
       } catch {}
 
       window.location.assign(`/tools/roi-estimator/projection/view/${docRef.id}?sent=1`);
