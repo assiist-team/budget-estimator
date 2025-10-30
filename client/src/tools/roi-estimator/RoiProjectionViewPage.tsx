@@ -7,10 +7,13 @@ import ProgressBar from '../../components/ProgressBar';
 import Methodology from './components/Methodology';
 import { db } from '../../lib/firebase';
 import { HelpIcon } from '../../components/Icons';
+import { useAuth } from '../../context/AuthContext';
+import { useAuthModal } from '../../components/auth/AuthModalProvider';
 
 interface ProjectionDoc {
   inputs: any;
   computed: any;
+  ownerUid?: string;
 }
 
 export default function RoiProjectionViewPage() {
@@ -20,23 +23,52 @@ export default function RoiProjectionViewPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sent = searchParams.get('sent') === '1';
   const { href: backHref } = useBackDestination('/tools/reports?tab=projections');
+  const { profile, loading: authLoading } = useAuth();
+  const { requireAccount } = useAuthModal();
 
   useEffect(() => {
+    // Don't fetch until we know the user's auth status
+    if (authLoading) {
+      return;
+    }
+
     const fetchProjection = async () => {
-      if (!projectionId) return;
+      if (!projectionId) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
       try {
         const ref = doc(db, 'projections', projectionId);
         const snap = await getDoc(ref);
+
         if (snap.exists()) {
-          const data = snap.data() as ProjectionDoc;
-          setProjection(data);
+          setProjection(snap.data() as ProjectionDoc);
+        } else {
+          setProjection(null);
+        }
+      } catch (error) {
+        console.error("Error fetching projection:", error);
+        setProjection(null);
+        if (!profile) {
+          // User is not logged in, and we got an error. Assume it's a permissions error.
+          try {
+            await requireAccount({ reason: 'Please sign in to view this projection.' });
+            // After successful sign-in, the effect will re-run and re-fetch.
+          } catch (e) {
+            // User cancelled the sign-in modal.
+            // Let it proceed to "not found".
+          }
         }
       } finally {
         setLoading(false);
       }
     };
+
     void fetchProjection();
-  }, [projectionId]);
+  }, [projectionId, profile, authLoading, requireAccount]);
 
   const usd = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   const pct = (n: number) => `${Math.round(n * 1000) / 10}%`;

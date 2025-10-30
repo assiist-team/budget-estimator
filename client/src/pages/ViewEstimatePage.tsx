@@ -11,6 +11,8 @@ import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
 import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
 import type { BudgetDefaults } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { useAuthModal } from '../components/auth/AuthModalProvider';
 
 // Type guard to check if budget is a ProjectBudget
 function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
@@ -26,6 +28,8 @@ export default function ViewEstimatePage() {
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+  const { profile, loading: authLoading } = useAuth();
+  const { requireAccount } = useAuthModal();
 
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
   const { rules: autoConfigRules, loading: rulesLoading } = useAutoConfigRules();
@@ -33,6 +37,10 @@ export default function ViewEstimatePage() {
   const [defaultsLoading, setDefaultsLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (!estimateId) {
       setLoading(false);
       return;
@@ -49,11 +57,19 @@ export default function ViewEstimatePage() {
       setLoading(false);
     }, (error) => {
       console.error('Error fetching estimate:', error);
+      setEstimate(null);
+      if (!profile) {
+        // Not logged in, so prompt for login. This is likely a permissions error.
+        requireAccount({ reason: 'Please sign in to view this estimate.' })
+          .catch(() => {
+            // User cancelled login, do nothing, they will see the not found page
+          });
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [estimateId]);
+  }, [estimateId, profile, authLoading, requireAccount]);
   
     // Load budget defaults from Firestore on mount
     useEffect(() => {
