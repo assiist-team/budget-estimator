@@ -218,13 +218,15 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
                     >
                       View
                     </Link>
-                    <Link
-                      to={`/tools/budget-estimator/estimate/edit/${estimate.id}`}
-                      state={{ from: { pathname: location.pathname, search: location.search } }}
-                      className="btn-primary w-full sm:w-auto"
-                    >
-                      Edit
-                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to={`/tools/budget-estimator/estimate/edit/${estimate.id}`}
+                        state={{ from: { pathname: location.pathname, search: location.search } }}
+                        className="btn-primary w-full sm:w-auto"
+                      >
+                        Edit
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
@@ -18,6 +19,7 @@ function isProjectBudget(budget: Budget | ProjectBudget | null): budget is Proje
 export default function EstimateEditPage() {
   const navigate = useNavigate();
   const { estimateId } = useParams<{ estimateId: string }>();
+  const { isAdmin, loading: authLoading } = useAuth();
   const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, removeRoom, saveChanges, undo, redo } = useEstimateEditor(estimateId);
   const { roomTemplates, items } = useRoomTemplates();
   const [saving, setSaving] = useState(false);
@@ -43,6 +45,12 @@ export default function EstimateEditPage() {
       void loadDefaults();
     }
   }, [budgetDefaults, loadDefaults]);
+
+  useEffect(() => {
+    if (!authLoading && !isAdmin) {
+      navigate(`/tools/budget-estimator/estimate/view/${estimateId}`);
+    }
+  }, [authLoading, isAdmin, navigate, estimateId]);
 
   // Redirect if no estimate loaded
   useEffect(() => {
@@ -87,7 +95,7 @@ export default function EstimateEditPage() {
     return calculateSelectedRoomCapacity(roomData, autoConfigRules);
   }, [estimate?.rooms, autoConfigRules]);
 
-  if (loading || rulesLoading) {
+  if (loading || rulesLoading || authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

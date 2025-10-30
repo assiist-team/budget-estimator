@@ -178,6 +178,8 @@ export default function ViewEstimatePage() {
     setExpandedRooms(new Set());
   };
 
+  const { isAdmin } = useAuth();
+
   if (loading || templatesLoading || defaultsLoading || rulesLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -229,9 +231,11 @@ export default function ViewEstimatePage() {
         <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <Link to={backHref} className="btn-secondary">← Back to Reports</Link>
-            <Link to={`/tools/budget-estimator/estimate/edit/${estimateId}`} className="btn-primary">
-              Edit
-            </Link>
+            {isAdmin && (
+              <Link to={`/tools/budget-estimator/estimate/edit/${estimateId}`} className="btn-primary">
+                Edit
+              </Link>
+            )}
           </div>
         </div>
 
