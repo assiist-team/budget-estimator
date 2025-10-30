@@ -268,7 +268,7 @@ export default function ResultsPage() {
       });
 
       // Redirect to view page with success banner
-      // window.location.assign(`/tools/budget-estimator/estimate/view/${estimateId}?sent=1`);
+      window.location.assign(`/tools/budget-estimator/estimate/view/${estimateId}?sent=1`);
     } catch (error) {
       console.error('Error saving estimate:', error);
       alert('There was an error saving your project budget. Please try again.');

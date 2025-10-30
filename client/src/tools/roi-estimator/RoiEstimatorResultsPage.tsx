@@ -70,7 +70,7 @@ export default function RoiEstimatorResultsPage() {
 
       const clientInfo = {
         firstName: profile?.firstName ?? optIn?.firstName ?? null,
-        lastName: profile?.lastName ?? optIn?.lastName ?? null,
+        lastName: profile?.lastName ?? null,
         email: profile?.email ?? optIn?.email ?? '',
         phone: profile?.phone ?? optIn?.normalizedPhone ?? optIn?.phone ?? null,
       }

@@ -28,13 +28,12 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
   const optIn = useMemo(() => getOptIn(), [open]);
 
   const { register, handleSubmit, setValue } = useForm<EmailPasswordForm>({
-    defaultValues: { email: optIn?.email ?? '', password: '', firstName: optIn?.firstName ?? '', lastName: optIn?.lastName ?? '' },
+    defaultValues: { email: optIn?.email ?? '', password: '', firstName: optIn?.firstName ?? '', lastName: '' },
   });
 
   useEffect(() => {
     if (optIn?.email) setValue('email', optIn.email);
     if (optIn?.firstName) setValue('firstName', optIn.firstName);
-    if (optIn?.lastName) setValue('lastName', optIn.lastName);
   }, [optIn, setValue]);
 
   useEffect(() => {
@@ -80,7 +79,7 @@ export default function AuthModal({ open, onClose, onAuthed, reason }: Props) {
           await updateUserContactInfo(auth.currentUser.uid, {
             phone: oi?.normalizedPhone ?? oi?.phone ?? null,
             firstName: data.firstName ?? oi?.firstName ?? null,
-            lastName: data.lastName ?? oi?.lastName ?? null,
+            lastName: data.lastName || null,
           });
         }
       } catch {}
