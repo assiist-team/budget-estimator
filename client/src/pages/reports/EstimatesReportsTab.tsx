@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo } from 'react';
-import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, limit, orderBy, query, where } from 'firebase/firestore';
 import { Link, useLocation } from 'react-router-dom';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import type { Estimate, RoomTemplate, Item } from '../../types';
 import { formatCurrency, calculateTotalRooms, calculateTotalItems, calculateEstimate } from '../../utils/calculations';
 import { useRoomTemplates } from '../../hooks/useRoomTemplates';
+import type { BudgetDefaults } from '../../types';
 
 interface Props {
   onCountChange?: (count: number) => void;
@@ -17,6 +18,8 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const { roomTemplates, items } = useRoomTemplates();
+  const [budgetDefaults, setBudgetDefaults] = useState<BudgetDefaults | null>(null);
+  const [defaultsLoading, setDefaultsLoading] = useState(true);
 
   // Convert arrays to Maps for calculation functions
   const roomTemplatesMap = useMemo(() => {
@@ -30,6 +33,51 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
     items.forEach(item => map.set(item.id, item));
     return map;
   }, [items]);
+
+  useEffect(() => {
+    const loadBudgetDefaults = async () => {
+      setDefaultsLoading(true);
+      try {
+        const docRef = doc(collection(db, 'config'), 'budgetDefaults');
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setBudgetDefaults({
+            installationCents: data.installationCents || 0,
+            fuelCents: data.fuelCents || 0,
+            storageAndReceivingCents: data.storageAndReceivingCents || 0,
+            kitchenCents: data.kitchenCents || 0,
+            propertyManagementCents: data.propertyManagementCents || 0,
+            designFeeRatePerSqftCents: data.designFeeRatePerSqftCents || 1000,
+          });
+        } else {
+          setBudgetDefaults({
+            installationCents: 0,
+            fuelCents: 0,
+            storageAndReceivingCents: 0,
+            kitchenCents: 0,
+            propertyManagementCents: 0,
+            designFeeRatePerSqftCents: 1000,
+          });
+        }
+      } catch (error) {
+        console.error('Error loading budget defaults from Firestore:', error);
+        setBudgetDefaults({
+          installationCents: 0,
+          fuelCents: 0,
+          storageAndReceivingCents: 0,
+          kitchenCents: 0,
+          propertyManagementCents: 0,
+          designFeeRatePerSqftCents: 1000,
+        });
+      } finally {
+        setDefaultsLoading(false);
+      }
+    };
+
+    void loadBudgetDefaults();
+  }, []);
 
   useEffect(() => {
     const fetchEstimates = async () => {
@@ -79,7 +127,7 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
 
   return (
     <div>
-      {loading ? (
+      {loading || defaultsLoading ? (
         <div className="text-gray-600">Loading estimates…</div>
       ) : estimates.length === 0 ? (
         <div className="card">No estimates found.</div>
@@ -92,8 +140,12 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
 
             // Calculate budget using the same function as the rest of the system
             const budget = estimate.rooms?.length ? calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, {
-              propertySpecs: estimate.propertySpecs
+              propertySpecs: estimate.propertySpecs,
+              budgetDefaults: budgetDefaults || undefined,
             }) : null;
+
+            const displayRangeLow = budget && 'projectRange' in budget ? budget.projectRange.low : budget?.rangeLow;
+            const displayRangeHigh = budget && 'projectRange' in budget ? budget.projectRange.mid : budget?.rangeHigh;
 
             return (
               <div key={estimate.id} className="card">
@@ -115,10 +167,10 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
                     </div>
 
                     {/* Budget Range */}
-                    {budget && budget.rangeLow >= 0 && budget.rangeHigh >= 0 && (budget.rangeLow > 0 || budget.rangeHigh > 0) && (
+                    {budget && displayRangeLow != null && displayRangeHigh != null && (displayRangeLow > 0 || displayRangeHigh > 0) && (
                       <div className="mb-3">
                         <div className="text-lg font-semibold text-primary-700">
-                          {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
+                          {formatCurrency(displayRangeLow)} — {formatCurrency(displayRangeHigh)}
                         </div>
                         <div className="text-xs text-gray-500">Estimated Budget Range</div>
                       </div>

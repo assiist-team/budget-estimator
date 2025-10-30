@@ -245,6 +245,15 @@ export default function ResultsPage() {
       });
       const estimateId = docRef.id;
 
+      // Log the data just before syncing to High Level
+      console.log('Preparing to sync to HighLevel...');
+      console.log('Opt-in data:', getOptIn());
+      console.log('Estimate data for sync:', {
+        ...estimateData,
+        toolId: 'budget-estimator',
+        ownerUid: currentUser.uid,
+      });
+
       // Sync to High Level CRM
       const syncSuccess = await syncToHighLevel(
         {

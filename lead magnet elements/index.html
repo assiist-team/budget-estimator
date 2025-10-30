@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool Cards</title>
+  <style>
+    /* Reset and base styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-family: 'Avenir', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background-color: #f9fafb;
+      color: #374151;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    /* Container */
+    .container {
+      max-width: 80rem;
+      margin: 0 auto;
+      padding: 3rem 1rem;
+    }
+
+    /* Grid layout */
+    .grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 768px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* Card */
+    .card {
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.20), 0 6px 12px rgba(0,0,0,0.12);
+    }
+
+    /* Image container */
+    .image-container {
+      width: 100%;
+      background-color: #f3f4f6;
+    }
+
+    .image-wrapper {
+      width: 100%;
+      background-position: center;
+      background-size: cover;
+      position: relative;
+      padding-top: 56.25%; /* Will be dynamically updated by JavaScript */
+    }
+
+    /* Overlay */
+    .overlay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding-left: 1rem;
+      padding-bottom: 1.5rem;
+      padding-right: 0.5rem;
+      padding-top: 0.5rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.85) 15%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0) 100%);
+    }
+
+    /* Typography */
+    .card-title {
+      font-size: 1.125rem;
+      line-height: 1.75rem;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.25;
+      margin: 0;
+    }
+
+    .card-description {
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 0.25rem;
+      margin-bottom: 0;
+    }
+
+    /* Button */
+    .button-container {
+      margin-top: 0.75rem;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+      line-height: 1.25rem;
+      color: #ffffff;
+      background-color: #8a7052;
+      border: 1px solid transparent;
+      border-radius: 0.375rem;
+      padding: 0.5rem 1rem;
+      text-decoration: none;
+      transition: background-color 0.2s, color 0.2s;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background-color: #5a4a38;
+    }
+
+    .btn-primary:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px #8a7052;
+    }
+
+    /* Background images */
+    .bg-1 {
+      background-image: url('images/1.webp');
+    }
+
+    .bg-2 {
+      background-image: url('images/2.webp');
+    }
+
+    .bg-3 {
+      background-image: url('images/3.webp');
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="grid">
+      <!-- Card 1: Budget Estimator -->
+      <div class="card">
+        <div class="image-container">
+          <div class="image-wrapper bg-1">
+            <div class="overlay">
+              <h2 class="card-title">Budget Estimator</h2>
+              <p class="card-description">Estimate budget for vacation rental projects.</p>
+              <div class="button-container">
+                <a href="#" class="btn-primary">
+                  Open tool →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Project Planner -->
+      <div class="card">
+        <div class="image-container">
+          <div class="image-wrapper bg-2">
+            <div class="overlay">
+              <h2 class="card-title">Project Planner</h2>
+              <p class="card-description">Plan and track your renovation timeline.</p>
+              <div class="button-container">
+                <a href="#" class="btn-primary">
+                  Open tool →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Interior Design ROI Guide -->
+      <div class="card">
+        <div class="image-container">
+          <div class="image-wrapper bg-3">
+            <div class="overlay">
+              <h2 class="card-title">Interior Design ROI Guide</h2>
+              <p class="card-description">Our method for high-ROI interior design</p>
+              <div class="button-container">
+                <a href="/roi-design-guide" class="btn-primary">
+                  Open Guide →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Dynamically calculate and apply aspect ratios for each background image
+    const images = [
+      { url: 'images/1.webp', className: 'bg-1' },
+      { url: 'images/2.webp', className: 'bg-2' },
+      { url: 'images/3.webp', className: 'bg-3' }
+    ];
+
+    images.forEach(({ url, className }) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        // Calculate aspect ratio (height/width) as percentage
+        const aspectRatio = (img.height / img.width) * 100;
+        
+        // Find the element with this background class and update its padding-top
+        const element = document.querySelector(`.${className}`);
+        if (element) {
+          element.style.paddingTop = `${aspectRatio}%`;
+        }
+      };
+    });
+  </script>
+</body>
+</html>

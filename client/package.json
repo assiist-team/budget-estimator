@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "optimize-tool-bgs": "node ../scripts/optimize-tool-bgs.js --src \"../images\" --out \"./src/assets/tool-bgs\"",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest",
@@ -37,6 +38,7 @@
     "globals": "^16.4.0",
     "jsdom": "^27.0.0",
     "postcss": "^8.4.32",
+    "sharp": "^0.34.4",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.46.1",

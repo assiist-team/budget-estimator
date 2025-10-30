@@ -63,15 +63,15 @@ html {
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-primary-600 hover:bg-primary-900 focus:ring-primary-500 border border-transparent px-4 py-2 text-sm rounded-md;
+    @apply inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-primary-600 hover:bg-primary-900 focus:ring-primary-500 border border-transparent px-4 py-2 text-sm rounded-md;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 bg-white hover:bg-gray-50 focus:ring-primary-500 border border-gray-300 px-4 py-2 text-sm rounded-md;
+    @apply inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 bg-white hover:bg-gray-50 focus:ring-primary-500 border border-gray-300 px-4 py-2 text-sm rounded-md;
   }
 
   .btn-danger {
-    @apply inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 border border-transparent px-4 py-2 text-sm rounded-md;
+    @apply inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed text-white bg-red-600 hover:bg-red-700 focus:ring-red-500 border border-transparent px-4 py-2 text-sm rounded-md;
   }
 
   .input-field {
