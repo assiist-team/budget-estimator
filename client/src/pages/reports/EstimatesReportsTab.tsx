@@ -3,10 +3,9 @@ import { collection, getDocs, doc, getDoc, limit, orderBy, query, where } from '
 import { Link, useLocation } from 'react-router-dom';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
-import type { Estimate, RoomTemplate, Item } from '../../types';
+import type { Estimate, RoomTemplate, Item, ProjectBudget, BudgetDefaults } from '../../types';
 import { formatCurrency, calculateTotalRooms, calculateTotalItems, calculateEstimate } from '../../utils/calculations';
 import { useRoomTemplates } from '../../hooks/useRoomTemplates';
-import type { BudgetDefaults } from '../../types';
 
 interface Props {
   onCountChange?: (count: number) => void;
@@ -144,8 +143,8 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
               budgetDefaults: budgetDefaults || undefined,
             }) : null;
 
-            const displayRangeLow = budget && 'projectRange' in budget ? budget.projectRange.low : budget?.rangeLow;
-            const displayRangeHigh = budget && 'projectRange' in budget ? budget.projectRange.mid : budget?.rangeHigh;
+            const displayRangeLow = budget && 'projectRange' in budget ? (budget as ProjectBudget).projectRange.low : budget?.rangeLow;
+            const displayRangeHigh = budget && 'projectRange' in budget ? (budget as ProjectBudget).projectRange.mid : budget?.rangeHigh;
 
             return (
               <div key={estimate.id} className="card">
