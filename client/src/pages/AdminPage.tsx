@@ -2328,6 +2328,7 @@ function ItemForm({
     midHighPrice: item?.midHighPrice ? Math.round(item.midHighPrice / 100) : 0,
     highPrice: item?.highPrice ? Math.round(item.highPrice / 100) : 0,
     unit: item?.unit || 'each',
+    reimbursementType: item?.reimbursementType || 'none',
     notes: item?.notes || '',
   });
 
@@ -2379,6 +2380,7 @@ function ItemForm({
             <option value="Lighting">Lighting</option>
             <option value="Accessories">Accessories</option>
             <option value="Entertainment">Entertainment</option>
+            <option value="Misc">Misc</option>
           </select>
         </div>
       </div>
@@ -2413,6 +2415,18 @@ function ItemForm({
           </select>
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Reimbursement Type
+          </label>
+          <select
+            value={formData.reimbursementType}
+            onChange={(e) => setFormData(prev => ({ ...prev, reimbursementType: e.target.value }))}
+            className="w-full p-2 border border-gray-300 rounded"
+          >
+            <option value="none">None</option>
+          </select>
+        </div>
       </div>
 
       <div>

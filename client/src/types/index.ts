@@ -10,6 +10,7 @@ export interface Item {
   midHighPrice: number;
   highPrice: number;
   unit: string;
+  reimbursementType?: string;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
