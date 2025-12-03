@@ -2071,6 +2071,7 @@ export default function AdminPage() {
                                 <div className="text-sm text-gray-600 mt-1">
                                   Low: {formatCurrency(item?.lowPrice ?? 0)} |
                                   Mid: {formatCurrency(item?.midPrice ?? 0)} |
+                                  Mid/High: {formatCurrency(item?.midHighPrice ?? 0)} |
                                   High: {formatCurrency(item?.highPrice ?? 0)}
                                 </div>
                               </div>
