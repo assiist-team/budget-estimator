@@ -1,5 +1,5 @@
 import { utils, writeFile } from 'xlsx';
-import type { Estimate, RoomWithItems, Item, RoomTemplate, Budget, ProjectBudget } from '../types';
+import type { Estimate, Item, RoomTemplate, ProjectBudget } from '../types';
 import { formatCurrency, calculateEstimate, calculateTotalRooms, calculateTotalItems } from './calculations';
 
 interface ExportData {
