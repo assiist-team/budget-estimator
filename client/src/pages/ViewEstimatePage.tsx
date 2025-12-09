@@ -1,16 +1,16 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useBackDestination } from '../hooks/useBackDestination';
-import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { db } from '../lib/firebase';
 import Header from '../components/Header';
 import type { Estimate, RoomItem, Budget, ProjectBudget, Item, RoomTemplate } from '../types';
-import { formatCurrency, calculateTotalRooms, calculateTotalItems, calculateEstimate } from '../utils/calculations';
+import { formatCurrency, calculateTotalRooms, calculateTotalItems, calculateEstimate, createOutdoorSpaceRoom } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
 import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
-import type { BudgetDefaults } from '../types';
+import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import { useAuth } from '../context/AuthContext';
 import { useAuthModal } from '../components/auth/AuthModalProvider';
 import html2canvas from 'html2canvas';
@@ -38,8 +38,7 @@ export default function ViewEstimatePage() {
 
   const { roomTemplates, items, loading: templatesLoading } = useRoomTemplates();
   const { rules: autoConfigRules, loading: rulesLoading } = useAutoConfigRules();
-  const [budgetDefaults, setBudgetDefaults] = useState<BudgetDefaults | null>(null);
-  const [defaultsLoading, setDefaultsLoading] = useState(true);
+  const { defaults: budgetDefaults, loadDefaults } = useBudgetDefaultsStore();
 
   useEffect(() => {
     if (authLoading) {
@@ -54,7 +53,17 @@ export default function ViewEstimatePage() {
     const estimateRef = doc(db, 'estimates', estimateId);
     const unsubscribe = onSnapshot(estimateRef, (estimateSnap) => {
       if (estimateSnap.exists()) {
-        setEstimate({ id: estimateSnap.id, ...estimateSnap.data() } as Estimate);
+        const estimateData = { id: estimateSnap.id, ...estimateSnap.data() } as Estimate;
+        
+        // For project budgets, ensure Outdoor Space room exists
+        if (estimateData.propertySpecs) {
+          const hasOutdoorSpace = estimateData.rooms.some(room => room.roomType === 'outdoor_space');
+          if (!hasOutdoorSpace) {
+            estimateData.rooms = [...estimateData.rooms, createOutdoorSpaceRoom()];
+          }
+        }
+        
+        setEstimate(estimateData);
       } else {
         console.log('No such document!');
         setEstimate(null);
@@ -76,51 +85,12 @@ export default function ViewEstimatePage() {
     return () => unsubscribe();
   }, [estimateId, profile, authLoading, requireAccount]);
   
-    // Load budget defaults from Firestore on mount
-    useEffect(() => {
-        const loadBudgetDefaults = async () => {
-          setDefaultsLoading(true);
-          try {
-            const docRef = doc(collection(db, 'config'), 'budgetDefaults');
-            const docSnap = await getDoc(docRef);
-    
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              setBudgetDefaults({
-                installationCents: data.installationCents || 0,
-                fuelCents: data.fuelCents || 0,
-                storageAndReceivingCents: data.storageAndReceivingCents || 0,
-                kitchenCents: data.kitchenCents || 0,
-                propertyManagementCents: data.propertyManagementCents || 0,
-                designFeeRatePerSqftCents: data.designFeeRatePerSqftCents || 1000,
-              });
-            } else {
-              setBudgetDefaults({
-                installationCents: 0,
-                fuelCents: 0,
-                storageAndReceivingCents: 0,
-                kitchenCents: 0,
-                propertyManagementCents: 0,
-                designFeeRatePerSqftCents: 1000,
-              });
-            }
-          } catch (error) {
-            console.error('Error loading budget defaults from Firestore:', error);
-            setBudgetDefaults({
-              installationCents: 0,
-              fuelCents: 0,
-              storageAndReceivingCents: 0,
-              kitchenCents: 0,
-              propertyManagementCents: 0,
-              designFeeRatePerSqftCents: 1000,
-            });
-          } finally {
-            setDefaultsLoading(false);
-          }
-        };
-    
-        void loadBudgetDefaults();
-      }, []);
+  // Load budget defaults using the same store as EstimateEditPage
+  useEffect(() => {
+    if (!budgetDefaults) {
+      void loadDefaults();
+    }
+  }, [budgetDefaults, loadDefaults]);
 
   const selectedRooms = estimate?.rooms || [];
   const propertySpecs = estimate?.propertySpecs;
@@ -138,15 +108,31 @@ export default function ViewEstimatePage() {
   }, [items]);
 
   const budget: Budget | ProjectBudget | null = useMemo(() => {
-    if (selectedRooms.length === 0 || !propertySpecs) {
+    if (selectedRooms.length === 0) {
       return null;
     }
 
-    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, {
-      propertySpecs,
-      budgetDefaults: budgetDefaults || undefined,
-    });
-  }, [selectedRooms, roomTemplatesMap, itemsMap, propertySpecs, budgetDefaults]);
+    // Build options object matching EstimateEditPage logic exactly
+    const options = estimate?.propertySpecs && budgetDefaults
+      ? { 
+          propertySpecs: estimate.propertySpecs, 
+          budgetDefaults,
+          customRangeEnabled: estimate.customRangeEnabled,
+          customRangeLowPercent: estimate.customRangeLowPercent,
+          customRangeHighPercent: estimate.customRangeHighPercent,
+          customProjectAddOns: estimate.customProjectAddOns
+        }
+      : estimate?.customRangeEnabled
+        ? {
+            customRangeEnabled: estimate.customRangeEnabled,
+            customRangeLowPercent: estimate.customRangeLowPercent,
+            customRangeHighPercent: estimate.customRangeHighPercent,
+            customProjectAddOns: estimate.customProjectAddOns
+          }
+        : undefined;
+
+    return calculateEstimate(selectedRooms, roomTemplatesMap, itemsMap, options);
+  }, [selectedRooms, roomTemplatesMap, itemsMap, budgetDefaults, estimate]);
 
   const totalRooms = useMemo(() => calculateTotalRooms(selectedRooms), [selectedRooms]);
   const totalItems = useMemo(() => calculateTotalItems(selectedRooms, roomTemplatesMap, itemsMap), [selectedRooms, roomTemplatesMap, itemsMap]);
@@ -293,7 +279,7 @@ export default function ViewEstimatePage() {
 
   const { isAdmin } = useAuth();
 
-  if (loading || templatesLoading || defaultsLoading || rulesLoading) {
+  if (loading || templatesLoading || rulesLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -569,7 +555,7 @@ export default function ViewEstimatePage() {
                       (r) => r.roomType === room.roomType && r.roomSize === room.roomSize
                     );
                     const isExpanded = expandedRooms.has(room.roomType);
-                    const roomDisplayName = room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const roomDisplayName = estimateRoomData?.displayName || room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
                     return (
                       <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
@@ -611,18 +597,37 @@ export default function ViewEstimatePage() {
                                 .sort((a: RoomItem, b: RoomItem) => {
                                   const itemA = items.get(a.itemId);
                                   const itemB = items.get(b.itemId);
-                                  const nameA = itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-                                  const nameB = itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  const nameA = a.name || itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  const nameB = b.name || itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
                                   return nameA.localeCompare(nameB);
                                 })
                                 .map((roomItem: RoomItem, itemIdx: number) => {
                                   const item = items.get(roomItem.itemId);
-                                  const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  const itemDisplayName = roomItem.name || item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
                                   const totalQuantity = roomItem.quantity * room.quantity;
                                   
-                                  // Use RoomItem price override if available, otherwise fall back to item library
-                                  const lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
-                                  const midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+                                  // Get base low price (the price point the user sets)
+                                  const baseLowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+                                  
+                                  // Calculate display prices - respect custom range settings if enabled
+                                  let lowPrice: number;
+                                  let midPrice: number;
+                                  
+                                  // If custom range is enabled, calculate prices from base low price using percentages
+                                  if (estimate?.customRangeEnabled && 
+                                      estimate.customRangeLowPercent !== undefined && 
+                                      estimate.customRangeHighPercent !== undefined && 
+                                      baseLowPrice > 0) {
+                                    // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
+                                    lowPrice = Math.round(baseLowPrice * (1 - estimate.customRangeLowPercent / 100));
+                                    // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
+                                    midPrice = Math.round(baseLowPrice * (1 + estimate.customRangeHighPercent / 100));
+                                  } else {
+                                    // Use RoomItem price override if available, otherwise fall back to item library
+                                    lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+                                    midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+                                  }
+                                  
                                   const lowTotal = lowPrice * totalQuantity;
                                   const midTotal = midPrice * totalQuantity;
 

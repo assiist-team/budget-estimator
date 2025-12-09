@@ -18,6 +18,16 @@ export function calculateEstimate(
     customRangeEnabled?: boolean;
     customRangeLowPercent?: number;
     customRangeHighPercent?: number;
+    customProjectAddOns?: Partial<{
+      installation: number;
+      fuel: number;
+      storageAndReceiving: number;
+      kitchen: number;
+      propertyManagement: number;
+      designPlanning: number;
+      procurement: number;
+      designImplementation: number;
+    }>;
   }
 ): Budget | ProjectBudget {
   const tiers: QualityTier[] = ['low', 'mid', 'midHigh', 'high'];
@@ -34,11 +44,7 @@ export function calculateEstimate(
 
   selectedRooms.forEach((room) => {
     const template = roomTemplates.get(room.roomType);
-    if (!template) return;
-
-    const roomSize = template.sizes[room.roomSize as keyof typeof template.sizes];
-    if (!roomSize) return;
-
+    
     const roomData: RoomBreakdown = {
       roomType: room.roomType,
       roomSize: room.roomSize,
@@ -53,6 +59,7 @@ export function calculateEstimate(
     const hasItems = room.items.length > 0;
 
     // Calculate all tiers for room breakdown
+    // Handle rooms with items (including custom rooms without templates)
     if (hasItems && items) {
         // Calculate dynamically from current room items for all tiers
         tiers.forEach((tier) => {
@@ -115,6 +122,9 @@ export function calculateEstimate(
         });
     } else if (template) {
         // Use pre-calculated room totals for rooms without items
+        const roomSize = template.sizes[room.roomSize as keyof typeof template.sizes];
+        if (!roomSize) return;
+        
         tiers.forEach((tier) => {
           const templateTotals = template.sizes[room.roomSize as keyof typeof template.sizes]?.totals as Record<string, number> | undefined;
           if (!templateTotals) return;
@@ -127,6 +137,9 @@ export function calculateEstimate(
           roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;
           budget[tier].subtotal += roomTotal;
         });
+    } else {
+      // Room has no template and no items - skip it
+      return;
     }
 
     budget.roomBreakdown.push(roomData);
@@ -144,7 +157,7 @@ export function calculateEstimate(
 
   // If property specs are provided, calculate project budget with add-ons
   if (options?.propertySpecs) {
-    const { propertySpecs, budgetDefaults } = options;
+    const { propertySpecs, budgetDefaults, customProjectAddOns } = options;
 
     // Calculate base design fee from rate
     const baseDesignFee = Math.round(propertySpecs.squareFootage * (budgetDefaults?.designFeeRatePerSqftCents || 1000)); // Default $10/sqft design fee
@@ -156,15 +169,16 @@ export function calculateEstimate(
     const designImplementation = baseDesignFee - designPlanning - procurement;
 
     // Use budget defaults if available, otherwise use minimal defaults
+    // Apply custom overrides if provided
     const projectAddOns = {
-      installation: budgetDefaults?.installationCents || 0,
-      fuel: budgetDefaults?.fuelCents || 0,
-      storageAndReceiving: budgetDefaults?.storageAndReceivingCents || 0,
-      kitchen: budgetDefaults?.kitchenCents || 0,
-      propertyManagement: budgetDefaults?.propertyManagementCents || 0,
-      designPlanning,
-      procurement,
-      designImplementation,
+      installation: customProjectAddOns?.installation !== undefined ? customProjectAddOns.installation : (budgetDefaults?.installationCents || 0),
+      fuel: customProjectAddOns?.fuel !== undefined ? customProjectAddOns.fuel : (budgetDefaults?.fuelCents || 0),
+      storageAndReceiving: customProjectAddOns?.storageAndReceiving !== undefined ? customProjectAddOns.storageAndReceiving : (budgetDefaults?.storageAndReceivingCents || 0),
+      kitchen: customProjectAddOns?.kitchen !== undefined ? customProjectAddOns.kitchen : (budgetDefaults?.kitchenCents || 0),
+      propertyManagement: customProjectAddOns?.propertyManagement !== undefined ? customProjectAddOns.propertyManagement : (budgetDefaults?.propertyManagementCents || 0),
+      designPlanning: customProjectAddOns?.designPlanning !== undefined ? customProjectAddOns.designPlanning : designPlanning,
+      procurement: customProjectAddOns?.procurement !== undefined ? customProjectAddOns.procurement : procurement,
+      designImplementation: customProjectAddOns?.designImplementation !== undefined ? customProjectAddOns.designImplementation : designImplementation,
     } as const;
 
     const addOnTotal = Object.values(projectAddOns).reduce((sum, cents) => sum + cents, 0);
@@ -359,6 +373,9 @@ export function suggestRoomConfiguration(
         items: []
       });
     }
+
+    // Add Outdoor Space room (always included for project budgets)
+    suggestions.push(createOutdoorSpaceRoom());
   } else if (fallbackSquareFootage && fallbackGuestCapacity) {
     // Fallback logic when computed configuration is not available
     suggestions.push({
@@ -426,9 +443,31 @@ export function suggestRoomConfiguration(
         items: []
       });
     }
+
+    // Add Outdoor Space room (always included for project budgets)
+    suggestions.push(createOutdoorSpaceRoom());
   }
 
   return suggestions;
+}
+
+/**
+ * Create the Outdoor Space room with fixed $1,250 price
+ */
+export function createOutdoorSpaceRoom(): RoomWithItems {
+  return {
+    roomType: 'outdoor_space',
+    roomSize: 'medium',
+    quantity: 1,
+    displayName: 'Outdoor Space',
+    items: [{
+      itemId: 'outdoor_space_item',
+      quantity: 1,
+      name: 'Outdoor Space',
+      lowPrice: 125000, // $1,250 in cents
+      midPrice: 125000, // $1,250 in cents
+    }]
+  };
 }
 
 

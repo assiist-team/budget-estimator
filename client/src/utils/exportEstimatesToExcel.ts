@@ -63,11 +63,32 @@ export function exportEstimatesToExcel({
   ];
 
   estimates.forEach((estimate) => {
+    // Build options object matching EstimateEditPage and ViewEstimatePage logic exactly
+    const options = estimate?.propertySpecs && budgetDefaults
+      ? { 
+          propertySpecs: estimate.propertySpecs, 
+          budgetDefaults,
+          customRangeEnabled: estimate.customRangeEnabled,
+          customRangeLowPercent: estimate.customRangeLowPercent,
+          customRangeHighPercent: estimate.customRangeHighPercent,
+          customProjectAddOns: estimate.customProjectAddOns
+        }
+      : estimate?.customRangeEnabled
+        ? {
+            customRangeEnabled: estimate.customRangeEnabled,
+            customRangeLowPercent: estimate.customRangeLowPercent,
+            customRangeHighPercent: estimate.customRangeHighPercent,
+            customProjectAddOns: estimate.customProjectAddOns
+          }
+        : estimate?.propertySpecs
+          ? {
+              propertySpecs: estimate.propertySpecs,
+              budgetDefaults: budgetDefaults,
+            }
+          : undefined;
+    
     const budget = estimate.rooms?.length
-      ? calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, {
-          propertySpecs: estimate.propertySpecs,
-          budgetDefaults: budgetDefaults,
-        })
+      ? calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, options)
       : null;
 
     const isProjectBudget = budget && 'projectRange' in budget;
@@ -150,10 +171,42 @@ export function exportEstimatesToExcel({
         const itemName = item?.name || roomItem.name || roomItem.itemId;
         const totalQuantity = roomItem.quantity * room.quantity;
 
-        const lowTotal = item ? item.lowPrice * totalQuantity : 0;
-        const midTotal = item ? item.midPrice * totalQuantity : 0;
-        const midHighTotal = item ? item.midHighPrice * totalQuantity : 0;
-        const highTotal = item ? item.highPrice * totalQuantity : 0;
+        // Get base low price (the price point the user sets)
+        const baseLowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+        
+        // Calculate prices - respect custom range settings if enabled
+        let lowPrice: number;
+        let midPrice: number;
+        let midHighPrice: number;
+        let highPrice: number;
+        
+        // If custom range is enabled, calculate prices from base low price using percentages
+        if (estimate.customRangeEnabled && 
+            estimate.customRangeLowPercent !== undefined && 
+            estimate.customRangeHighPercent !== undefined && 
+            baseLowPrice > 0) {
+          // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
+          lowPrice = Math.round(baseLowPrice * (1 - estimate.customRangeLowPercent / 100));
+          // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
+          midPrice = Math.round(baseLowPrice * (1 + estimate.customRangeHighPercent / 100));
+          // Calculate midHigh and high using proportional scaling
+          const lowEnd = lowPrice;
+          const highEnd = midPrice;
+          const range = highEnd - lowEnd;
+          midHighPrice = Math.round(lowEnd + range * 0.75);
+          highPrice = Math.round(lowEnd + range * 1.5);
+        } else {
+          // Use RoomItem price override if available, otherwise fall back to item library
+          lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+          midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+          midHighPrice = item?.midHighPrice || 0;
+          highPrice = item?.highPrice || 0;
+        }
+
+        const lowTotal = lowPrice * totalQuantity;
+        const midTotal = midPrice * totalQuantity;
+        const midHighTotal = midHighPrice * totalQuantity;
+        const highTotal = highPrice * totalQuantity;
 
         itemDetailsData.push([
           estimate.id,
@@ -167,10 +220,10 @@ export function exportEstimatesToExcel({
           item?.subcategory || '',
           roomItem.quantity,
           totalQuantity,
-          item ? formatCurrency(item.lowPrice) : '',
-          item ? formatCurrency(item.midPrice) : '',
-          item ? formatCurrency(item.midHighPrice) : '',
-          item ? formatCurrency(item.highPrice) : '',
+          formatCurrency(lowPrice),
+          formatCurrency(midPrice),
+          formatCurrency(midHighPrice),
+          formatCurrency(highPrice),
           formatCurrency(lowTotal),
           formatCurrency(midTotal),
           formatCurrency(midHighTotal),
@@ -199,11 +252,32 @@ export function exportEstimatesToExcel({
   ];
 
   estimates.forEach((estimate) => {
+    // Build options object matching EstimateEditPage and ViewEstimatePage logic exactly
+    const options = estimate?.propertySpecs && budgetDefaults
+      ? { 
+          propertySpecs: estimate.propertySpecs, 
+          budgetDefaults,
+          customRangeEnabled: estimate.customRangeEnabled,
+          customRangeLowPercent: estimate.customRangeLowPercent,
+          customRangeHighPercent: estimate.customRangeHighPercent,
+          customProjectAddOns: estimate.customProjectAddOns
+        }
+      : estimate?.customRangeEnabled
+        ? {
+            customRangeEnabled: estimate.customRangeEnabled,
+            customRangeLowPercent: estimate.customRangeLowPercent,
+            customRangeHighPercent: estimate.customRangeHighPercent,
+            customProjectAddOns: estimate.customProjectAddOns
+          }
+        : estimate?.propertySpecs
+          ? {
+              propertySpecs: estimate.propertySpecs,
+              budgetDefaults: budgetDefaults,
+            }
+          : undefined;
+    
     const budget = estimate.rooms?.length
-      ? calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, {
-          propertySpecs: estimate.propertySpecs,
-          budgetDefaults: budgetDefaults,
-        })
+      ? calculateEstimate(estimate.rooms, roomTemplatesMap, itemsMap, options)
       : null;
 
     if (budget) {

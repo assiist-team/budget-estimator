@@ -5,7 +5,7 @@ import { useEstimateEditor } from '../hooks/useEstimateEditing';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import Header from '../components/Header';
-import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
+import { UndoIcon, RedoIcon, TrashIcon, EditIcon } from '../components/Icons';
 import type { RoomWithItems, RoomTemplate, Item, ProjectBudget, Budget, RoomItem } from '../types';
 import { formatCurrency, calculateEstimate, calculateTotalRooms, calculateTotalItems } from '../utils/calculations';
 import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
@@ -15,6 +15,106 @@ import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
 function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
   return budget !== null && 'projectRange' in budget;
 }
+
+// Budget Category Row Component
+interface BudgetCategoryRowProps {
+  label: string;
+  value: number; // in cents
+  description: string;
+  categoryKey: string;
+  onUpdate: (value: number) => void; // value in cents
+  onDelete: () => void;
+}
+
+const BudgetCategoryRow = ({ label, value, description, onUpdate, onDelete }: BudgetCategoryRowProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [inputValue, setInputValue] = useState((value / 100).toFixed(2));
+
+  useEffect(() => {
+    setInputValue((value / 100).toFixed(2));
+  }, [value]);
+
+  const handleSave = () => {
+    const dollars = parseFloat(inputValue);
+    if (!isNaN(dollars) && dollars >= 0) {
+      onUpdate(Math.round(dollars * 100));
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setInputValue((value / 100).toFixed(2));
+    setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm(`Are you sure you want to delete "${label}"? This will reset it to the default value.`)) {
+      onDelete();
+    }
+  };
+
+  return (
+    <div className="py-2 border-b border-gray-100 last:border-b-0">
+      <div className="flex justify-between items-center mb-1">
+        <span className="text-gray-700 font-medium">{label}</span>
+        <div className="flex items-center gap-2">
+          {isEditing ? (
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                className="w-24 px-2 py-1 border border-gray-300 rounded text-sm text-right"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSave();
+                  } else if (e.key === 'Escape') {
+                    handleCancel();
+                  }
+                }}
+              />
+              <button
+                onClick={handleSave}
+                className="text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
+              >
+                Save
+              </button>
+              <button
+                onClick={handleCancel}
+                className="text-xs px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <>
+              <span className="text-gray-700">{formatCurrency(value)}</span>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-primary-600 hover:text-primary-800 p-1"
+                title="Edit"
+              >
+                <EditIcon />
+              </button>
+              <button
+                onClick={handleDelete}
+                className="text-red-600 hover:text-red-800 p-1"
+                title="Delete (reset to default)"
+              >
+                <TrashIcon />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      <p className="text-xs text-gray-500">{description}</p>
+    </div>
+  );
+};
 
 export default function EstimateEditPage() {
   const navigate = useNavigate();
@@ -66,13 +166,15 @@ export default function EstimateEditPage() {
           budgetDefaults,
           customRangeEnabled: estimate.customRangeEnabled,
           customRangeLowPercent: estimate.customRangeLowPercent,
-          customRangeHighPercent: estimate.customRangeHighPercent
+          customRangeHighPercent: estimate.customRangeHighPercent,
+          customProjectAddOns: estimate.customProjectAddOns
         }
       : estimate?.customRangeEnabled
         ? {
             customRangeEnabled: estimate.customRangeEnabled,
             customRangeLowPercent: estimate.customRangeLowPercent,
-            customRangeHighPercent: estimate.customRangeHighPercent
+            customRangeHighPercent: estimate.customRangeHighPercent,
+            customProjectAddOns: estimate.customProjectAddOns
           }
         : undefined;
     return calculateEstimate(rooms, roomTemplatesMap, itemsMap, options);
@@ -309,7 +411,7 @@ export default function EstimateEditPage() {
                   </div>
 
                   <div className="space-y-4">
-                    {/* Furnishings */}
+                    {/* Furnishings - Read-only */}
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700">Furnishings</span>
@@ -322,93 +424,158 @@ export default function EstimateEditPage() {
                       </p>
                     </div>
 
-                    {/* Project Add-ons */}
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Design Planning</span>
-                        <span className="text-gray-700">
-                          {formatCurrency(currentBudget.projectAddOns.designPlanning)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Initial design consultation, space planning, and design development
-                      </p>
-                    </div>
+                    {/* Project Add-ons - Editable */}
+                    <BudgetCategoryRow
+                      label="Design Planning"
+                      value={currentBudget.projectAddOns.designPlanning}
+                      description="Initial design consultation, space planning, and design development"
+                      categoryKey="designPlanning"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          designPlanning: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.designPlanning;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Procurement</span>
-                        <span className="text-gray-700">
-                          {formatCurrency(currentBudget.projectAddOns.procurement)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Sourcing, ordering, and managing furniture and accessories
-                      </p>
-                    </div>
+                    <BudgetCategoryRow
+                      label="Procurement"
+                      value={currentBudget.projectAddOns.procurement}
+                      description="Sourcing, ordering, and managing furniture and accessories"
+                      categoryKey="procurement"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          procurement: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.procurement;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Design Implementation</span>
-                        <span className="text-gray-700">
-                          {formatCurrency(currentBudget.projectAddOns.designImplementation)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Final placement, styling, and design execution services
-                      </p>
-                    </div>
+                    <BudgetCategoryRow
+                      label="Design Implementation"
+                      value={currentBudget.projectAddOns.designImplementation}
+                      description="Final placement, styling, and design execution services"
+                      categoryKey="designImplementation"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          designImplementation: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.designImplementation;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Installation</span>
-                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.installation)}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Professional delivery, setup, and installation services
-                      </p>
-                    </div>
+                    <BudgetCategoryRow
+                      label="Installation"
+                      value={currentBudget.projectAddOns.installation}
+                      description="Professional delivery, setup, and installation services"
+                      categoryKey="installation"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          installation: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.installation;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Fuel</span>
-                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.fuel)}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Transportation and fuel costs
-                      </p>
-                    </div>
+                    <BudgetCategoryRow
+                      label="Fuel"
+                      value={currentBudget.projectAddOns.fuel}
+                      description="Transportation and fuel costs"
+                      categoryKey="fuel"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          fuel: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.fuel;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Storage & Receiving</span>
-                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.storageAndReceiving)}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Temporary storage solutions and receiving services
-                      </p>
-                    </div>
+                    <BudgetCategoryRow
+                      label="Storage & Receiving"
+                      value={currentBudget.projectAddOns.storageAndReceiving}
+                      description="Temporary storage solutions and receiving services"
+                      categoryKey="storageAndReceiving"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          storageAndReceiving: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.storageAndReceiving;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Kitchen</span>
-                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.kitchen)}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Kitchen equipment including cookware, flatware, and accessories
-                      </p>
-                    </div>
+                    <BudgetCategoryRow
+                      label="Kitchen"
+                      value={currentBudget.projectAddOns.kitchen}
+                      description="Kitchen equipment including cookware, flatware, and accessories"
+                      categoryKey="kitchen"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          kitchen: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.kitchen;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
-                    {/* Property Management */}
-                    <div className="py-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Property Management</span>
-                        <span className="text-gray-700">{formatCurrency(currentBudget.projectAddOns.propertyManagement)}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Items required by property management
-                      </p>
-                    </div>
+                    <BudgetCategoryRow
+                      label="Property Management"
+                      value={currentBudget.projectAddOns.propertyManagement}
+                      description="Items required by property management"
+                      categoryKey="propertyManagement"
+                      onUpdate={(value) => {
+                        const updatedCustomAddOns = {
+                          ...estimate.customProjectAddOns,
+                          propertyManagement: value
+                        };
+                        updateEstimate({ customProjectAddOns: updatedCustomAddOns });
+                      }}
+                      onDelete={() => {
+                        const updatedCustomAddOns = { ...estimate.customProjectAddOns };
+                        delete updatedCustomAddOns.propertyManagement;
+                        updateEstimate({ customProjectAddOns: Object.keys(updatedCustomAddOns).length > 0 ? updatedCustomAddOns : {} });
+                      }}
+                    />
 
                   </div>
                 </div>
@@ -726,7 +893,7 @@ interface ItemRowProps {
 
 function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, onRemove, onQuantityChange, onPriceChange }: ItemRowProps) {
   const item = itemsMap.get(roomItem.itemId);
-  const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+  const itemDisplayName = roomItem.name || item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
   
   // Get base low price (the price point the user sets)
   const baseLowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);

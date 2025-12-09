@@ -137,6 +137,17 @@ export interface Estimate {
   customRangeEnabled?: boolean;
   customRangeLowPercent?: number; // Percentage below low price point (e.g., 5 for 5%)
   customRangeHighPercent?: number; // Percentage above low price point (e.g., 5 for 5%)
+  // Custom project add-ons overrides (in cents). If a key exists, it overrides the calculated/default value
+  customProjectAddOns?: Partial<{
+    installation: number;
+    fuel: number;
+    storageAndReceiving: number;
+    kitchen: number;
+    propertyManagement: number;
+    designPlanning: number;
+    procurement: number;
+    designImplementation: number;
+  }>;
 }
 
 export interface EditHistoryEntry {

@@ -4,7 +4,7 @@ import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy, limit, ser
 import { db } from '../lib/firebase';
 import { useRoomTemplates } from './useRoomTemplates';
 import type { Estimate, RoomWithItems, EditHistoryEntry } from '../types';
-import { calculateEstimate } from '../utils/calculations';
+import { calculateEstimate, createOutdoorSpaceRoom } from '../utils/calculations';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -56,7 +56,7 @@ export function useEstimateEditing() {
         const docData = doc.data();
 
         // Convert room data to RoomWithItems format
-        const roomsWithItems: RoomWithItems[] = (docData.rooms || []).map((room: any) => {
+        let roomsWithItems: RoomWithItems[] = (docData.rooms || []).map((room: any) => {
           // If room already has items, use them
           if (room.items) {
             return room as RoomWithItems;
@@ -77,6 +77,14 @@ export function useEstimateEditing() {
             items: []
           };
         });
+
+        // For project budgets (estimates with propertySpecs), ensure Outdoor Space room exists
+        if (docData.propertySpecs) {
+          const hasOutdoorSpace = roomsWithItems.some(room => room.roomType === 'outdoor_space');
+          if (!hasOutdoorSpace) {
+            roomsWithItems.push(createOutdoorSpaceRoom());
+          }
+        }
 
         estimatesData.push({
           id: doc.id,
@@ -195,9 +203,21 @@ export function useEstimateEditor(estimateId?: string) {
     // Find estimate in loaded estimates
     const foundEstimate = estimates.find(e => e.id === estimateId);
     if (foundEstimate) {
-      setEstimate(foundEstimate);
-      // Initialize history with the loaded estimate
-      setHistory([foundEstimate]);
+      // For project budgets, ensure Outdoor Space room exists
+      let processedEstimate = foundEstimate;
+      if (foundEstimate.propertySpecs) {
+        const hasOutdoorSpace = foundEstimate.rooms.some(room => room.roomType === 'outdoor_space');
+        if (!hasOutdoorSpace) {
+          processedEstimate = {
+            ...foundEstimate,
+            rooms: [...foundEstimate.rooms, createOutdoorSpaceRoom()]
+          };
+        }
+      }
+      
+      setEstimate(processedEstimate);
+      // Initialize history with the processed estimate
+      setHistory([processedEstimate]);
       setHistoryIndex(0);
       setHasUnsavedChanges(false);
       setLoading(false);
@@ -323,14 +343,21 @@ export function useEstimateEditor(estimateId?: string) {
   const saveChanges = useCallback(async () => {
     if (!estimate || !hasUnsavedChanges) return false;
 
-    const success = await updateEstimate(estimate.id, {
+    const updates: Partial<Estimate> = {
       rooms: estimate.rooms,
       lastEditedAt: new Date(),
       editHistory: estimate.editHistory,
       customRangeEnabled: estimate.customRangeEnabled,
       customRangeLowPercent: estimate.customRangeLowPercent,
       customRangeHighPercent: estimate.customRangeHighPercent
-    });
+    };
+
+    // Only include customProjectAddOns if it is defined to avoid sending `undefined` to Firestore
+    if (estimate.customProjectAddOns !== undefined) {
+      updates.customProjectAddOns = estimate.customProjectAddOns;
+    }
+
+    const success = await updateEstimate(estimate.id, updates);
 
     if (success) {
       setHasUnsavedChanges(false);
