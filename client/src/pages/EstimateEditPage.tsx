@@ -167,14 +167,16 @@ export default function EstimateEditPage() {
           customRangeEnabled: estimate.customRangeEnabled,
           customRangeLowPercent: estimate.customRangeLowPercent,
           customRangeHighPercent: estimate.customRangeHighPercent,
-          customProjectAddOns: estimate.customProjectAddOns
+          customProjectAddOns: estimate.customProjectAddOns,
+          fixedPrices: estimate.fixedPrices
         }
-      : estimate?.customRangeEnabled
+      : estimate?.customRangeEnabled || estimate?.fixedPrices
         ? {
             customRangeEnabled: estimate.customRangeEnabled,
             customRangeLowPercent: estimate.customRangeLowPercent,
             customRangeHighPercent: estimate.customRangeHighPercent,
-            customProjectAddOns: estimate.customProjectAddOns
+            customProjectAddOns: estimate.customProjectAddOns,
+            fixedPrices: estimate.fixedPrices
           }
         : undefined;
     return calculateEstimate(rooms, roomTemplatesMap, itemsMap, options);
@@ -189,10 +191,14 @@ export default function EstimateEditPage() {
   const calculateBudgetRange = useCallback((rooms: RoomWithItems[]) => {
     const budget = calculateBudgetBreakdown(rooms);
     if (isProjectBudget(budget)) {
-      return `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`;
+      return estimate?.fixedPrices 
+        ? formatCurrency(budget.projectRange.low)
+        : `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`;
     }
-    return `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
-  }, [calculateBudgetBreakdown]);
+    return estimate?.fixedPrices
+      ? formatCurrency(budget.rangeLow)
+      : `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`;
+  }, [calculateBudgetBreakdown, estimate?.fixedPrices]);
 
   // Calculate room and item counts for the current estimate
   const totalRooms = useMemo(() => calculateTotalRooms(estimate?.rooms || []), [estimate?.rooms]);
@@ -329,6 +335,22 @@ export default function EstimateEditPage() {
                   <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
+                      id="fixedPricesToggle"
+                      checked={estimate.fixedPrices || false}
+                      onChange={(e) => {
+                        updateEstimate({
+                          fixedPrices: e.target.checked
+                        });
+                      }}
+                      className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <label htmlFor="fixedPricesToggle" className="text-gray-700 font-medium cursor-pointer">
+                      Fixed Prices (use only low price point, eliminate ranges)
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
                       id="customRangeToggle"
                       checked={estimate.customRangeEnabled || false}
                       onChange={(e) => {
@@ -339,8 +361,9 @@ export default function EstimateEditPage() {
                         });
                       }}
                       className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      disabled={estimate.fixedPrices || false}
                     />
-                    <label htmlFor="customRangeToggle" className="text-gray-700 font-medium cursor-pointer">
+                    <label htmlFor="customRangeToggle" className={`text-gray-700 font-medium cursor-pointer ${estimate.fixedPrices ? 'opacity-50' : ''}`}>
                       Use Custom Range (based on low price point)
                     </label>
                   </div>
@@ -615,6 +638,7 @@ export default function EstimateEditPage() {
                     customRangeEnabled={estimate.customRangeEnabled || false}
                     customRangeLowPercent={estimate.customRangeLowPercent}
                     customRangeHighPercent={estimate.customRangeHighPercent}
+                    fixedPrices={estimate.fixedPrices || false}
                     onUpdate={(updatedRoom) => updateRoom(roomIndex, updatedRoom)}
                     onRemove={() => removeRoom(roomIndex)}
                     onQuantityChange={(newQuantity) => {
@@ -647,12 +671,13 @@ interface RoomEditorProps {
   customRangeEnabled?: boolean;
   customRangeLowPercent?: number;
   customRangeHighPercent?: number;
+  fixedPrices?: boolean;
   onUpdate: (room: RoomWithItems) => void;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
 }
 
-function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
+function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, fixedPrices, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
@@ -672,8 +697,12 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, customRangeEnabl
       let lowPrice: number;
       let midPrice: number;
       
-      // If custom range is enabled, calculate prices from low price using percentages
-      if (customRangeEnabled && customRangeLowPercent !== undefined && customRangeHighPercent !== undefined && baseLowPrice > 0) {
+      // If fixed prices is enabled, use only low price (no ranges)
+      if (fixedPrices) {
+        lowPrice = baseLowPrice;
+        midPrice = baseLowPrice; // Same as low price when fixed
+      } else if (customRangeEnabled && customRangeLowPercent !== undefined && customRangeHighPercent !== undefined && baseLowPrice > 0) {
+        // If custom range is enabled, calculate prices from low price using percentages
         // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
         lowPrice = Math.round(baseLowPrice * (1 - customRangeLowPercent / 100));
         // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
@@ -690,7 +719,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, customRangeEnabl
     });
     
     return { low: lowTotal, mid: midTotal };
-  }, [room.items, room.quantity, itemsMap, customRangeEnabled, customRangeLowPercent, customRangeHighPercent]);
+  }, [room.items, room.quantity, itemsMap, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, fixedPrices]);
 
   const handleSizeChange = (newSize: 'small' | 'medium' | 'large') => {
     // Update room size and items based on the new size template
@@ -784,7 +813,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, customRangeEnabl
         </div>
         <div className="text-right flex-shrink-0 ml-3">
           <div className="font-semibold text-gray-700 whitespace-nowrap">
-            {formatCurrency(roomTotals.low)} — {formatCurrency(roomTotals.mid)}
+            {fixedPrices ? formatCurrency(roomTotals.low) : `${formatCurrency(roomTotals.low)} — ${formatCurrency(roomTotals.mid)}`}
           </div>
         </div>
         <div className="flex items-center gap-6 ml-4 flex-shrink-0">
@@ -841,6 +870,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, customRangeEnabl
                 customRangeEnabled={customRangeEnabled}
                 customRangeLowPercent={customRangeLowPercent}
                 customRangeHighPercent={customRangeHighPercent}
+                fixedPrices={fixedPrices}
                 onRemove={() => {
                   const updatedItems = room.items.filter((_, i) => i !== itemIndex);
                   onUpdate({ ...room, items: updatedItems });
@@ -886,12 +916,13 @@ interface ItemRowProps {
   customRangeEnabled?: boolean;
   customRangeLowPercent?: number;
   customRangeHighPercent?: number;
+  fixedPrices?: boolean;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
   onPriceChange: (lowPrice?: number, midPrice?: number) => void;
 }
 
-function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, onRemove, onQuantityChange, onPriceChange }: ItemRowProps) {
+function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, fixedPrices, onRemove, onQuantityChange, onPriceChange }: ItemRowProps) {
   const item = itemsMap.get(roomItem.itemId);
   let itemDisplayName = roomItem.name || item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
   // Override display name for outdoor space item
@@ -906,8 +937,12 @@ function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customR
   let lowPrice: number;
   let midPrice: number;
   
-  // If custom range is enabled, calculate prices from base low price using percentages
-  if (customRangeEnabled && customRangeLowPercent !== undefined && customRangeHighPercent !== undefined && baseLowPrice > 0) {
+  // If fixed prices is enabled, use only low price (no ranges)
+  if (fixedPrices) {
+    lowPrice = baseLowPrice;
+    midPrice = baseLowPrice; // Same as low price when fixed
+  } else if (customRangeEnabled && customRangeLowPercent !== undefined && customRangeHighPercent !== undefined && baseLowPrice > 0) {
+    // If custom range is enabled, calculate prices from base low price using percentages
     // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
     lowPrice = Math.round(baseLowPrice * (1 - customRangeLowPercent / 100));
     // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
@@ -1035,10 +1070,15 @@ function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customR
           </div>
         ) : (
           <div className="text-xs text-gray-500 mt-1">
-            {formatCurrency(lowPrice)} — {formatCurrency(midPrice)} each
-            {customRangeEnabled && (
+            {fixedPrices ? formatCurrency(lowPrice) : `${formatCurrency(lowPrice)} — ${formatCurrency(midPrice)}`} each
+            {customRangeEnabled && !fixedPrices && (
               <span className="ml-2 text-xs text-gray-400 italic">
                 (calculated from low price)
+              </span>
+            )}
+            {fixedPrices && (
+              <span className="ml-2 text-xs text-gray-400 italic">
+                (fixed price)
               </span>
             )}
             <button
@@ -1056,7 +1096,7 @@ function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customR
           {roomQuantity > 1 && ` × ${roomQuantity} rooms`}
         </span>
         <span className="text-gray-700 font-semibold">
-          {formatCurrency(lowTotal)} — {formatCurrency(midTotal)}
+          {fixedPrices ? formatCurrency(lowTotal) : `${formatCurrency(lowTotal)} — ${formatCurrency(midTotal)}`}
         </span>
         <div className="flex items-center gap-2">
           <button

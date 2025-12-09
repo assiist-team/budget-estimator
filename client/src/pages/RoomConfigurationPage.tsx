@@ -183,6 +183,10 @@ export default function RoomConfigurationPage() {
     .filter(t => t.category === 'sleeping_spaces')
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
+  const otherSpaces = Array.from(roomTemplates.values())
+    .filter(t => t.category === 'other_spaces')
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -278,6 +282,43 @@ export default function RoomConfigurationPage() {
               })}
             </div>
           </div>
+
+          {/* Other Spaces */}
+          {otherSpaces.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+                Other Spaces
+              </h2>
+              <div className="space-y-4">
+                {otherSpaces.map((template) => {
+                  const roomIndex = localRooms.findIndex(r => r.roomType === template.id);
+                  const room = roomIndex >= 0 ? localRooms[roomIndex] : null;
+                  const isSelected = room !== null;
+                  
+                  return (
+                    <RoomCard
+                      key={template.id}
+                      room={room || {
+                        roomType: template.id,
+                        roomSize: 'medium' as const,
+                        quantity: 1,
+                        displayName: template.displayName,
+                        items: [],
+                      }}
+                      isSelected={isSelected}
+                      priceRange={getRoomPriceRange(
+                        template.id,
+                        room?.roomSize || 'medium'
+                      )}
+                      onToggle={() => handleToggleRoom(template.id)}
+                      onSizeChange={(size) => roomIndex >= 0 && handleSizeChange(roomIndex, size)}
+                      onQuantityChange={(quantity) => roomIndex >= 0 && handleQuantityChange(roomIndex, quantity)}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Running Total */}
           {localRooms.length > 0 && (

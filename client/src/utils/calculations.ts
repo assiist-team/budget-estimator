@@ -9,7 +9,7 @@ export { QUALITY_TIERS } from '../types';
  * Calculate estimate for all quality tiers (low to mid range)
  */
 export function calculateEstimate(
-  selectedRooms: RoomWithItems[],
+  selectedRooms: RoomForCalculation[],
   roomTemplates: Map<string, RoomTemplate>,
   items?: Map<string, Item>,
   options?: {
@@ -18,6 +18,7 @@ export function calculateEstimate(
     customRangeEnabled?: boolean;
     customRangeLowPercent?: number;
     customRangeHighPercent?: number;
+    fixedPrices?: boolean;
     customProjectAddOns?: Partial<{
       installation: number;
       fuel: number;
@@ -72,12 +73,14 @@ export function calculateEstimate(
               ? roomItem.lowPrice 
               : (items.get(roomItem.itemId)?.lowPrice || 0);
             
-            // If custom range is enabled, calculate prices from low price using percentages
-            if (options?.customRangeEnabled && 
+            // If fixed prices is enabled, use only low price for all tiers (no ranges)
+            if (options?.fixedPrices) {
+              tierPrice = baseLowPrice;
+            } else if (options?.customRangeEnabled && 
                 options.customRangeLowPercent !== undefined && 
                 options.customRangeHighPercent !== undefined &&
                 baseLowPrice > 0) {
-              
+              // If custom range is enabled, calculate prices from low price using percentages
               if (tier === 'low') {
                 // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
                 tierPrice = Math.round(baseLowPrice * (1 - options.customRangeLowPercent / 100));
@@ -152,8 +155,14 @@ export function calculateEstimate(
   });
 
   // Set overall range (low tier for lower range, mid tier for upper range)
-  budget.rangeLow = budget.low.total;
-  budget.rangeHigh = budget.mid.total;
+  // If fixed prices is enabled, use only low price (no range)
+  if (options?.fixedPrices) {
+    budget.rangeLow = budget.low.total;
+    budget.rangeHigh = budget.low.total; // Same as low when fixed prices
+  } else {
+    budget.rangeLow = budget.low.total;
+    budget.rangeHigh = budget.mid.total;
+  }
 
   // If property specs are provided, calculate project budget with add-ons
   if (options?.propertySpecs) {
@@ -183,12 +192,20 @@ export function calculateEstimate(
 
     const addOnTotal = Object.values(projectAddOns).reduce((sum, cents) => sum + cents, 0);
 
-    const projectRange = {
-      low: budget.low.total + addOnTotal,
-      mid: budget.mid.total + addOnTotal,
-      midHigh: budget.midHigh.total + addOnTotal,
-      high: budget.high.total + addOnTotal
-    } as const;
+    // If fixed prices is enabled, use only low price for all ranges
+    const projectRange = options?.fixedPrices
+      ? {
+          low: budget.low.total + addOnTotal,
+          mid: budget.low.total + addOnTotal,
+          midHigh: budget.low.total + addOnTotal,
+          high: budget.low.total + addOnTotal
+        } as const
+      : {
+          low: budget.low.total + addOnTotal,
+          mid: budget.mid.total + addOnTotal,
+          midHigh: budget.midHigh.total + addOnTotal,
+          high: budget.high.total + addOnTotal
+        } as const;
 
     const projectBudget: ProjectBudget = {
       ...budget,
@@ -248,7 +265,7 @@ export function centsToDollars(cents: number): number {
 /**
  * Calculate total number of rooms from selected rooms
  */
-export function calculateTotalRooms(selectedRooms: RoomWithItems[]): number {
+export function calculateTotalRooms(selectedRooms: RoomForCalculation[]): number {
   return selectedRooms.reduce((total, room) => total + room.quantity, 0);
 }
 
@@ -256,7 +273,7 @@ export function calculateTotalRooms(selectedRooms: RoomWithItems[]): number {
  * Calculate total number of items across all rooms
  */
 export function calculateTotalItems(
-  selectedRooms: RoomWithItems[],
+  selectedRooms: RoomForCalculation[],
   roomTemplates: Map<string, RoomTemplate>,
   items?: Map<string, Item>
 ): number {

@@ -40,8 +40,9 @@ export interface RoomTemplate {
   name: string;
   displayName: string;
   description: string;
-  category: 'common_spaces' | 'sleeping_spaces';
+  category: 'common_spaces' | 'sleeping_spaces' | 'other_spaces';
   icon?: string;
+  isCanonical?: boolean; // true for system rooms, false for custom rooms
   sizes: {
     small: RoomSize;
     medium: RoomSize;
@@ -52,13 +53,38 @@ export interface RoomTemplate {
   updatedAt: Date;
 }
 
+/**
+ * Represents a single room instance with its own size and items.
+ * Each instance has quantity implicitly set to 1.
+ */
+export interface RoomInstance {
+  instanceId: string; // Unique identifier for this room instance
+  roomType: string;
+  roomSize: 'small' | 'medium' | 'large';
+  items: RoomItem[];
+  displayName: string;
+  position?: number; // Optional ordering/position within the estimate
+  quantity: number; // Always 1 for instances (required for compatibility with RoomWithItems)
+}
+
+/**
+ * Legacy room selection format.
+ * @deprecated Use RoomInstance[] instead. This type is maintained for backward compatibility.
+ * Rooms with quantity > 1 should be expanded into multiple RoomInstance objects.
+ */
 export interface SelectedRoom {
   roomType: string;
   roomSize: 'small' | 'medium' | 'large';
   quantity: number;
   displayName: string;
+  instanceId?: string; // Optional: present if this is a converted instance
 }
 
+/**
+ * Legacy room format with items included.
+ * @deprecated Use RoomInstance[] instead. This type is maintained for backward compatibility.
+ * Rooms with quantity > 1 should be expanded into multiple RoomInstance objects.
+ */
 export interface RoomWithItems extends SelectedRoom {
   items: RoomItem[];
 }
@@ -107,7 +133,11 @@ export interface Estimate {
   id: string;
   clientInfo: ClientInfo;
   propertySpecs: PropertySpecs;
-  rooms: RoomWithItems[];
+  /**
+   * Rooms array. Always stored as RoomInstance[] internally.
+   * Legacy data is normalized to instances when loaded from Firestore.
+   */
+  rooms: RoomInstance[];
   status: 'draft' | 'submitted' | 'viewed' | 'contacted' | 'closed';
   source: string;
   viewCount: number;
@@ -137,6 +167,8 @@ export interface Estimate {
   customRangeEnabled?: boolean;
   customRangeLowPercent?: number; // Percentage below low price point (e.g., 5 for 5%)
   customRangeHighPercent?: number; // Percentage above low price point (e.g., 5 for 5%)
+  // Fixed prices mode: when enabled, only uses low price point (eliminates ranges)
+  fixedPrices?: boolean;
   // Custom project add-ons overrides (in cents). If a key exists, it overrides the calculated/default value
   customProjectAddOns?: Partial<{
     installation: number;

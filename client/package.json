@@ -13,6 +13,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "emoji-picker-react": "^4.16.1",
     "firebase": "^10.7.1",
     "framer-motion": "^10.16.5",
     "html2canvas": "^1.4.1",

@@ -3,8 +3,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, doc, updateDoc, setDoc, query, orderBy, limit, serverTimestamp, where, QueryConstraint } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useRoomTemplates } from './useRoomTemplates';
-import type { Estimate, RoomWithItems, EditHistoryEntry } from '../types';
+import type { Estimate, RoomWithItems, RoomInstance, EditHistoryEntry } from '../types';
 import { calculateEstimate, createOutdoorSpaceRoom } from '../utils/calculations';
+import { convertEstimateRoomsToInstances } from '../utils/roomInstances';
 import { useAuth } from '../context/AuthContext';
 
 /**
@@ -55,7 +56,7 @@ export function useEstimateEditing() {
       estimatesSnapshot.forEach((doc) => {
         const docData = doc.data();
 
-        // Convert room data to RoomWithItems format
+        // Convert room data to RoomWithItems format first (for legacy compatibility)
         let roomsWithItems: RoomWithItems[] = (docData.rooms || []).map((room: any) => {
           // If room already has items, use them
           if (room.items) {
@@ -86,11 +87,14 @@ export function useEstimateEditing() {
           }
         }
 
+        // Normalize to RoomInstance[] format (handles legacy rooms with quantity > 1)
+        const rooms: RoomInstance[] = convertEstimateRoomsToInstances(roomsWithItems);
+
         estimatesData.push({
           id: doc.id,
           ...docData,
           toolId: docData.toolId ?? 'budget-estimator',
-          rooms: roomsWithItems,
+          rooms, // Always RoomInstance[]
           createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
           updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
           submittedAt: docData.submittedAt?.toDate ? docData.submittedAt.toDate() : docData.submittedAt,
@@ -99,7 +103,7 @@ export function useEstimateEditing() {
             ...entry,
             timestamp: entry.timestamp?.toDate ? entry.timestamp.toDate() : entry.timestamp
           }))
-        } as unknown as Estimate);
+        } as Estimate);
       });
 
       setEstimates(estimatesData);

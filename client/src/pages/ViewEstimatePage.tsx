@@ -5,10 +5,11 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { db } from '../lib/firebase';
 import Header from '../components/Header';
-import type { Estimate, RoomItem, Budget, ProjectBudget, Item, RoomTemplate } from '../types';
+import type { Estimate, RoomItem, Budget, ProjectBudget, Item, RoomTemplate, RoomWithItems } from '../types';
 import { formatCurrency, calculateTotalRooms, calculateTotalItems, calculateEstimate, createOutdoorSpaceRoom } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
+import { convertEstimateRoomsToInstances } from '../utils/roomInstances';
 import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
 import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import { useAuth } from '../context/AuthContext';
@@ -53,15 +54,41 @@ export default function ViewEstimatePage() {
     const estimateRef = doc(db, 'estimates', estimateId);
     const unsubscribe = onSnapshot(estimateRef, (estimateSnap) => {
       if (estimateSnap.exists()) {
-        const estimateData = { id: estimateSnap.id, ...estimateSnap.data() } as Estimate;
+        const docData = estimateSnap.data();
         
+        // Convert legacy rooms to RoomWithItems format first
+        let roomsWithItems: RoomWithItems[] = (docData.rooms || []).map((room: any) => {
+          if (room.items) {
+            return room as RoomWithItems;
+          }
+          // Reconstruct items from room template if needed
+          // (This will be handled by normalization, but we need RoomWithItems format first)
+          return {
+            ...room,
+            items: room.items || []
+          };
+        });
+
         // For project budgets, ensure Outdoor Space room exists
-        if (estimateData.propertySpecs) {
-          const hasOutdoorSpace = estimateData.rooms.some(room => room.roomType === 'outdoor_space');
+        if (docData.propertySpecs) {
+          const hasOutdoorSpace = roomsWithItems.some(room => room.roomType === 'outdoor_space');
           if (!hasOutdoorSpace) {
-            estimateData.rooms = [...estimateData.rooms, createOutdoorSpaceRoom()];
+            roomsWithItems.push(createOutdoorSpaceRoom());
           }
         }
+
+        // Normalize to RoomInstance[] format (handles legacy rooms with quantity > 1)
+        const rooms = convertEstimateRoomsToInstances(roomsWithItems);
+        
+        const estimateData: Estimate = {
+          id: estimateSnap.id,
+          ...docData,
+          rooms, // Always RoomInstance[]
+          createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
+          updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
+          submittedAt: docData.submittedAt?.toDate ? docData.submittedAt.toDate() : docData.submittedAt,
+          lastViewedAt: docData.lastViewedAt?.toDate ? docData.lastViewedAt.toDate() : docData.lastViewedAt,
+        } as Estimate;
         
         setEstimate(estimateData);
       } else {
@@ -120,14 +147,16 @@ export default function ViewEstimatePage() {
           customRangeEnabled: estimate.customRangeEnabled,
           customRangeLowPercent: estimate.customRangeLowPercent,
           customRangeHighPercent: estimate.customRangeHighPercent,
-          customProjectAddOns: estimate.customProjectAddOns
+          customProjectAddOns: estimate.customProjectAddOns,
+          fixedPrices: estimate.fixedPrices
         }
-      : estimate?.customRangeEnabled
+      : estimate?.customRangeEnabled || estimate?.fixedPrices
         ? {
             customRangeEnabled: estimate.customRangeEnabled,
             customRangeLowPercent: estimate.customRangeLowPercent,
             customRangeHighPercent: estimate.customRangeHighPercent,
-            customProjectAddOns: estimate.customProjectAddOns
+            customProjectAddOns: estimate.customProjectAddOns,
+            fixedPrices: estimate.fixedPrices
           }
         : undefined;
 
@@ -446,8 +475,14 @@ export default function ViewEstimatePage() {
               </p>
             <div className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
               {isProjectBudgetType && isProjectBudget(budget)
-                ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
-                : budget ? `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}` : '$0 — $0'}
+                ? (estimate?.fixedPrices 
+                    ? formatCurrency(budget.projectRange.low)
+                    : `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`)
+                : budget 
+                  ? (estimate?.fixedPrices
+                      ? formatCurrency(budget.rangeLow)
+                      : `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`)
+                  : '$0'}
             </div>
             <p className="text-sm opacity-75 mt-4 mb-2">
               {propertySpecs.squareFootage.toLocaleString()} sq ft • {propertySpecs.guestCapacity} requested capacity • {actualCapacity} max capacity • {totalRooms} room{totalRooms !== 1 ? 's' : ''} • {totalItems} item{totalItems !== 1 ? 's' : ''}
@@ -490,7 +525,9 @@ export default function ViewEstimatePage() {
                         <span className="text-gray-700 flex-1 min-w-0">Furnishings</span>
                         {!hidePrices && (
                           <span className="text-gray-700 flex-shrink-0 ml-3">
-                            {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
+                            {estimate?.fixedPrices 
+                              ? formatCurrency(budget.rangeLow)
+                              : `${formatCurrency(budget.rangeLow)} — ${formatCurrency(budget.rangeHigh)}`}
                           </span>
                         )}
                       </div>
@@ -607,7 +644,9 @@ export default function ViewEstimatePage() {
                       <div className="flex justify-between items-center py-4 border-t-2 border-gray-300 mt-4">
                         <span className="text-lg sm:text-xl font-bold text-gray-900 flex-1 min-w-0">Project Total</span>
                         <span className="text-lg sm:text-xl font-bold text-primary-600 flex-shrink-0 ml-3">
-                          {formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}
+                          {estimate?.fixedPrices
+                            ? formatCurrency(budget.projectRange.low)
+                            : `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`}
                         </span>
                       </div>
                     )}
@@ -683,7 +722,9 @@ export default function ViewEstimatePage() {
                           {!hidePrices && (
                             <div className="text-right flex-shrink-0 ml-3">
                               <div className="font-semibold text-gray-700 whitespace-nowrap">
-                                {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
+                                {estimate?.fixedPrices
+                                  ? formatCurrency(room.lowAmount)
+                                  : `${formatCurrency(room.lowAmount)} — ${formatCurrency(room.midAmount)}`}
                               </div>
                             </div>
                           )}
@@ -725,11 +766,15 @@ export default function ViewEstimatePage() {
                                   let lowPrice: number;
                                   let midPrice: number;
                                   
-                                  // If custom range is enabled, calculate prices from base low price using percentages
-                                  if (estimate?.customRangeEnabled && 
+                                  // If fixed prices is enabled, use only low price (no ranges)
+                                  if (estimate?.fixedPrices) {
+                                    lowPrice = baseLowPrice;
+                                    midPrice = baseLowPrice; // Same as low price when fixed
+                                  } else if (estimate?.customRangeEnabled && 
                                       estimate.customRangeLowPercent !== undefined && 
                                       estimate.customRangeHighPercent !== undefined && 
                                       baseLowPrice > 0) {
+                                    // If custom range is enabled, calculate prices from base low price using percentages
                                     // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
                                     lowPrice = Math.round(baseLowPrice * (1 - estimate.customRangeLowPercent / 100));
                                     // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
@@ -751,7 +796,9 @@ export default function ViewEstimatePage() {
                                         </span>
                                         {!hidePrices && isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
                                           <div className="text-xs text-gray-500 mt-1">
-                                            {formatCurrency(lowPrice)} — {formatCurrency(midPrice)} each
+                                            {estimate?.fixedPrices
+                                              ? formatCurrency(lowPrice)
+                                              : `${formatCurrency(lowPrice)} — ${formatCurrency(midPrice)}`} each
                                           </div>
                                         )}
                                       </div>
@@ -762,7 +809,9 @@ export default function ViewEstimatePage() {
                                         </span>
                                         {!hidePrices && isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
                                           <span className="text-gray-700 font-semibold">
-                                            {formatCurrency(lowTotal)} — {formatCurrency(midTotal)}
+                                            {estimate?.fixedPrices
+                                              ? formatCurrency(lowTotal)
+                                              : `${formatCurrency(lowTotal)} — ${formatCurrency(midTotal)}`}
                                           </span>
                                         )}
                                       </div>

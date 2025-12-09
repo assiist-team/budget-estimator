@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, type FormEvent } from 'react';
 import type { BudgetDefaults } from '../types';
 import { collection, getDocs, query, orderBy, doc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -9,6 +9,13 @@ import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import { formatCurrency } from '../utils/calculations';
 import { calculateBedroomCapacity } from '../utils/autoConfiguration';
 import { EditIcon, TrashIcon } from '../components/Icons';
+import { EmojiPickerInput } from '../components/EmojiPicker';
+
+const ROOM_CATEGORY_OPTIONS: Array<{ value: RoomTemplate['category']; label: string }> = [
+  { value: 'common_spaces', label: 'Common Space' },
+  { value: 'sleeping_spaces', label: 'Sleeping Space' },
+  { value: 'other_spaces', label: 'Other Spaces' },
+];
 
 // Helper function to create slug from item name
 const createSlug = (name: string) => {
@@ -35,6 +42,23 @@ async function generateItemId(itemName: string): Promise<string> {
   }
 }
 
+// Helper function to generate unique room ID from display name
+async function generateRoomId(displayName: string): Promise<string> {
+  const baseSlug = createSlug(displayName);
+  let roomId = baseSlug;
+  let counter = 1;
+
+  // Check if the ID already exists and increment counter if needed
+  while (true) {
+    const roomDoc = await getDoc(doc(db, 'roomTemplates', roomId));
+    if (!roomDoc.exists()) {
+      return roomId;
+    }
+    roomId = `${baseSlug}_${counter}`;
+    counter++;
+  }
+}
+
 // Helper function to save auto-configuration rules
 async function saveAutoConfigRules(rules: AutoConfigRules): Promise<void> {
   const configRef = doc(db, 'config', 'roomMappingRules');
@@ -55,6 +79,13 @@ export default function AdminPage() {
   const [editingTemplate, setEditingTemplate] = useState<RoomTemplate | null>(null);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [showCreateItem, setShowCreateItem] = useState(false);
+  const [showCreateCustomRoom, setShowCreateCustomRoom] = useState(false);
+  const [newCustomRoom, setNewCustomRoom] = useState({
+    displayName: '',
+    description: '',
+    category: 'common_spaces' as 'common_spaces' | 'sleeping_spaces' | 'other_spaces',
+    icon: ''
+  });
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [activeRoomSizeTab, setActiveRoomSizeTab] = useState<'small' | 'medium' | 'large' | ''>('');
@@ -312,6 +343,72 @@ export default function AdminPage() {
     }
   };
 
+  // Function to create a new custom room template
+  const handleCreateCustomRoom = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!newCustomRoom.displayName.trim()) {
+      alert('Please enter a display name for the room.');
+      return;
+    }
+
+    try {
+      // Generate room ID from display name
+      const roomId = await generateRoomId(newCustomRoom.displayName);
+
+      // Create room template with default sizes
+      const newRoom: RoomTemplate = {
+        id: roomId,
+        name: newCustomRoom.displayName,
+        displayName: newCustomRoom.displayName,
+        description: '',
+        category: newCustomRoom.category,
+        icon: newCustomRoom.icon || undefined,
+        isCanonical: false, // Custom rooms are not canonical
+        sizes: {
+          small: {
+            displayName: `Small ${newCustomRoom.displayName}`,
+            items: [],
+            totals: { low: 0, mid: 0, midHigh: 0, high: 0 }
+          },
+          medium: {
+            displayName: `Medium ${newCustomRoom.displayName}`,
+            items: [],
+            totals: { low: 0, mid: 0, midHigh: 0, high: 0 }
+          },
+          large: {
+            displayName: `Large ${newCustomRoom.displayName}`,
+            items: [],
+            totals: { low: 0, mid: 0, midHigh: 0, high: 0 }
+          }
+        },
+        sortOrder: roomTemplates.length + 1,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      // Save to Firestore
+      const roomRef = doc(db, 'roomTemplates', roomId);
+      await setDoc(roomRef, newRoom);
+
+      // Update local state
+      setRoomTemplates(prev => [...prev, newRoom].sort((a, b) => a.sortOrder - b.sortOrder));
+
+      // Close modal and reset form
+      setShowCreateCustomRoom(false);
+      setNewCustomRoom({
+        displayName: '',
+        category: 'common_spaces',
+        icon: ''
+      });
+
+      alert(`Custom room "${newCustomRoom.displayName}" created! You can now add items to it.`);
+    } catch (error) {
+      console.error('Error creating custom room:', error);
+      alert(`Failed to create custom room: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+    }
+  };
+
   // Function to update an existing item
   const updateItem = async (itemId: string, updates: Partial<Item>) => {
     // Store original item for potential rollback
@@ -527,13 +624,21 @@ export default function AdminPage() {
 
         {activeTab === 'templates' && (
           <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Rooms
-              </h2>
-              <p className="text-gray-600">
-                Configure items and quantities for each room size
-              </p>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                  Rooms
+                </h2>
+                <p className="text-gray-600">
+                  Configure items and quantities for each room size
+                </p>
+              </div>
+              <button
+                onClick={() => setShowCreateCustomRoom(true)}
+                className="btn-primary"
+              >
+                + Create Custom Room Type
+              </button>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -1870,60 +1975,93 @@ export default function AdminPage() {
             {/* Sticky Header Section */}
             <div className="sticky top-0 z-20 bg-white border-b border-gray-200">
               <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                      Edit Room Template: {editingTemplate.displayName}
-                    </h2>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={async () => {
-                        if (!editingTemplate || !hasUnsavedChanges || isSaving) return;
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Edit Room Template: {editingTemplate.displayName}
+                </h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={async () => {
+                    if (!editingTemplate || !hasUnsavedChanges || isSaving) return;
 
-                        setIsSaving(true);
-                        try {
-                          await updateRoomTemplate(editingTemplate.id, editingTemplate, false);
-                          setHasUnsavedChanges(false);
-                          // Success is indicated by the badge disappearing
-                        } catch (error) {
-                          console.error('Failed to save template:', error);
-                          alert('Failed to save template. Please try again.');
-                        } finally {
-                          setIsSaving(false);
-                        }
-                      }}
-                      disabled={!hasUnsavedChanges || isSaving}
-                      className={`px-4 py-2 rounded-md text-sm font-medium ${
-                        hasUnsavedChanges && !isSaving
-                          ? 'bg-primary-600 text-white hover:bg-primary-700'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {isSaving ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                          Saving...
-                        </div>
-                      ) : (
-                        'Save Changes'
-                      )}
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (hasUnsavedChanges && !confirm('You have unsaved changes. Are you sure you want to close?')) {
-                          return;
-                        }
-                        setEditingTemplate(null);
-                        setActiveRoomSizeTab('');
-                        setHasUnsavedChanges(false);
-                      }}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      ✕
-                    </button>
-                  </div>
+                    setIsSaving(true);
+                    try {
+                      await updateRoomTemplate(editingTemplate.id, editingTemplate, false);
+                      setHasUnsavedChanges(false);
+                      // Success is indicated by the badge disappearing
+                    } catch (error) {
+                      console.error('Failed to save template:', error);
+                      alert('Failed to save template. Please try again.');
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  disabled={!hasUnsavedChanges || isSaving}
+                  className={`px-4 py-2 rounded-md text-sm font-medium ${
+                    hasUnsavedChanges && !isSaving
+                      ? 'bg-primary-600 text-white hover:bg-primary-700'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {isSaving ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </div>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    if (hasUnsavedChanges && !confirm('You have unsaved changes. Are you sure you want to close?')) {
+                      return;
+                    }
+                    setEditingTemplate(null);
+                    setActiveRoomSizeTab('');
+                    setHasUnsavedChanges(false);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="px-6 pb-4 border-b border-gray-200">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Space Category
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    value={editingTemplate.category}
+                    onChange={(e) => {
+                      const newCategory = e.target.value as RoomTemplate['category'];
+                      if (editingTemplate.category === newCategory) {
+                        return;
+                      }
+                      setEditingTemplate(prev => prev ? { ...prev, category: newCategory, updatedAt: new Date() } : null);
+                      setHasUnsavedChanges(true);
+                    }}
+                  >
+                    {ROOM_CATEGORY_OPTIONS.map(option => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+                <div className="text-sm text-gray-600 flex items-end">
+                  <p>
+                    Categories help the room configuration tools group spaces consistently when building estimates.
+                  </p>
+                </div>
+              </div>
+            </div>
 
                 {/* Room Size Tabs */}
                 <div className="border-b border-gray-200 mb-1">
@@ -2246,6 +2384,103 @@ export default function AdminPage() {
                 onSubmit={createItem}
                 onCancel={() => setShowCreateItem(false)}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Custom Room Modal */}
+      {showCreateCustomRoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  Create Custom Room Type
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowCreateCustomRoom(false);
+                    setNewCustomRoom({
+                      displayName: '',
+                      description: '',
+                      category: 'common_spaces',
+                      icon: ''
+                    });
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateCustomRoom} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Display Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newCustomRoom.displayName}
+                    onChange={(e) => setNewCustomRoom({ ...newCustomRoom, displayName: e.target.value })}
+                    placeholder="e.g., Library, Office, Gym"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newCustomRoom.category}
+                    onChange={(e) => setNewCustomRoom({ ...newCustomRoom, category: e.target.value as 'common_spaces' | 'sleeping_spaces' | 'other_spaces' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    required
+                  >
+                    <option value="common_spaces">Common Space</option>
+                    <option value="sleeping_spaces">Sleeping Space</option>
+                    <option value="other_spaces">Other Spaces</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Icon (Optional)
+                  </label>
+                  <EmojiPickerInput
+                    value={newCustomRoom.icon}
+                    onChange={(emoji) => setNewCustomRoom({ ...newCustomRoom, icon: emoji })}
+                    placeholder="e.g., 📚 🏋️ 🍷"
+                    maxLength={2}
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateCustomRoom(false);
+                      setNewCustomRoom({
+                        displayName: '',
+                        description: '',
+                        category: 'common_spaces',
+                        icon: ''
+                      });
+                    }}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                  >
+                    Create Room Type
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
