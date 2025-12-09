@@ -53,12 +53,24 @@ export function calculateEstimate(
     if (hasItems && items) {
         // Calculate dynamically from current room items for all tiers
         tiers.forEach((tier) => {
-          const tierKey = `${tier}Price` as keyof Item;
           const roomTotal = room.items.reduce((total: number, roomItem: RoomItem) => {
-            const item = items.get(roomItem.itemId);
-            if (!item) return total;
-            const candidate = item[tierKey];
-            const tierPrice = typeof candidate === 'number' ? candidate : 0;
+            // Use RoomItem price override if available, otherwise fall back to item library
+            let tierPrice = 0;
+            
+            if (tier === 'low' && roomItem.lowPrice !== undefined) {
+              tierPrice = roomItem.lowPrice;
+            } else if (tier === 'mid' && roomItem.midPrice !== undefined) {
+              tierPrice = roomItem.midPrice;
+            } else {
+              // Fall back to item library prices
+              const item = items.get(roomItem.itemId);
+              if (item) {
+                const tierKey = `${tier}Price` as keyof Item;
+                const candidate = item[tierKey];
+                tierPrice = typeof candidate === 'number' ? candidate : 0;
+              }
+            }
+            
             return total + tierPrice * roomItem.quantity;
           }, 0) * room.quantity;
           roomData[`${tier}Amount` as keyof RoomBreakdown] = roomTotal as never;

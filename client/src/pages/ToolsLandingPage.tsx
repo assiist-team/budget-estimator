@@ -18,11 +18,11 @@ interface ToolsConfig {
   tools: ToolDescriptor[];
 }
 
-const toolBgImages = [
-  '/src/assets/tool-bgs/1--w800.webp',
-  '/src/assets/tool-bgs/2--w800.webp',
-  '/src/assets/tool-bgs/3--w800.webp',
-];
+import bg1 from '../assets/tool-bgs/1--w800.webp';
+import bg2 from '../assets/tool-bgs/2--w800.webp';
+import bg3 from '../assets/tool-bgs/3--w800.webp';
+
+const toolBgImages = [bg1, bg2, bg3];
 
 export default function ToolsLandingPage() {
   const { loading } = useAuth();

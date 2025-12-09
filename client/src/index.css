@@ -162,3 +162,8 @@ html {
     }
   }
 }
+
+/* Hide expand/collapse buttons when generating PDF */
+.generating-pdf .pdf-controls {
+  display: none !important;
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, deleteDoc, limit, orderBy, query, where } from 'firebase/firestore';
 import { Link, useLocation } from 'react-router-dom';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
@@ -9,6 +9,7 @@ interface ProjectionRow {
   inputs: any;
   computed: any;
   createdAt?: any;
+  ownerUid?: string;
 }
 
 interface Props {
@@ -21,37 +22,55 @@ export default function ProjectionsReportsTab({ onCountChange }: Props) {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
+  const fetchRows = async () => {
+    if (!firebaseUser) return;
+    setLoading(true);
+    try {
+      const base = collection(db, 'projections');
+      const q = isAdmin
+        ? query(
+            base,
+            where('toolId', '==', 'roi-estimator'),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+          )
+        : query(
+            base,
+            where('ownerUid', '==', firebaseUser.uid),
+            where('toolId', '==', 'roi-estimator'),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+          );
+      const snap = await getDocs(q);
+      const list: ProjectionRow[] = [];
+      snap.forEach((doc) => list.push({ id: doc.id, ...(doc.data() as any) }));
+      setRows(list);
+      onCountChange?.(list.length);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchRows = async () => {
-      if (!firebaseUser) return;
-      setLoading(true);
-      try {
-        const base = collection(db, 'projections');
-        const q = isAdmin
-          ? query(
-              base,
-              where('toolId', '==', 'roi-estimator'),
-              orderBy('createdAt', 'desc'),
-              limit(50)
-            )
-          : query(
-              base,
-              where('ownerUid', '==', firebaseUser.uid),
-              where('toolId', '==', 'roi-estimator'),
-              orderBy('createdAt', 'desc'),
-              limit(50)
-            );
-        const snap = await getDocs(q);
-        const list: ProjectionRow[] = [];
-        snap.forEach((doc) => list.push({ id: doc.id, ...(doc.data() as any) }));
-        setRows(list);
-        onCountChange?.(list.length);
-      } finally {
-        setLoading(false);
-      }
-    };
     void fetchRows();
   }, [firebaseUser, isAdmin, onCountChange]);
+
+  const handleDeleteProjection = async (projectionId: string, occupancyInfo: string) => {
+    if (!confirm(`Are you sure you want to delete this projection (${occupancyInfo})? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const projectionRef = doc(db, 'projections', projectionId);
+      await deleteDoc(projectionRef);
+      
+      // Refresh the list
+      await fetchRows();
+    } catch (error) {
+      console.error('Error deleting projection:', error);
+      alert('Failed to delete projection. Please try again.');
+    }
+  };
 
   return (
     <div>
@@ -135,6 +154,14 @@ export default function ProjectionsReportsTab({ onCountChange }: Props) {
                   >
                     Edit
                   </Link>
+                  {(isAdmin || row.ownerUid === firebaseUser?.uid) && (
+                    <button
+                      onClick={() => handleDeleteProjection(row.id, `${Math.round((row.inputs?.occupancyBefore ?? 0) * 100)}% → ${Math.round((row.inputs?.occupancyAfter ?? 0) * 100)}%`)}
+                      className="btn-danger w-full sm:w-auto"
+                    >
+                      Delete
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

@@ -20,6 +20,8 @@ export interface RoomItem {
   itemId: string;
   quantity: number;
   name?: string; // Optional for backwards compatibility
+  lowPrice?: number; // Optional per-item price override (in cents)
+  midPrice?: number; // Optional per-item price override (in cents)
 }
 
 export interface RoomSize {
@@ -128,6 +130,9 @@ export interface Estimate {
   lastEditedAt?: Date;
   lastEditedBy?: string;
   editHistory?: EditHistoryEntry[];
+  // Ownership and tool identification
+  ownerUid?: string;
+  toolId?: string;
 }
 
 export interface EditHistoryEntry {

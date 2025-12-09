@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useBackDestination } from '../hooks/useBackDestination';
 import { doc, getDoc, collection, onSnapshot } from 'firebase/firestore';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Download } from 'lucide-react';
 import { db } from '../lib/firebase';
 import Header from '../components/Header';
-import type { Estimate, RoomItem, Budget, ProjectBudget } from '../types';
+import type { Estimate, RoomItem, Budget, ProjectBudget, Item, RoomTemplate } from '../types';
 import { formatCurrency, calculateTotalRooms, calculateTotalItems, calculateEstimate } from '../utils/calculations';
 import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
@@ -13,6 +13,9 @@ import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
 import type { BudgetDefaults } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useAuthModal } from '../components/auth/AuthModalProvider';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { exportEstimatesToExcel } from '../utils/exportEstimatesToExcel';
 
 // Type guard to check if budget is a ProjectBudget
 function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
@@ -28,6 +31,8 @@ export default function ViewEstimatePage() {
   const [estimate, setEstimate] = useState<Estimate | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const pdfContentRef = useRef<HTMLDivElement>(null);
   const { profile, loading: authLoading } = useAuth();
   const { requireAccount } = useAuthModal();
 
@@ -121,13 +126,13 @@ export default function ViewEstimatePage() {
   const propertySpecs = estimate?.propertySpecs;
 
   const roomTemplatesMap = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, RoomTemplate>();
     roomTemplates.forEach(template => map.set(template.id, template));
     return map;
   }, [roomTemplates]);
 
   const itemsMap = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, Item>();
     items.forEach(item => map.set(item.id, item));
     return map;
   }, [items]);
@@ -176,6 +181,114 @@ export default function ViewEstimatePage() {
 
   const collapseAllRooms = () => {
     setExpandedRooms(new Set());
+  };
+
+  const handleExportToExcel = () => {
+    if (!estimate) {
+      alert('No estimate to export.');
+      return;
+    }
+
+    if (!budgetDefaults) {
+      alert('Budget defaults are still loading. Please wait a moment and try again.');
+      return;
+    }
+
+    try {
+      exportEstimatesToExcel({
+        estimates: [estimate],
+        itemsMap,
+        roomTemplatesMap,
+        budgetDefaults: {
+          installationCents: budgetDefaults.installationCents,
+          fuelCents: budgetDefaults.fuelCents,
+          storageAndReceivingCents: budgetDefaults.storageAndReceivingCents,
+          kitchenCents: budgetDefaults.kitchenCents,
+          propertyManagementCents: budgetDefaults.propertyManagementCents,
+          designFeeRatePerSqftCents: budgetDefaults.designFeeRatePerSqftCents,
+        },
+      });
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Failed to export estimate. Please try again.');
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!pdfContentRef.current || !budget) return;
+
+    setIsGeneratingPDF(true);
+    
+    // Add class to hide expand/collapse buttons during PDF generation
+    pdfContentRef.current.classList.add('generating-pdf');
+    
+    // Expand all rooms before capturing
+    const allRoomTypes = budget.roomBreakdown.map(room => room.roomType);
+    setExpandedRooms(new Set(allRoomTypes));
+
+    // Wait a bit for the DOM to update with expanded rooms
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    try {
+      // Capture the content as canvas
+      const canvas = await html2canvas(pdfContentRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#f9fafb', // gray-50 background
+        windowWidth: pdfContentRef.current.scrollWidth,
+        windowHeight: pdfContentRef.current.scrollHeight,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const padding = 5; // 5mm padding around the PDF
+      const pageWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const usableWidth = pageWidth - (padding * 2); // Content width with padding
+      const usableHeight = pageHeight - (padding * 2); // Content height with padding
+      
+      const imgWidth = usableWidth; // Image width fits within padding
+      const imgHeight = (canvas.height * imgWidth) / canvas.width; // Proportional height
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let yOffset = 0; // Track how much of the image we've shown
+
+      // Add pages until all content is shown
+      while (yOffset < imgHeight) {
+        // Calculate the y position to show the current portion of the image
+        // Negative y positions the image above the page, showing the next portion
+        const yPosition = padding - yOffset;
+        
+        // Add image to current page
+        pdf.addImage(imgData, 'PNG', padding, yPosition, imgWidth, imgHeight);
+        
+        // Move to next portion
+        yOffset += usableHeight;
+        
+        // If there's more content, add a new page
+        if (yOffset < imgHeight) {
+          pdf.addPage();
+        }
+      }
+
+      // Generate filename
+      const clientName = estimate?.clientInfo.firstName && estimate?.clientInfo.lastName
+        ? `${estimate.clientInfo.firstName}_${estimate.clientInfo.lastName}`
+        : 'Estimate';
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `Budget_Estimate_${clientName}_${date}.pdf`;
+
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      // Remove the class to show buttons again
+      if (pdfContentRef.current) {
+        pdfContentRef.current.classList.remove('generating-pdf');
+      }
+      setIsGeneratingPDF(false);
+    }
   };
 
   const { isAdmin } = useAuth();
@@ -231,20 +344,41 @@ export default function ViewEstimatePage() {
         <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <Link to={backHref} className="btn-secondary">← Back to Reports</Link>
-            {isAdmin && (
-              <Link to={`/tools/budget-estimator/estimate/edit/${estimateId}`} className="btn-primary">
-                Edit
-              </Link>
-            )}
+            <div className="flex items-center gap-3">
+              {isAdmin && (
+                <Link to={`/tools/budget-estimator/estimate/edit/${estimateId}`} className="btn-primary">
+                  Edit
+                </Link>
+              )}
+              <button
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Download PDF"
+              >
+                <Download className="w-4 h-4" />
+                {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
+              </button>
+              <button
+                onClick={handleExportToExcel}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
+                title="Export as spreadsheet"
+              >
+                <Download className="w-4 h-4" />
+                Export to Excel
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Overall Budget Range */}
-        <div className="sticky top-[4.25rem] z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
-          <div className="text-center py-6">
-            <p className="text-lg font-medium mb-3 opacity-90">
-              {isProjectBudgetType ? 'ESTIMATED PROJECT BUDGET' : 'ESTIMATED FURNISHINGS BUDGET RANGE'}
-            </p>
+        {/* PDF Content Container - starts from banner */}
+        <div ref={pdfContentRef} id="pdf-content">
+          {/* Overall Budget Range */}
+          <div className="sticky top-[4.25rem] z-10 mb-8 bg-gradient-to-br from-primary-600 to-primary-900 text-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+            <div className="text-center py-6">
+              <p className="text-lg font-medium mb-3 opacity-90">
+                {isProjectBudgetType ? 'ESTIMATED PROJECT BUDGET' : 'ESTIMATED FURNISHINGS BUDGET RANGE'}
+              </p>
             <div className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
               {isProjectBudgetType && isProjectBudget(budget)
                 ? `${formatCurrency(budget.projectRange.low)} — ${formatCurrency(budget.projectRange.mid)}`
@@ -267,7 +401,6 @@ export default function ViewEstimatePage() {
             </p>
           </div>
         </div>
-
 
           {/* Project Budget Breakdown */}
           {isProjectBudget(budget) && (
@@ -389,7 +522,7 @@ export default function ViewEstimatePage() {
                   <p className="text-sm text-gray-600 mt-1 mb-4">
                     Complete itemized breakdown by room
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 pdf-controls">
                     <button
                       onClick={expandAllRooms}
                       className="text-sm text-primary-600 hover:text-primary-800 font-medium"
@@ -461,15 +594,37 @@ export default function ViewEstimatePage() {
                                 .map((roomItem: RoomItem, itemIdx: number) => {
                                   const item = items.get(roomItem.itemId);
                                   const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  const totalQuantity = roomItem.quantity * room.quantity;
+                                  
+                                  // Use RoomItem price override if available, otherwise fall back to item library
+                                  const lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+                                  const midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+                                  const lowTotal = lowPrice * totalQuantity;
+                                  const midTotal = midPrice * totalQuantity;
 
                                   return (
                                     <div key={itemIdx} className="flex justify-between items-center text-sm bg-gray-50 px-4 py-3 rounded-lg">
-                                      <span className="text-gray-700 font-medium">
-                                        {itemDisplayName}
-                                      </span>
-                                      <span className="text-gray-600">
-                                        Qty: {roomItem.quantity}
-                                      </span>
+                                      <div className="flex-1 min-w-0">
+                                        <span className="text-gray-700 font-medium">
+                                          {itemDisplayName}
+                                        </span>
+                                        {isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
+                                          <div className="text-xs text-gray-500 mt-1">
+                                            {formatCurrency(lowPrice)} — {formatCurrency(midPrice)} each
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+                                        <span className="text-gray-600">
+                                          Qty: {roomItem.quantity}
+                                          {room.quantity > 1 && ` × ${room.quantity} rooms`}
+                                        </span>
+                                        {isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
+                                          <span className="text-gray-700 font-semibold">
+                                            {formatCurrency(lowTotal)} — {formatCurrency(midTotal)}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                   );
                                 })}
@@ -483,6 +638,7 @@ export default function ViewEstimatePage() {
               </div>
             </div>
           </div>
+        </div> {/* End PDF content container */}
         
       </main>
     </div>

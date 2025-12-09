@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { collection, getDocs, doc, getDoc, limit, orderBy, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, deleteDoc, limit, orderBy, query, where } from 'firebase/firestore';
 import { Link, useLocation } from 'react-router-dom';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
@@ -78,47 +78,65 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
     void loadBudgetDefaults();
   }, []);
 
+  const fetchEstimates = async () => {
+    if (!firebaseUser) return;
+    setLoading(true);
+    try {
+      const base = collection(db, 'estimates');
+      const q = isAdmin
+        ? query(
+            base,
+            where('toolId', '==', 'budget-estimator'),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+          )
+        : query(
+            base,
+            where('ownerUid', '==', firebaseUser.uid),
+            where('toolId', '==', 'budget-estimator'),
+            orderBy('createdAt', 'desc'),
+            limit(50)
+          );
+      const snap = await getDocs(q);
+      const rows: Estimate[] = [];
+      snap.forEach((doc) => {
+        const docData = doc.data();
+        rows.push({
+          id: doc.id,
+          ...docData,
+          toolId: docData.toolId ?? 'budget-estimator',
+          createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
+          updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
+          submittedAt: docData.submittedAt?.toDate ? docData.submittedAt.toDate() : docData.submittedAt,
+        } as unknown as Estimate);
+      });
+      setEstimates(rows);
+      onCountChange?.(rows.length);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchEstimates = async () => {
-      if (!firebaseUser) return;
-      setLoading(true);
-      try {
-        const base = collection(db, 'estimates');
-        const q = isAdmin
-          ? query(
-              base,
-              where('toolId', '==', 'budget-estimator'),
-              orderBy('createdAt', 'desc'),
-              limit(50)
-            )
-          : query(
-              base,
-              where('ownerUid', '==', firebaseUser.uid),
-              where('toolId', '==', 'budget-estimator'),
-              orderBy('createdAt', 'desc'),
-              limit(50)
-            );
-        const snap = await getDocs(q);
-        const rows: Estimate[] = [];
-        snap.forEach((doc) => {
-          const docData = doc.data();
-          rows.push({
-            id: doc.id,
-            ...docData,
-            toolId: docData.toolId ?? 'budget-estimator',
-            createdAt: docData.createdAt?.toDate ? docData.createdAt.toDate() : docData.createdAt,
-            updatedAt: docData.updatedAt?.toDate ? docData.updatedAt.toDate() : docData.updatedAt,
-            submittedAt: docData.submittedAt?.toDate ? docData.submittedAt.toDate() : docData.submittedAt,
-          } as unknown as Estimate);
-        });
-        setEstimates(rows);
-        onCountChange?.(rows.length);
-      } finally {
-        setLoading(false);
-      }
-    };
     void fetchEstimates();
   }, [firebaseUser, isAdmin, onCountChange]);
+
+  const handleDeleteEstimate = async (estimateId: string, clientName: string) => {
+    if (!confirm(`Are you sure you want to delete the estimate for ${clientName}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const estimateRef = doc(db, 'estimates', estimateId);
+      await deleteDoc(estimateRef);
+      
+      // Refresh the list
+      await fetchEstimates();
+    } catch (error) {
+      console.error('Error deleting estimate:', error);
+      alert('Failed to delete estimate. Please try again.');
+    }
+  };
 
   if (!firebaseUser) {
     return null;
@@ -225,6 +243,14 @@ export default function EstimatesReportsTab({ onCountChange }: Props) {
                       >
                         Edit
                       </Link>
+                    )}
+                    {(isAdmin || estimate.ownerUid === firebaseUser?.uid) && (
+                      <button
+                        onClick={() => handleDeleteEstimate(estimate.id, `${estimate.clientInfo.firstName} ${estimate.clientInfo.lastName}`)}
+                        className="btn-danger w-full sm:w-auto"
+                      >
+                        Delete
+                      </button>
                     )}
                   </div>
                 </div>

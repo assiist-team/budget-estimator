@@ -6,7 +6,7 @@ import { useRoomTemplates } from '../hooks/useRoomTemplates';
 import { useBudgetDefaultsStore } from '../store/budgetDefaultsStore';
 import Header from '../components/Header';
 import { UndoIcon, RedoIcon, TrashIcon } from '../components/Icons';
-import type { RoomWithItems, RoomTemplate, Item, ProjectBudget, Budget } from '../types';
+import type { RoomWithItems, RoomTemplate, Item, ProjectBudget, Budget, RoomItem } from '../types';
 import { formatCurrency, calculateEstimate, calculateTotalRooms, calculateTotalItems } from '../utils/calculations';
 import { calculateSelectedRoomCapacity } from '../utils/autoConfiguration';
 import { useAutoConfigRules } from '../hooks/useAutoConfiguration';
@@ -366,6 +366,24 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
   const template = roomTemplates.get(room.roomType);
 
+  // Calculate room totals from items
+  const roomTotals = useMemo(() => {
+    let lowTotal = 0;
+    let midTotal = 0;
+    
+    room.items.forEach((roomItem) => {
+      // Use RoomItem price override if available, otherwise fall back to item library
+      const lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (itemsMap.get(roomItem.itemId)?.lowPrice || 0);
+      const midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (itemsMap.get(roomItem.itemId)?.midPrice || 0);
+      
+      const totalQuantity = roomItem.quantity * room.quantity;
+      lowTotal += lowPrice * totalQuantity;
+      midTotal += midPrice * totalQuantity;
+    });
+    
+    return { low: lowTotal, mid: midTotal };
+  }, [room.items, room.quantity, itemsMap]);
+
   const handleSizeChange = (newSize: 'small' | 'medium' | 'large') => {
     // Update room size and items based on the new size template
     const templateForNewSize = template?.sizes[newSize];
@@ -393,24 +411,29 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
     }
   }, [isSizeDropdownOpen]);
 
+  const roomDisplayName = room.displayName || room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
   return (
-    <div className="border border-gray-200 rounded-lg">
-      <div className="p-4 bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              {isExpanded ? '▼' : '▶'}
-            </button>
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-gray-500 hover:text-gray-700 flex-shrink-0"
+          >
+            {isExpanded ? '▼' : '▶'}
+          </button>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3">
-              <h3 className="font-medium text-gray-900">
-                {room.displayName || room.roomType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              <h3 className="font-semibold text-base sm:text-lg text-gray-900 truncate">
+                {roomDisplayName}
               </h3>
               <div className="relative" ref={sizeDropdownRef}>
                 <button
-                  onClick={() => setIsSizeDropdownOpen(!isSizeDropdownOpen)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsSizeDropdownOpen(!isSizeDropdownOpen);
+                  }}
                   className="flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm font-medium text-gray-700 transition-colors"
                 >
                   <span>{room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)}</span>
@@ -430,7 +453,10 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
                       {(['small', 'medium', 'large'] as const).map((size) => (
                         <button
                           key={size}
-                          onClick={() => handleSizeChange(size)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSizeChange(size);
+                          }}
                           className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
                             room.roomSize === size ? 'bg-gray-50 text-gray-900 font-medium' : 'text-gray-700'
                           }`}
@@ -443,39 +469,54 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
                 )}
               </div>
             </div>
+            <p className="text-sm text-gray-500 truncate">
+              {room.roomSize.charAt(0).toUpperCase() + room.roomSize.slice(1)} × {room.quantity}
+            </p>
           </div>
-
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onQuantityChange(Math.max(1, room.quantity - 1))}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                −
-              </button>
-              <span className="text-sm font-medium text-gray-900 w-8 text-center">
-                {room.quantity}
-              </span>
-              <button
-                onClick={() => onQuantityChange(room.quantity + 1)}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                +
-              </button>
-            </div>
-
+        </div>
+        <div className="text-right flex-shrink-0 ml-3">
+          <div className="font-semibold text-gray-700 whitespace-nowrap">
+            {formatCurrency(roomTotals.low)} — {formatCurrency(roomTotals.mid)}
+          </div>
+        </div>
+        <div className="flex items-center gap-6 ml-4 flex-shrink-0">
+          <div className="flex items-center gap-2">
             <button
-              onClick={onRemove}
-              className="text-sm text-red-600 hover:text-red-800 p-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuantityChange(Math.max(1, room.quantity - 1));
+              }}
+              className="text-sm text-gray-500 hover:text-gray-700"
             >
-              <TrashIcon />
+              −
+            </button>
+            <span className="text-sm font-medium text-gray-900 w-8 text-center">
+              {room.quantity}
+            </span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuantityChange(room.quantity + 1);
+              }}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              +
             </button>
           </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+            className="text-sm text-red-600 hover:text-red-800 p-1"
+          >
+            <TrashIcon />
+          </button>
         </div>
       </div>
 
       {isExpanded && (
-        <div className="p-4">
+        <div className="border-t border-gray-200 p-4 bg-white">
           <div className="space-y-3">
             <button className="text-sm text-primary-600 hover:text-primary-800 flex items-center gap-2">
               ➕ Add Item
@@ -488,6 +529,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
                 roomIndex={roomIndex}
                 itemIndex={itemIndex}
                 itemsMap={itemsMap}
+                roomQuantity={room.quantity}
                 onRemove={() => {
                   const updatedItems = room.items.filter((_, i) => i !== itemIndex);
                   onUpdate({ ...room, items: updatedItems });
@@ -495,6 +537,23 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
                 onQuantityChange={(newQuantity: number) => {
                   const updatedItems = [...room.items];
                   updatedItems[itemIndex] = { ...roomItem, quantity: newQuantity };
+                  onUpdate({ ...room, items: updatedItems });
+                }}
+                onPriceChange={(lowPrice?: number, midPrice?: number) => {
+                  const updatedItems = [...room.items];
+                  // Create updated roomItem, removing price fields if undefined (to reset to library)
+                  const updatedRoomItem: RoomItem = { ...roomItem };
+                  if (lowPrice === undefined) {
+                    delete updatedRoomItem.lowPrice;
+                  } else {
+                    updatedRoomItem.lowPrice = lowPrice;
+                  }
+                  if (midPrice === undefined) {
+                    delete updatedRoomItem.midPrice;
+                  } else {
+                    updatedRoomItem.midPrice = midPrice;
+                  }
+                  updatedItems[itemIndex] = updatedRoomItem;
                   onUpdate({ ...room, items: updatedItems });
                 }}
               />
@@ -508,27 +567,132 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
 
 // Item Row Component
 interface ItemRowProps {
-  roomItem: any;
+  roomItem: RoomItem;
   roomIndex: number;
   itemIndex: number;
   itemsMap: Map<string, Item>;
+  roomQuantity: number;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
+  onPriceChange: (lowPrice?: number, midPrice?: number) => void;
 }
 
-function ItemRow({ roomItem, itemsMap, onRemove, onQuantityChange }: ItemRowProps) {
-  return (
-    <div className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded">
-      <div className="flex-1">
-        <span className="text-gray-700">
-          {(() => {
-            const item = itemsMap.get(roomItem.itemId);
-            return item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-          })()}
-        </span>
-      </div>
+function ItemRow({ roomItem, itemsMap, roomQuantity, onRemove, onQuantityChange, onPriceChange }: ItemRowProps) {
+  const item = itemsMap.get(roomItem.itemId);
+  const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+  
+  // Use RoomItem price overrides if available, otherwise fall back to item library
+  const lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+  const midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+  
+  // Calculate totals considering quantity and room quantity
+  const totalQuantity = roomItem.quantity * roomQuantity;
+  const lowTotal = lowPrice * totalQuantity;
+  const midTotal = midPrice * totalQuantity;
+  
+  const [isEditingPrices, setIsEditingPrices] = useState(false);
+  const [lowPriceInput, setLowPriceInput] = useState(Math.round(lowPrice / 100).toString());
+  const [midPriceInput, setMidPriceInput] = useState(Math.round(midPrice / 100).toString());
 
-      <div className="flex items-center gap-6">
+  useEffect(() => {
+    setLowPriceInput(Math.round(lowPrice / 100).toString());
+    setMidPriceInput(Math.round(midPrice / 100).toString());
+  }, [lowPrice, midPrice]);
+
+  const handlePriceSave = () => {
+    const lowCents = Math.round(parseFloat(lowPriceInput) * 100);
+    const midCents = Math.round(parseFloat(midPriceInput) * 100);
+    
+    // Only save if different from item library prices (to break sync)
+    // If they match library prices, set to undefined to reset to library values
+    const itemLow = item?.lowPrice || 0;
+    const itemMid = item?.midPrice || 0;
+    
+    // If the input is invalid or empty, reset to library prices
+    if (isNaN(lowCents) || isNaN(midCents) || lowPriceInput === '' || midPriceInput === '') {
+      onPriceChange(undefined, undefined);
+      setIsEditingPrices(false);
+      return;
+    }
+    
+    onPriceChange(
+      lowCents !== itemLow ? lowCents : undefined,
+      midCents !== itemMid ? midCents : undefined
+    );
+    setIsEditingPrices(false);
+  };
+
+  const handlePriceCancel = () => {
+    setLowPriceInput(Math.round(lowPrice / 100).toString());
+    setMidPriceInput(Math.round(midPrice / 100).toString());
+    setIsEditingPrices(false);
+  };
+
+  return (
+    <div className="flex justify-between items-center text-sm bg-gray-50 px-4 py-3 rounded-lg">
+      <div className="flex-1 min-w-0">
+        <span className="text-gray-700 font-medium">
+          {itemDisplayName}
+        </span>
+        {isEditingPrices ? (
+          <div className="mt-2 space-y-2">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600 w-20">Low Price:</label>
+              <input
+                type="number"
+                value={lowPriceInput}
+                onChange={(e) => setLowPriceInput(e.target.value)}
+                className="text-xs px-2 py-1 border border-gray-300 rounded w-24"
+                placeholder="0"
+              />
+              <span className="text-xs text-gray-500">each</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600 w-20">Mid Price:</label>
+              <input
+                type="number"
+                value={midPriceInput}
+                onChange={(e) => setMidPriceInput(e.target.value)}
+                className="text-xs px-2 py-1 border border-gray-300 rounded w-24"
+                placeholder="0"
+              />
+              <span className="text-xs text-gray-500">each</span>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <button
+                onClick={handlePriceSave}
+                className="text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700"
+              >
+                Save
+              </button>
+              <button
+                onClick={handlePriceCancel}
+                className="text-xs px-2 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500 mt-1">
+            {formatCurrency(lowPrice)} — {formatCurrency(midPrice)} each
+            <button
+              onClick={() => setIsEditingPrices(true)}
+              className="ml-2 text-primary-600 hover:text-primary-800 underline"
+            >
+              Edit
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-3 ml-4 flex-shrink-0">
+        <span className="text-gray-600">
+          Qty: {roomItem.quantity}
+          {roomQuantity > 1 && ` × ${roomQuantity} rooms`}
+        </span>
+        <span className="text-gray-700 font-semibold">
+          {formatCurrency(lowTotal)} — {formatCurrency(midTotal)}
+        </span>
         <div className="flex items-center gap-2">
           <button
             onClick={() => onQuantityChange(Math.max(1, roomItem.quantity - 1))}
@@ -546,7 +710,6 @@ function ItemRow({ roomItem, itemsMap, onRemove, onQuantityChange }: ItemRowProp
             +
           </button>
         </div>
-
         <button
           onClick={onRemove}
           className="text-sm text-red-600 hover:text-red-800 p-1"
