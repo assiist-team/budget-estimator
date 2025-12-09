@@ -15,7 +15,6 @@ import { useAuth } from '../context/AuthContext';
 import { useAuthModal } from '../components/auth/AuthModalProvider';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { exportEstimatesToExcel } from '../utils/exportEstimatesToExcel';
 
 // Type guard to check if budget is a ProjectBudget
 function isProjectBudget(budget: Budget | ProjectBudget | null): budget is ProjectBudget {
@@ -169,37 +168,6 @@ export default function ViewEstimatePage() {
     setExpandedRooms(new Set());
   };
 
-  const handleExportToExcel = () => {
-    if (!estimate) {
-      alert('No estimate to export.');
-      return;
-    }
-
-    if (!budgetDefaults) {
-      alert('Budget defaults are still loading. Please wait a moment and try again.');
-      return;
-    }
-
-    try {
-      exportEstimatesToExcel({
-        estimates: [estimate],
-        itemsMap,
-        roomTemplatesMap,
-        budgetDefaults: {
-          installationCents: budgetDefaults.installationCents,
-          fuelCents: budgetDefaults.fuelCents,
-          storageAndReceivingCents: budgetDefaults.storageAndReceivingCents,
-          kitchenCents: budgetDefaults.kitchenCents,
-          propertyManagementCents: budgetDefaults.propertyManagementCents,
-          designFeeRatePerSqftCents: budgetDefaults.designFeeRatePerSqftCents,
-        },
-      });
-    } catch (error) {
-      console.error('Error exporting to Excel:', error);
-      alert('Failed to export estimate. Please try again.');
-    }
-  };
-
   const handleDownloadPDF = async () => {
     if (!pdfContentRef.current || !budget) return;
 
@@ -344,14 +312,6 @@ export default function ViewEstimatePage() {
               >
                 <Download className="w-4 h-4" />
                 {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
-              </button>
-              <button
-                onClick={handleExportToExcel}
-                className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-                title="Export as spreadsheet"
-              >
-                <Download className="w-4 h-4" />
-                Export to Excel
               </button>
             </div>
           </div>
