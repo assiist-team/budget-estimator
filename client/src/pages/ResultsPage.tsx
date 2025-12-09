@@ -336,13 +336,37 @@ export default function ResultsPage() {
                     {/* Project Add-ons */}
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700 flex-1 min-w-0">Design Fee</span>
+                        <span className="text-gray-700 flex-1 min-w-0">Design Planning</span>
                         <span className="text-gray-700 flex-shrink-0 ml-3">
-                          {formatCurrency(budget.projectAddOns.designFee)}
+                          {formatCurrency(budget.projectAddOns.designPlanning)}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">
-                        Comprehensive design planning, procurement, and placement services
+                        Initial design consultation, space planning, and design development
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700 flex-1 min-w-0">Procurement</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">
+                          {formatCurrency(budget.projectAddOns.procurement)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Sourcing, ordering, and managing furniture and accessories
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700 flex-1 min-w-0">Design Implementation</span>
+                        <span className="text-gray-700 flex-shrink-0 ml-3">
+                          {formatCurrency(budget.projectAddOns.designImplementation)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Final placement, styling, and design execution services
                       </p>
                     </div>
 

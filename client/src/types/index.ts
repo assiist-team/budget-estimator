@@ -185,7 +185,9 @@ export interface ProjectBudget extends Budget {
     storageAndReceiving: number;
     kitchen: number;
     propertyManagement: number;
-    designFee: number;
+    designPlanning: number;
+    procurement: number;
+    designImplementation: number;
   };
   projectRange: {
     low: number;

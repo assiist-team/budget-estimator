@@ -325,13 +325,37 @@ export default function EstimateEditPage() {
                     {/* Project Add-ons */}
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-gray-700">Design Fee</span>
+                        <span className="text-gray-700">Design Planning</span>
                         <span className="text-gray-700">
-                          {formatCurrency(currentBudget.projectAddOns.designFee)}
+                          {formatCurrency(currentBudget.projectAddOns.designPlanning)}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500">
-                        Comprehensive design planning, procurement, and placement services
+                        Initial design consultation, space planning, and design development
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Procurement</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(currentBudget.projectAddOns.procurement)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Sourcing, ordering, and managing furniture and accessories
+                      </p>
+                    </div>
+
+                    <div className="py-2">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-gray-700">Design Implementation</span>
+                        <span className="text-gray-700">
+                          {formatCurrency(currentBudget.projectAddOns.designImplementation)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Final placement, styling, and design execution services
                       </p>
                     </div>
 

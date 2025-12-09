@@ -146,6 +146,15 @@ export function calculateEstimate(
   if (options?.propertySpecs) {
     const { propertySpecs, budgetDefaults } = options;
 
+    // Calculate base design fee from rate
+    const baseDesignFee = Math.round(propertySpecs.squareFootage * (budgetDefaults?.designFeeRatePerSqftCents || 1000)); // Default $10/sqft design fee
+    
+    // Split design fee into three categories: 40% design planning, 30% procurement, 30% design implementation
+    // Calculate designImplementation as remainder to ensure total equals baseDesignFee exactly
+    const designPlanning = Math.round(baseDesignFee * 0.4);
+    const procurement = Math.round(baseDesignFee * 0.3);
+    const designImplementation = baseDesignFee - designPlanning - procurement;
+
     // Use budget defaults if available, otherwise use minimal defaults
     const projectAddOns = {
       installation: budgetDefaults?.installationCents || 0,
@@ -153,7 +162,9 @@ export function calculateEstimate(
       storageAndReceiving: budgetDefaults?.storageAndReceivingCents || 0,
       kitchen: budgetDefaults?.kitchenCents || 0,
       propertyManagement: budgetDefaults?.propertyManagementCents || 0,
-      designFee: Math.round(propertySpecs.squareFootage * (budgetDefaults?.designFeeRatePerSqftCents || 1000)) // Default $10/sqft design fee
+      designPlanning,
+      procurement,
+      designImplementation,
     } as const;
 
     const addOnTotal = Object.values(projectAddOns).reduce((sum, cents) => sum + cents, 0);
