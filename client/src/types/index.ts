@@ -133,6 +133,10 @@ export interface Estimate {
   // Ownership and tool identification
   ownerUid?: string;
   toolId?: string;
+  // Custom range settings for project budget estimates
+  customRangeEnabled?: boolean;
+  customRangeLowPercent?: number; // Percentage below low price point (e.g., 5 for 5%)
+  customRangeHighPercent?: number; // Percentage above low price point (e.g., 5 for 5%)
 }
 
 export interface EditHistoryEntry {

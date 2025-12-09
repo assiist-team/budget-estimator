@@ -326,7 +326,10 @@ export function useEstimateEditor(estimateId?: string) {
     const success = await updateEstimate(estimate.id, {
       rooms: estimate.rooms,
       lastEditedAt: new Date(),
-      editHistory: estimate.editHistory
+      editHistory: estimate.editHistory,
+      customRangeEnabled: estimate.customRangeEnabled,
+      customRangeLowPercent: estimate.customRangeLowPercent,
+      customRangeHighPercent: estimate.customRangeHighPercent
     });
 
     if (success) {
@@ -335,6 +338,28 @@ export function useEstimateEditor(estimateId?: string) {
 
     return success;
   }, [estimate, hasUnsavedChanges, updateEstimate]);
+
+  // Update estimate settings (like custom range)
+  const updateEstimateSettings = useCallback((updates: Partial<Estimate>) => {
+    if (!estimate) return;
+
+    const updatedEstimate = {
+      ...estimate,
+      ...updates,
+      lastEditedAt: new Date(),
+      editHistory: [
+        ...(estimate.editHistory || []),
+        {
+          timestamp: new Date(),
+          action: 'room_items_modified' as const,
+          details: { updatedFields: Object.keys(updates) }
+        }
+      ]
+    };
+
+    setEstimate(updatedEstimate);
+    addToHistory(updatedEstimate);
+  }, [estimate, addToHistory]);
 
   return {
     estimate,
@@ -348,6 +373,7 @@ export function useEstimateEditor(estimateId?: string) {
     removeRoom,
     saveChanges,
     undo,
-    redo
+    redo,
+    updateEstimate: updateEstimateSettings
   };
 }

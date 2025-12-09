@@ -15,6 +15,9 @@ export function calculateEstimate(
   options?: {
     propertySpecs?: PropertySpecs;
     budgetDefaults?: BudgetDefaults;
+    customRangeEnabled?: boolean;
+    customRangeLowPercent?: number;
+    customRangeHighPercent?: number;
   }
 ): Budget | ProjectBudget {
   const tiers: QualityTier[] = ['low', 'mid', 'midHigh', 'high'];
@@ -57,17 +60,51 @@ export function calculateEstimate(
             // Use RoomItem price override if available, otherwise fall back to item library
             let tierPrice = 0;
             
-            if (tier === 'low' && roomItem.lowPrice !== undefined) {
-              tierPrice = roomItem.lowPrice;
-            } else if (tier === 'mid' && roomItem.midPrice !== undefined) {
-              tierPrice = roomItem.midPrice;
+            // Get base low price (from override or library)
+            const baseLowPrice = roomItem.lowPrice !== undefined 
+              ? roomItem.lowPrice 
+              : (items.get(roomItem.itemId)?.lowPrice || 0);
+            
+            // If custom range is enabled, calculate prices from low price using percentages
+            if (options?.customRangeEnabled && 
+                options.customRangeLowPercent !== undefined && 
+                options.customRangeHighPercent !== undefined &&
+                baseLowPrice > 0) {
+              
+              if (tier === 'low') {
+                // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
+                tierPrice = Math.round(baseLowPrice * (1 - options.customRangeLowPercent / 100));
+              } else if (tier === 'mid') {
+                // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
+                tierPrice = Math.round(baseLowPrice * (1 + options.customRangeHighPercent / 100));
+              } else {
+                // For midHigh and high tiers, use proportional scaling
+                // midHigh: between mid and high
+                // high: further above
+                const lowEnd = Math.round(baseLowPrice * (1 - options.customRangeLowPercent / 100));
+                const highEnd = Math.round(baseLowPrice * (1 + options.customRangeHighPercent / 100));
+                const range = highEnd - lowEnd;
+                
+                if (tier === 'midHigh') {
+                  tierPrice = Math.round(lowEnd + range * 0.75);
+                } else if (tier === 'high') {
+                  tierPrice = Math.round(lowEnd + range * 1.5);
+                }
+              }
             } else {
-              // Fall back to item library prices
-              const item = items.get(roomItem.itemId);
-              if (item) {
-                const tierKey = `${tier}Price` as keyof Item;
-                const candidate = item[tierKey];
-                tierPrice = typeof candidate === 'number' ? candidate : 0;
+              // Default behavior: use overrides or library prices
+              if (tier === 'low' && roomItem.lowPrice !== undefined) {
+                tierPrice = roomItem.lowPrice;
+              } else if (tier === 'mid' && roomItem.midPrice !== undefined) {
+                tierPrice = roomItem.midPrice;
+              } else {
+                // Fall back to item library prices
+                const item = items.get(roomItem.itemId);
+                if (item) {
+                  const tierKey = `${tier}Price` as keyof Item;
+                  const candidate = item[tierKey];
+                  tierPrice = typeof candidate === 'number' ? candidate : 0;
+                }
               }
             }
             

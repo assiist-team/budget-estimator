@@ -20,7 +20,7 @@ export default function EstimateEditPage() {
   const navigate = useNavigate();
   const { estimateId } = useParams<{ estimateId: string }>();
   const { isAdmin, loading: authLoading } = useAuth();
-  const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, removeRoom, saveChanges, undo, redo } = useEstimateEditor(estimateId);
+  const { estimate, loading, error, hasUnsavedChanges, canUndo, canRedo, updateRoom, removeRoom, saveChanges, undo, redo, updateEstimate } = useEstimateEditor(estimateId);
   const { roomTemplates, items } = useRoomTemplates();
   const [saving, setSaving] = useState(false);
 
@@ -61,8 +61,20 @@ export default function EstimateEditPage() {
 
   const calculateBudgetBreakdown = useCallback((rooms: RoomWithItems[]) => {
     const options = estimate?.propertySpecs && budgetDefaults
-      ? { propertySpecs: estimate.propertySpecs, budgetDefaults }
-      : undefined;
+      ? { 
+          propertySpecs: estimate.propertySpecs, 
+          budgetDefaults,
+          customRangeEnabled: estimate.customRangeEnabled,
+          customRangeLowPercent: estimate.customRangeLowPercent,
+          customRangeHighPercent: estimate.customRangeHighPercent
+        }
+      : estimate?.customRangeEnabled
+        ? {
+            customRangeEnabled: estimate.customRangeEnabled,
+            customRangeLowPercent: estimate.customRangeLowPercent,
+            customRangeHighPercent: estimate.customRangeHighPercent
+          }
+        : undefined;
     return calculateEstimate(rooms, roomTemplatesMap, itemsMap, options);
   }, [roomTemplatesMap, itemsMap, estimate, budgetDefaults]);
 
@@ -201,6 +213,89 @@ export default function EstimateEditPage() {
           </div>
         </div>
 
+        {/* Custom Range Settings - Only for Project Budget Estimates */}
+        {isProjectBudget(currentBudget) && (
+          <div className="mb-8">
+            <div className="bg-white rounded-lg shadow border-2 border-gray-200">
+              <div className="p-6">
+                <div className="mb-4">
+                  <span className="text-xl font-bold text-primary-800">
+                    Custom Range Settings
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="customRangeToggle"
+                      checked={estimate.customRangeEnabled || false}
+                      onChange={(e) => {
+                        updateEstimate({
+                          customRangeEnabled: e.target.checked,
+                          customRangeLowPercent: e.target.checked ? (estimate.customRangeLowPercent || 5) : undefined,
+                          customRangeHighPercent: e.target.checked ? (estimate.customRangeHighPercent || 5) : undefined
+                        });
+                      }}
+                      className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                    />
+                    <label htmlFor="customRangeToggle" className="text-gray-700 font-medium cursor-pointer">
+                      Use Custom Range (based on low price point)
+                    </label>
+                  </div>
+                  {estimate.customRangeEnabled && (
+                    <div className="ml-8 space-y-3 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <label className="text-sm text-gray-700 w-48">
+                          Low End (% below low price):
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={estimate.customRangeLowPercent || 5}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            if (!isNaN(value) && value >= 0) {
+                              updateEstimate({ customRangeLowPercent: value });
+                            }
+                          }}
+                          className="px-3 py-2 border border-gray-300 rounded-md w-24 text-sm"
+                        />
+                        <span className="text-sm text-gray-500">%</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="text-sm text-gray-700 w-48">
+                          High End (% above low price):
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={estimate.customRangeHighPercent || 5}
+                          onChange={(e) => {
+                            const value = parseFloat(e.target.value);
+                            if (!isNaN(value) && value >= 0) {
+                              updateEstimate({ customRangeHighPercent: value });
+                            }
+                          }}
+                          className="px-3 py-2 border border-gray-300 rounded-md w-24 text-sm"
+                        />
+                        <span className="text-sm text-gray-500">%</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        When enabled, item ranges will be calculated from the low price point using these percentages.
+                        You'll only need to set the low price when editing items.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Project Budget Breakdown */}
         {isProjectBudget(currentBudget) && (
           <div className="mb-8">
@@ -326,6 +421,9 @@ export default function EstimateEditPage() {
                     roomIndex={roomIndex}
                     roomTemplates={roomTemplates}
                     itemsMap={itemsMap}
+                    customRangeEnabled={estimate.customRangeEnabled || false}
+                    customRangeLowPercent={estimate.customRangeLowPercent}
+                    customRangeHighPercent={estimate.customRangeHighPercent}
                     onUpdate={(updatedRoom) => updateRoom(roomIndex, updatedRoom)}
                     onRemove={() => removeRoom(roomIndex)}
                     onQuantityChange={(newQuantity) => {
@@ -355,12 +453,15 @@ interface RoomEditorProps {
   roomIndex: number;
   roomTemplates: Map<string, RoomTemplate>;
   itemsMap: Map<string, Item>;
+  customRangeEnabled?: boolean;
+  customRangeLowPercent?: number;
+  customRangeHighPercent?: number;
   onUpdate: (room: RoomWithItems) => void;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
 }
 
-function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
+function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, onUpdate, onRemove, onQuantityChange }: RoomEditorProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isSizeDropdownOpen, setIsSizeDropdownOpen] = useState(false);
   const sizeDropdownRef = useRef<HTMLDivElement>(null);
@@ -372,9 +473,25 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
     let midTotal = 0;
     
     room.items.forEach((roomItem) => {
-      // Use RoomItem price override if available, otherwise fall back to item library
-      const lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (itemsMap.get(roomItem.itemId)?.lowPrice || 0);
-      const midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (itemsMap.get(roomItem.itemId)?.midPrice || 0);
+      // Get base low price (from override or library)
+      const baseLowPrice = roomItem.lowPrice !== undefined 
+        ? roomItem.lowPrice 
+        : (itemsMap.get(roomItem.itemId)?.lowPrice || 0);
+      
+      let lowPrice: number;
+      let midPrice: number;
+      
+      // If custom range is enabled, calculate prices from low price using percentages
+      if (customRangeEnabled && customRangeLowPercent !== undefined && customRangeHighPercent !== undefined && baseLowPrice > 0) {
+        // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
+        lowPrice = Math.round(baseLowPrice * (1 - customRangeLowPercent / 100));
+        // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
+        midPrice = Math.round(baseLowPrice * (1 + customRangeHighPercent / 100));
+      } else {
+        // Use RoomItem price override if available, otherwise fall back to item library
+        lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (itemsMap.get(roomItem.itemId)?.lowPrice || 0);
+        midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (itemsMap.get(roomItem.itemId)?.midPrice || 0);
+      }
       
       const totalQuantity = roomItem.quantity * room.quantity;
       lowTotal += lowPrice * totalQuantity;
@@ -382,7 +499,7 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
     });
     
     return { low: lowTotal, mid: midTotal };
-  }, [room.items, room.quantity, itemsMap]);
+  }, [room.items, room.quantity, itemsMap, customRangeEnabled, customRangeLowPercent, customRangeHighPercent]);
 
   const handleSizeChange = (newSize: 'small' | 'medium' | 'large') => {
     // Update room size and items based on the new size template
@@ -530,6 +647,9 @@ function RoomEditor({ room, roomIndex, roomTemplates, itemsMap, onUpdate, onRemo
                 itemIndex={itemIndex}
                 itemsMap={itemsMap}
                 roomQuantity={room.quantity}
+                customRangeEnabled={customRangeEnabled}
+                customRangeLowPercent={customRangeLowPercent}
+                customRangeHighPercent={customRangeHighPercent}
                 onRemove={() => {
                   const updatedItems = room.items.filter((_, i) => i !== itemIndex);
                   onUpdate({ ...room, items: updatedItems });
@@ -572,18 +692,36 @@ interface ItemRowProps {
   itemIndex: number;
   itemsMap: Map<string, Item>;
   roomQuantity: number;
+  customRangeEnabled?: boolean;
+  customRangeLowPercent?: number;
+  customRangeHighPercent?: number;
   onRemove: () => void;
   onQuantityChange: (newQuantity: number) => void;
   onPriceChange: (lowPrice?: number, midPrice?: number) => void;
 }
 
-function ItemRow({ roomItem, itemsMap, roomQuantity, onRemove, onQuantityChange, onPriceChange }: ItemRowProps) {
+function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, onRemove, onQuantityChange, onPriceChange }: ItemRowProps) {
   const item = itemsMap.get(roomItem.itemId);
   const itemDisplayName = item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
   
-  // Use RoomItem price overrides if available, otherwise fall back to item library
-  const lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
-  const midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+  // Get base low price (the price point the user sets)
+  const baseLowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+  
+  // Calculate display prices
+  let lowPrice: number;
+  let midPrice: number;
+  
+  // If custom range is enabled, calculate prices from base low price using percentages
+  if (customRangeEnabled && customRangeLowPercent !== undefined && customRangeHighPercent !== undefined && baseLowPrice > 0) {
+    // Low end: baseLowPrice * (1 - customRangeLowPercent / 100)
+    lowPrice = Math.round(baseLowPrice * (1 - customRangeLowPercent / 100));
+    // High end: baseLowPrice * (1 + customRangeHighPercent / 100)
+    midPrice = Math.round(baseLowPrice * (1 + customRangeHighPercent / 100));
+  } else {
+    // Use RoomItem price override if available, otherwise fall back to item library
+    lowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+    midPrice = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+  }
   
   // Calculate totals considering quantity and room quantity
   const totalQuantity = roomItem.quantity * roomQuantity;
@@ -591,34 +729,54 @@ function ItemRow({ roomItem, itemsMap, roomQuantity, onRemove, onQuantityChange,
   const midTotal = midPrice * totalQuantity;
   
   const [isEditingPrices, setIsEditingPrices] = useState(false);
-  const [lowPriceInput, setLowPriceInput] = useState(Math.round(lowPrice / 100).toString());
-  const [midPriceInput, setMidPriceInput] = useState(Math.round(midPrice / 100).toString());
+  const [lowPriceInput, setLowPriceInput] = useState(Math.round(baseLowPrice / 100).toString());
+  const [midPriceInput, setMidPriceInput] = useState(Math.round((roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0)) / 100).toString());
 
   useEffect(() => {
-    setLowPriceInput(Math.round(lowPrice / 100).toString());
-    setMidPriceInput(Math.round(midPrice / 100).toString());
-  }, [lowPrice, midPrice]);
+    const baseLow = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
+    setLowPriceInput(Math.round(baseLow / 100).toString());
+    if (!customRangeEnabled) {
+      const baseMid = roomItem.midPrice !== undefined ? roomItem.midPrice : (item?.midPrice || 0);
+      setMidPriceInput(Math.round(baseMid / 100).toString());
+    }
+  }, [roomItem.lowPrice, roomItem.midPrice, item?.lowPrice, item?.midPrice, customRangeEnabled]);
 
   const handlePriceSave = () => {
     const lowCents = Math.round(parseFloat(lowPriceInput) * 100);
-    const midCents = Math.round(parseFloat(midPriceInput) * 100);
     
     // Only save if different from item library prices (to break sync)
-    // If they match library prices, set to undefined to reset to library values
     const itemLow = item?.lowPrice || 0;
-    const itemMid = item?.midPrice || 0;
     
     // If the input is invalid or empty, reset to library prices
-    if (isNaN(lowCents) || isNaN(midCents) || lowPriceInput === '' || midPriceInput === '') {
+    if (isNaN(lowCents) || lowPriceInput === '') {
       onPriceChange(undefined, undefined);
       setIsEditingPrices(false);
       return;
     }
     
-    onPriceChange(
-      lowCents !== itemLow ? lowCents : undefined,
-      midCents !== itemMid ? midCents : undefined
-    );
+    if (customRangeEnabled) {
+      // When custom range is enabled, only save low price
+      // Mid price will be calculated automatically
+      onPriceChange(
+        lowCents !== itemLow ? lowCents : undefined,
+        undefined // Don't set mid price when custom range is enabled
+      );
+    } else {
+      // When custom range is disabled, save both prices
+      const midCents = Math.round(parseFloat(midPriceInput) * 100);
+      const itemMid = item?.midPrice || 0;
+      
+      if (isNaN(midCents) || midPriceInput === '') {
+        onPriceChange(undefined, undefined);
+        setIsEditingPrices(false);
+        return;
+      }
+      
+      onPriceChange(
+        lowCents !== itemLow ? lowCents : undefined,
+        midCents !== itemMid ? midCents : undefined
+      );
+    }
     setIsEditingPrices(false);
   };
 
@@ -647,17 +805,24 @@ function ItemRow({ roomItem, itemsMap, roomQuantity, onRemove, onQuantityChange,
               />
               <span className="text-xs text-gray-500">each</span>
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-xs text-gray-600 w-20">Mid Price:</label>
-              <input
-                type="number"
-                value={midPriceInput}
-                onChange={(e) => setMidPriceInput(e.target.value)}
-                className="text-xs px-2 py-1 border border-gray-300 rounded w-24"
-                placeholder="0"
-              />
-              <span className="text-xs text-gray-500">each</span>
-            </div>
+            {!customRangeEnabled && (
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-gray-600 w-20">Mid Price:</label>
+                <input
+                  type="number"
+                  value={midPriceInput}
+                  onChange={(e) => setMidPriceInput(e.target.value)}
+                  className="text-xs px-2 py-1 border border-gray-300 rounded w-24"
+                  placeholder="0"
+                />
+                <span className="text-xs text-gray-500">each</span>
+              </div>
+            )}
+            {customRangeEnabled && (
+              <div className="text-xs text-gray-500 italic">
+                Range will be calculated from low price using custom percentages
+              </div>
+            )}
             <div className="flex items-center gap-2 mt-1">
               <button
                 onClick={handlePriceSave}
@@ -676,6 +841,11 @@ function ItemRow({ roomItem, itemsMap, roomQuantity, onRemove, onQuantityChange,
         ) : (
           <div className="text-xs text-gray-500 mt-1">
             {formatCurrency(lowPrice)} — {formatCurrency(midPrice)} each
+            {customRangeEnabled && (
+              <span className="ml-2 text-xs text-gray-400 italic">
+                (calculated from low price)
+              </span>
+            )}
             <button
               onClick={() => setIsEditingPrices(true)}
               className="ml-2 text-primary-600 hover:text-primary-800 underline"
