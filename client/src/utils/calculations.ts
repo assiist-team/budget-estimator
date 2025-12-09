@@ -1,9 +1,12 @@
 // Budget calculation utilities
-import type { RoomTemplate, RoomWithItems, RoomItem, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, BudgetDefaults, ProjectBudget } from '../types';
+import type { RoomTemplate, RoomWithItems, RoomItem, Budget, RoomBreakdown, QualityTier, Item, PropertySpecs, BudgetDefaults, ProjectBudget, RoomInstance } from '../types';
 import type { ComputedConfiguration } from '../types/config';
 
 // Re-export QUALITY_TIERS for convenience
 export { QUALITY_TIERS } from '../types';
+
+// Type for rooms used in calculations (can be either format)
+type RoomForCalculation = RoomInstance | RoomWithItems;
 
 /**
  * Calculate estimate for all quality tiers (low to mid range)
@@ -286,7 +289,7 @@ export function calculateTotalItems(
 
     // If we have items in the room data, use those (from edit page)
     if (room.items.length > 0) {
-      const roomItems = room.items.reduce((roomItemTotal, item) => roomItemTotal + item.quantity, 0);
+      const roomItems = room.items.reduce((roomItemTotal: number, item: RoomItem) => roomItemTotal + item.quantity, 0);
       return total + (roomItems * room.quantity);
     }
 

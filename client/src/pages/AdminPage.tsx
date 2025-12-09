@@ -398,6 +398,7 @@ export default function AdminPage() {
       setShowCreateCustomRoom(false);
       setNewCustomRoom({
         displayName: '',
+        description: '',
         category: 'common_spaces',
         icon: ''
       });

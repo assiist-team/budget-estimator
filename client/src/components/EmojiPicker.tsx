@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react';
+import EmojiPicker, { type EmojiClickData, Categories } from 'emoji-picker-react';
 
 interface EmojiPickerInputProps {
   value: string;
@@ -10,15 +10,15 @@ interface EmojiPickerInputProps {
 
 // Room-related emoji categories ordered first for easier access
 const roomRelatedCategories = [
-  { category: 'travel_places', name: 'Places' }, // Contains 🏠🏡🏘️🏚️🏗️🏭🏢🏬🏣🏤🏥🏦🏨🏩🏪🏫🏬🏭🏯🏰
-  { category: 'objects', name: 'Objects' }, // Contains various room-related items
-  { category: 'suggested', name: 'Recently Used' },
-  { category: 'smileys_people', name: 'Smileys & People' },
-  { category: 'animals_nature', name: 'Animals & Nature' },
-  { category: 'food_drink', name: 'Food & Drink' },
-  { category: 'activities', name: 'Activities' },
-  { category: 'symbols', name: 'Symbols' },
-  { category: 'flags', name: 'Flags' },
+  { category: Categories.TRAVEL_PLACES, name: 'Places' }, // Contains 🏠🏡🏘️🏚️🏗️🏭🏢🏬🏣🏤🏥🏦🏨🏩🏪🏫🏬🏭🏯🏰
+  { category: Categories.OBJECTS, name: 'Objects' }, // Contains various room-related items
+  { category: Categories.SUGGESTED, name: 'Recently Used' },
+  { category: Categories.SMILEYS_PEOPLE, name: 'Smileys & People' },
+  { category: Categories.ANIMALS_NATURE, name: 'Animals & Nature' },
+  { category: Categories.FOOD_DRINK, name: 'Food & Drink' },
+  { category: Categories.ACTIVITIES, name: 'Activities' },
+  { category: Categories.SYMBOLS, name: 'Symbols' },
+  { category: Categories.FLAGS, name: 'Flags' },
 ];
 
 export function EmojiPickerInput({ value, onChange, maxLength = 2, placeholder = 'Select an emoji' }: EmojiPickerInputProps) {

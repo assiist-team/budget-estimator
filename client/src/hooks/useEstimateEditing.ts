@@ -212,9 +212,11 @@ export function useEstimateEditor(estimateId?: string) {
       if (foundEstimate.propertySpecs) {
         const hasOutdoorSpace = foundEstimate.rooms.some(room => room.roomType === 'outdoor_space');
         if (!hasOutdoorSpace) {
+          const outdoorSpaceRoom = createOutdoorSpaceRoom();
+          const outdoorSpaceInstance = convertEstimateRoomsToInstances([outdoorSpaceRoom])[0];
           processedEstimate = {
             ...foundEstimate,
-            rooms: [...foundEstimate.rooms, createOutdoorSpaceRoom()]
+            rooms: [...foundEstimate.rooms, outdoorSpaceInstance]
           };
         }
       }
@@ -250,7 +252,11 @@ export function useEstimateEditor(estimateId?: string) {
     if (!estimate) return;
 
     const updatedRooms = [...estimate.rooms];
-    updatedRooms[roomIndex] = updatedRoom;
+    // Convert RoomWithItems to RoomInstance if needed
+    const roomInstance: RoomInstance = updatedRoom.instanceId 
+      ? { ...updatedRoom, instanceId: updatedRoom.instanceId, quantity: 1 }
+      : convertEstimateRoomsToInstances([updatedRoom])[0];
+    updatedRooms[roomIndex] = roomInstance;
 
     const updatedEstimate = {
       ...estimate,
@@ -275,7 +281,9 @@ export function useEstimateEditor(estimateId?: string) {
   const addRoom = useCallback((newRoom: RoomWithItems) => {
     if (!estimate) return;
 
-    const updatedRooms = [...estimate.rooms, newRoom];
+    // Convert RoomWithItems to RoomInstance
+    const roomInstance = convertEstimateRoomsToInstances([newRoom])[0];
+    const updatedRooms = [...estimate.rooms, roomInstance];
     const updatedEstimate = {
       ...estimate,
       rooms: updatedRooms,

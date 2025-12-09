@@ -132,7 +132,7 @@ export function summarizeRoomInstances(instances: RoomInstance[]): RoomWithItems
   // Convert groups to RoomWithItems
   const summarized: RoomWithItems[] = [];
   
-  for (const [key, groupInstances] of grouped.entries()) {
+  for (const [, groupInstances] of grouped.entries()) {
     if (groupInstances.length === 0) continue;
     
     const firstInstance = groupInstances[0];
