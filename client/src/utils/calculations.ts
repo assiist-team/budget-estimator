@@ -463,7 +463,7 @@ export function createOutdoorSpaceRoom(): RoomWithItems {
     items: [{
       itemId: 'outdoor_space_item',
       quantity: 1,
-      name: 'Outdoor Space',
+      name: 'Outdoor Furnishings',
       lowPrice: 125000, // $1,250 in cents
       midPrice: 125000, // $1,250 in cents
     }]

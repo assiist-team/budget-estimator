@@ -167,3 +167,10 @@ html {
 .generating-pdf .pdf-controls {
   display: none !important;
 }
+
+/* Allow text to wrap and avoid clipping when capturing PDF */
+.generating-pdf .truncate {
+  overflow: visible !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}

@@ -185,10 +185,10 @@ export default function ViewEstimatePage() {
     await new Promise(resolve => setTimeout(resolve, 300));
 
     try {
-      // Capture the content as canvas
-      // Use a slightly lower scale and JPEG format to dramatically reduce file size
       const canvas = await html2canvas(pdfContentRef.current, {
-        scale: 1.25, // Lower than 2x to keep resolution reasonable but lighter
+        // Use an integer scale to avoid text baseline clipping while still
+        // relying on JPEG compression to keep file sizes reasonable
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#f9fafb', // gray-50 background
@@ -196,17 +196,111 @@ export default function ViewEstimatePage() {
         windowHeight: pdfContentRef.current.scrollHeight,
       });
 
-      // Use JPEG with quality setting instead of PNG to shrink PDF size
-      const imgData = canvas.toDataURL('image/jpeg', 0.8);
       const padding = 5; // 5mm padding around the PDF
       const pageWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
       const usableWidth = pageWidth - (padding * 2); // Content width with padding
       const usableHeight = pageHeight - (padding * 2); // Content height with padding
-      
+
       const imgWidth = usableWidth; // Image width fits within padding
-      const imgHeight = (canvas.height * imgWidth) / canvas.width; // Proportional height
-      
+      const fullImgHeight = (canvas.height * imgWidth) / canvas.width; // Proportional height in mm for full canvas
+      const mmPerPixel = imgWidth / canvas.width;
+
+      // Figure out how many vertical pixels fit into one PDF page's usable height
+      const pageHeightPx = Math.floor(
+        (canvas.height * usableHeight) / fullImgHeight
+      );
+      const canvasCtx = canvas.getContext('2d');
+
+      const findSafeSliceHeight = (startPx: number, desiredHeightPx: number, totalHeightPx: number) => {
+        if (!canvasCtx) {
+          return desiredHeightPx;
+        }
+
+        const maxEndPx = Math.min(startPx + desiredHeightPx, totalHeightPx);
+
+        // If this is the final slice, use whatever remains
+        if (maxEndPx >= totalHeightPx) {
+          return totalHeightPx - startPx;
+        }
+
+        const searchWindowPx = Math.min(80, Math.max(25, Math.floor(desiredHeightPx * 0.2)));
+        const searchStart = Math.max(maxEndPx - searchWindowPx, startPx);
+        const searchHeight = maxEndPx - searchStart;
+
+        if (searchHeight <= 0) {
+          return desiredHeightPx;
+        }
+
+        try {
+          const imageData = canvasCtx.getImageData(0, searchStart, canvas.width, searchHeight);
+          const data = imageData.data;
+          const rowStride = canvas.width * 4;
+          const sampleStep = Math.max(1, Math.floor(canvas.width / 600));
+          const darkThreshold = 215;
+          const maxDarkSamplesPerRow = Math.max(3, Math.floor((canvas.width / sampleStep) * 0.015));
+
+          for (let row = searchHeight - 1; row >= 0; row--) {
+            let darkSamples = 0;
+            const rowOffset = row * rowStride;
+
+            for (let col = 0; col < canvas.width; col += sampleStep) {
+              const idx = rowOffset + col * 4;
+              const alpha = data[idx + 3];
+
+              if (alpha < 200) {
+                continue;
+              }
+
+              const r = data[idx];
+              const g = data[idx + 1];
+              const b = data[idx + 2];
+
+              if (r < darkThreshold || g < darkThreshold || b < darkThreshold) {
+                darkSamples++;
+                if (darkSamples > maxDarkSamplesPerRow) {
+                  break;
+                }
+              }
+            }
+
+            if (darkSamples <= maxDarkSamplesPerRow) {
+              return Math.max(1, searchStart + row - startPx);
+            }
+          }
+        } catch (err) {
+          console.warn('PDF safe slice detection failed:', err);
+        }
+
+        // If we couldn't find a clean cut, back off slightly to avoid slicing through text
+        const fallbackReduction = Math.max(12, Math.floor(desiredHeightPx * 0.1));
+        return Math.max(1, Math.min(desiredHeightPx - fallbackReduction, totalHeightPx - startPx));
+      };
+
+      const sliceToImageData = (sourceCanvas: HTMLCanvasElement, startPx: number, sliceHeightPx: number) => {
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = sourceCanvas.width;
+        sliceCanvas.height = sliceHeightPx;
+        const sliceCtx = sliceCanvas.getContext('2d');
+
+        if (sliceCtx) {
+          sliceCtx.drawImage(
+            sourceCanvas,
+            0,
+            startPx,
+            sourceCanvas.width,
+            sliceHeightPx,
+            0,
+            0,
+            sourceCanvas.width,
+            sliceHeightPx
+          );
+          return sliceCanvas.toDataURL('image/jpeg', 0.8);
+        }
+
+        return null;
+      };
+
       // Enable internal compression for images
       const pdf = new jsPDF({
         orientation: 'p',
@@ -214,22 +308,28 @@ export default function ViewEstimatePage() {
         format: 'a4',
         compress: true,
       });
-      let yOffset = 0; // Track how much of the image we've shown
 
-      // Add pages until all content is shown
-      while (yOffset < imgHeight) {
-        // Calculate the y position to show the current portion of the image
-        // Negative y positions the image above the page, showing the next portion
-        const yPosition = padding - yOffset;
-        
-        // Add image to current page
-        pdf.addImage(imgData, 'JPEG', padding, yPosition, imgWidth, imgHeight);
-        
-        // Move to next portion
-        yOffset += usableHeight;
-        
-        // If there's more content, add a new page
-        if (yOffset < imgHeight) {
+      // Slice the tall canvas into page-sized chunks in pixel space to avoid
+      // clipping or duplicating lines at page boundaries.
+      let currentPxOffset = 0;
+      const totalHeightPx = canvas.height;
+
+      while (currentPxOffset < totalHeightPx) {
+        const remainingPx = totalHeightPx - currentPxOffset;
+        const desiredSliceHeightPx = Math.min(pageHeightPx, remainingPx);
+        const safeSliceHeightPx = findSafeSliceHeight(currentPxOffset, desiredSliceHeightPx, totalHeightPx);
+        const sliceHeightPx = Math.max(1, Math.min(safeSliceHeightPx, remainingPx));
+
+        const sliceImgData = sliceToImageData(canvas, currentPxOffset, sliceHeightPx);
+
+        if (sliceImgData) {
+          const sliceImgHeight = sliceHeightPx * mmPerPixel;
+          pdf.addImage(sliceImgData, 'JPEG', padding, padding, imgWidth, sliceImgHeight);
+        }
+
+        currentPxOffset += sliceHeightPx;
+
+        if (currentPxOffset < totalHeightPx) {
           pdf.addPage();
         }
       }
@@ -598,13 +698,24 @@ export default function ViewEstimatePage() {
                                 .sort((a: RoomItem, b: RoomItem) => {
                                   const itemA = items.get(a.itemId);
                                   const itemB = items.get(b.itemId);
-                                  const nameA = a.name || itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-                                  const nameB = b.name || itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  let nameA = a.name || itemA?.name || a.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  let nameB = b.name || itemB?.name || b.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  // Override display name for outdoor space item in sorting
+                                  if (a.itemId === 'outdoor_space_item') {
+                                    nameA = 'Outdoor Furnishings';
+                                  }
+                                  if (b.itemId === 'outdoor_space_item') {
+                                    nameB = 'Outdoor Furnishings';
+                                  }
                                   return nameA.localeCompare(nameB);
                                 })
                                 .map((roomItem: RoomItem, itemIdx: number) => {
                                   const item = items.get(roomItem.itemId);
-                                  const itemDisplayName = roomItem.name || item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  let itemDisplayName = roomItem.name || item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                                  // Override display name for outdoor space item
+                                  if (roomItem.itemId === 'outdoor_space_item') {
+                                    itemDisplayName = 'Outdoor Furnishings';
+                                  }
                                   const totalQuantity = roomItem.quantity * room.quantity;
                                   
                                   // Get base low price (the price point the user sets)

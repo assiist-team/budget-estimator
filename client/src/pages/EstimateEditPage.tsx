@@ -893,7 +893,11 @@ interface ItemRowProps {
 
 function ItemRow({ roomItem, itemsMap, roomQuantity, customRangeEnabled, customRangeLowPercent, customRangeHighPercent, onRemove, onQuantityChange, onPriceChange }: ItemRowProps) {
   const item = itemsMap.get(roomItem.itemId);
-  const itemDisplayName = roomItem.name || item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+  let itemDisplayName = roomItem.name || item?.name || roomItem.itemId.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+  // Override display name for outdoor space item
+  if (roomItem.itemId === 'outdoor_space_item') {
+    itemDisplayName = 'Outdoor Furnishings';
+  }
   
   // Get base low price (the price point the user sets)
   const baseLowPrice = roomItem.lowPrice !== undefined ? roomItem.lowPrice : (item?.lowPrice || 0);
