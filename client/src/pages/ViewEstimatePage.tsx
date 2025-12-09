@@ -31,6 +31,7 @@ export default function ViewEstimatePage() {
   const [loading, setLoading] = useState(true);
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set());
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [hidePrices, setHidePrices] = useState(false);
   const pdfContentRef = useRef<HTMLDivElement>(null);
   const { profile, loading: authLoading } = useAuth();
   const { requireAccount } = useAuthModal();
@@ -185,8 +186,9 @@ export default function ViewEstimatePage() {
 
     try {
       // Capture the content as canvas
+      // Use a slightly lower scale and JPEG format to dramatically reduce file size
       const canvas = await html2canvas(pdfContentRef.current, {
-        scale: 2,
+        scale: 1.25, // Lower than 2x to keep resolution reasonable but lighter
         useCORS: true,
         logging: false,
         backgroundColor: '#f9fafb', // gray-50 background
@@ -194,7 +196,8 @@ export default function ViewEstimatePage() {
         windowHeight: pdfContentRef.current.scrollHeight,
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      // Use JPEG with quality setting instead of PNG to shrink PDF size
+      const imgData = canvas.toDataURL('image/jpeg', 0.8);
       const padding = 5; // 5mm padding around the PDF
       const pageWidth = 210; // A4 width in mm
       const pageHeight = 297; // A4 height in mm
@@ -204,7 +207,13 @@ export default function ViewEstimatePage() {
       const imgWidth = usableWidth; // Image width fits within padding
       const imgHeight = (canvas.height * imgWidth) / canvas.width; // Proportional height
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      // Enable internal compression for images
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
       let yOffset = 0; // Track how much of the image we've shown
 
       // Add pages until all content is shown
@@ -214,7 +223,7 @@ export default function ViewEstimatePage() {
         const yPosition = padding - yOffset;
         
         // Add image to current page
-        pdf.addImage(imgData, 'PNG', padding, yPosition, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', padding, yPosition, imgWidth, imgHeight);
         
         // Move to next portion
         yOffset += usableHeight;
@@ -298,7 +307,17 @@ export default function ViewEstimatePage() {
         <div className="sticky top-0 z-10 bg-gray-50 pt-4 pb-4 mb-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <Link to={backHref} className="btn-secondary">← Back to Reports</Link>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
+              {/* Hide Prices Toggle */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hidePrices}
+                  onChange={(e) => setHidePrices(e.target.checked)}
+                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                />
+                <span className="text-sm text-gray-700 font-medium">Hide Prices</span>
+              </label>
               {isAdmin && (
                 <Link to={`/tools/budget-estimator/estimate/edit/${estimateId}`} className="btn-primary">
                   Edit
@@ -358,7 +377,7 @@ export default function ViewEstimatePage() {
                     <div className="flex-1">
                       <div className="mb-1">
                         <span className="text-2xl font-bold text-primary-800">
-                          Project Budget Breakdown
+                          Project Budget Categories
                         </span>
                       </div>
                     </div>
@@ -369,9 +388,11 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Furnishings</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">
-                          {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
-                        </span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">
+                            {formatCurrency(budget.rangeLow)} — {formatCurrency(budget.rangeHigh)}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         All furniture, accessories, and finishing touches
@@ -382,9 +403,11 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Design Planning</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">
-                          {formatCurrency(budget.projectAddOns.designPlanning)}
-                        </span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">
+                            {formatCurrency(budget.projectAddOns.designPlanning)}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Initial design consultation, space planning, and design development
@@ -394,9 +417,11 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Procurement</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">
-                          {formatCurrency(budget.projectAddOns.procurement)}
-                        </span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">
+                            {formatCurrency(budget.projectAddOns.procurement)}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Sourcing, ordering, and managing furniture and accessories
@@ -406,9 +431,11 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Design Implementation</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">
-                          {formatCurrency(budget.projectAddOns.designImplementation)}
-                        </span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">
+                            {formatCurrency(budget.projectAddOns.designImplementation)}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Final placement, styling, and design execution services
@@ -418,7 +445,9 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Installation</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.installation)}</span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.installation)}</span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Professional delivery, setup, and installation services
@@ -428,7 +457,9 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Fuel</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.fuel)}</span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.fuel)}</span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Transportation and fuel costs
@@ -438,7 +469,9 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Storage & Receiving</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.storageAndReceiving)}</span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Temporary storage solutions and receiving services
@@ -448,7 +481,9 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Kitchen</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.kitchen)}</span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Kitchen equipment including cookware, flatware, and accessories
@@ -458,7 +493,9 @@ export default function ViewEstimatePage() {
                     <div className="py-2">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-gray-700 flex-1 min-w-0">Property Management</span>
-                        <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                        {!hidePrices && (
+                          <span className="text-gray-700 flex-shrink-0 ml-3">{formatCurrency(budget.projectAddOns.propertyManagement)}</span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">
                         Items required by property management
@@ -466,12 +503,14 @@ export default function ViewEstimatePage() {
                     </div>
 
                     {/* Project Total */}
-                    <div className="flex justify-between items-center py-4 border-t-2 border-gray-300 mt-4">
-                      <span className="text-lg sm:text-xl font-bold text-gray-900 flex-1 min-w-0">Project Total</span>
-                      <span className="text-lg sm:text-xl font-bold text-primary-600 flex-shrink-0 ml-3">
-                        {formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}
-                      </span>
-                    </div>
+                    {!hidePrices && (
+                      <div className="flex justify-between items-center py-4 border-t-2 border-gray-300 mt-4">
+                        <span className="text-lg sm:text-xl font-bold text-gray-900 flex-1 min-w-0">Project Total</span>
+                        <span className="text-lg sm:text-xl font-bold text-primary-600 flex-shrink-0 ml-3">
+                          {formatCurrency(budget.projectRange.low)} — {formatCurrency(budget.projectRange.mid)}
+                        </span>
+                      </div>
+                    )}
 
                   </div>
                 </div>
@@ -486,7 +525,7 @@ export default function ViewEstimatePage() {
                 <div className="mb-6">
                   <div className="mb-1">
                     <span className="text-2xl font-bold text-primary-800">
-                      Detailed Furnishings Budget Breakdown
+                      Detailed Furnishings Breakdown
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1 mb-4">
@@ -541,11 +580,13 @@ export default function ViewEstimatePage() {
                               </p>
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0 ml-3">
-                            <div className="font-semibold text-gray-700 whitespace-nowrap">
-                              {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
+                          {!hidePrices && (
+                            <div className="text-right flex-shrink-0 ml-3">
+                              <div className="font-semibold text-gray-700 whitespace-nowrap">
+                                {formatCurrency(room.lowAmount)} — {formatCurrency(room.midAmount)}
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
 
                         {/* Room Details - Collapsible */}
@@ -597,7 +638,7 @@ export default function ViewEstimatePage() {
                                         <span className="text-gray-700 font-medium">
                                           {itemDisplayName}
                                         </span>
-                                        {isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
+                                        {!hidePrices && isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
                                           <div className="text-xs text-gray-500 mt-1">
                                             {formatCurrency(lowPrice)} — {formatCurrency(midPrice)} each
                                           </div>
@@ -608,7 +649,7 @@ export default function ViewEstimatePage() {
                                           Qty: {roomItem.quantity}
                                           {room.quantity > 1 && ` × ${room.quantity} rooms`}
                                         </span>
-                                        {isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
+                                        {!hidePrices && isAdmin && (item || roomItem.lowPrice !== undefined || roomItem.midPrice !== undefined) && (
                                           <span className="text-gray-700 font-semibold">
                                             {formatCurrency(lowTotal)} — {formatCurrency(midTotal)}
                                           </span>
